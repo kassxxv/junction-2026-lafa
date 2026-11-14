@@ -49,8 +49,7 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
             </p>
             <p className="mt-2 max-w-[60ch] text-muted-foreground">
               Companies confirm what they need until <strong className="text-foreground">{fmt(event.companyDeadline)}</strong>.
-              Then you get one email with the companies in your fields and choose who you want to meet. No action needed
-              until then.
+              After that, companies in your fields are open to choose. No action needed until then.
             </p>
             <Link href={`${base}/choose`} className="mt-6 inline-flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm hover:bg-muted/50">
               Demo: jump to after the company deadline <ArrowRight className="size-4" />

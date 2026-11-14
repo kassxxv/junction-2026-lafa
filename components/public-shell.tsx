@@ -1,4 +1,7 @@
+import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { BRAND } from "@/lib/brand";
 import { EVENT, formatDateRange } from "@/lib/matchready/event";
 
 /** Header + footer for public pages (companies and candidates). */
@@ -7,10 +10,15 @@ export function PublicShell({ right, children }: { right?: ReactNode; children: 
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
-          <span>
+          <span className="flex items-center gap-2.5">
+            <Link href="/" aria-label={`${BRAND.name} home`} className="shrink-0 border-r border-border pr-3">
+              <Image src={BRAND.logoOnLight.src} width={BRAND.logoOnLight.width} height={BRAND.logoOnLight.height} alt="" loading="eager" className="h-8 w-auto" />
+            </Link>
+            <span>
             <span className="font-semibold">{EVENT.name}</span>
             <span className="text-muted-foreground">
               , {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })}, {EVENT.place}
+            </span>
             </span>
           </span>
           {right && <span className="text-muted-foreground">{right}</span>}
@@ -18,7 +26,7 @@ export function PublicShell({ right, children }: { right?: ReactNode; children: 
       </header>
       <main className="flex-1">{children}</main>
       <footer className="px-5 py-6 text-center text-xs text-muted-foreground">
-        MatchReady prototype for the City of Espoo. The event is real; companies and people are fictional.
+        {BRAND.name} prototype for the City of Espoo. The event is real; companies and people are fictional.
       </footer>
     </div>
   );

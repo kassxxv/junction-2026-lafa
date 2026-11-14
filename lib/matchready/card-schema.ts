@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Company card (MatchReady). Shared by the UI and the server: no secrets, no server-only imports.
+ * Company card (Bridgy). Shared by the UI and the server: no secrets, no server-only imports.
  * The model returns `ModelCard`; code verifies quotes and maps it to `CompanyCardDraft`.
  */
 

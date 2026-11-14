@@ -131,8 +131,8 @@ export default async function OrganiserOverview() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="rounded-xl border border-border bg-card p-5">
-            <h2 className="font-semibold">How efficient is this event?</h2>
-            <p className="mt-1 text-sm text-muted-foreground">The two numbers this tool is built to improve.</p>
+            <h2 className="font-semibold">Event results</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Organiser time per place, and how many meetings both sides want to continue.</p>
             <dl className="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
                 <dt className="text-sm text-muted-foreground">Organiser minutes per filled place</dt>

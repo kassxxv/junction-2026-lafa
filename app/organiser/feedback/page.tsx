@@ -51,8 +51,7 @@ export default async function FeedbackDashboardPage() {
           </ul>
           <p className="mt-6 flex gap-2 text-sm text-muted-foreground">
             <Info className="mt-0.5 size-4 shrink-0" />
-            Next event: organisers see which requirements and selection rules led to good meetings for which companies.
-            Answers are never shown per person and never affect anyone&apos;s future admission.
+            Shown per company only. Answers are never shown per person and never affect anyone&apos;s future admission.
           </p>
         </section>
 

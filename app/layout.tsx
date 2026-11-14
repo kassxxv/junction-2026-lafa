@@ -10,8 +10,8 @@ const ui = Instrument_Sans({ variable: "--font-ui", subsets: ["latin", "latin-ex
 const doc = Source_Serif_4({ variable: "--font-document", subsets: ["latin", "latin-ext"] });
 
 export const metadata: Metadata = {
-  title: "Recruitment event workspace",
-  description: "Company cards for Espoo recruitment events (prototype, synthetic data)",
+  title: "Bridgy",
+  description: "Registration and selection for the 1:1 meetings at City of Espoo recruitment events (prototype, synthetic data)",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

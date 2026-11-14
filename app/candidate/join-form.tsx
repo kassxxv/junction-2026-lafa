@@ -71,11 +71,10 @@ export function JoinForm({
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-medium text-primary">Stage 1 · Talent pool</p>
+        <p className="text-sm font-medium text-primary">Step 1: talent pool</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Join the talent pool</h1>
         <p className="mt-2 max-w-[58ch] text-muted-foreground">
-          About one minute. Nobody is selected at this stage: you choose companies later, when you know who is coming and
-          what they need.
+          About one minute. Nobody is selected here. You choose companies later, when you know who is coming.
         </p>
 
         <div className="mt-8 space-y-7">
@@ -153,7 +152,7 @@ export function JoinForm({
 
           <div>
             <p className="text-sm font-medium">Your CV (optional now)</p>
-            <p className="mb-2 text-xs text-muted-foreground">Needed only when you apply. We reuse it, so you never type your history twice.</p>
+            <p className="mb-2 text-xs text-muted-foreground">Needed when you apply. We reuse it so you don&apos;t type your history twice.</p>
             {cv ? (
               <span className="inline-flex items-center gap-2 rounded-lg bg-status-confirmed-bg px-3 py-1.5 text-sm text-status-confirmed">
                 <Check className="size-4" /> {cv.name}
@@ -222,8 +221,8 @@ export function JoinForm({
         </div>
         <p className="flex gap-2 px-1 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
-          When you apply, an AI model on the event&apos;s own EU server reads your CV to fill in the forms for you. It never
-          scores or ranks you. Organisers decide, and they see you without your name.
+          When you apply, an AI model on the event&apos;s EU server reads your CV to fill in the table. It never scores or ranks you.
+          Organisers decide without seeing your name.
         </p>
       </aside>
     </div>

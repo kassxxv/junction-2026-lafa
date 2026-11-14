@@ -13,7 +13,7 @@ export default function KuuraPhotonicsCareers() {
   return (
     <main className="mx-auto max-w-2xl px-6 py-12 font-serif leading-relaxed">
       <p className="mb-8 rounded-md bg-muted px-4 py-2 font-sans text-sm text-muted-foreground">
-        Demo page: Kuura Photonics Oy is a fictional company created for the MatchReady prototype. All content is synthetic.
+        Demo page: Kuura Photonics Oy is a fictional company created for the Bridgy prototype. All content is synthetic.
       </p>
       <h1 className="font-sans text-3xl font-semibold">Careers at Kuura Photonics Oy</h1>
       <p className="mt-4">

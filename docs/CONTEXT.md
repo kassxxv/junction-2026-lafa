@@ -17,6 +17,8 @@ Nothing marked \[PROPOSED\] or \[OPEN\] is final. When a better option appears, 
 
 This section supersedes sections 5, 7 and the data model in section 10 where they disagree.
 
+**Name.** The product is called **Bridgy** (team decision 2026-11-14; earlier name MatchReady, still used for the `lib/matchready/` folder). Logo: white llama + wordmark; variants for dark and light backgrounds in `public/brand/`.
+
 **Users.** Event **organisers** (City of Espoo event team) decide who gets a Tavata meeting pass. Never say "HR".
 
 **Real event, synthetic people.** The event is real: *Deep Tech Talent Forum*, 26–27 Nov 2026, online, English; fields Semiconductors & Microelectronics, Photonics (optics, imaging), Quantum technologies; jointly organised by Espoo, Helsinki, Vantaa, Tampere, Turku, Oulu and partners ([espoo.fi](https://www.espoo.fi/en/DeepTechTalentForum)). All companies, candidates, CVs and LinkedIn profiles in the app are fictional and labelled synthetic.

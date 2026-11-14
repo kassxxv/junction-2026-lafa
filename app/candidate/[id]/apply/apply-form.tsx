@@ -89,7 +89,7 @@ export function ApplyForm({
       setChecks(r.checks);
       if (kind === "cv") setCvParsed(true);
       else setLiParsed(true);
-      if (!r.parsed) setNotice("Our reader could not fill everything in. Please check the table and type what is missing.");
+      if (!r.parsed) setNotice("We could not fill in everything from your documents. Check the table and type what is missing.");
     });
   }
 
@@ -118,7 +118,7 @@ export function ApplyForm({
   return (
     <div className="mx-auto max-w-5xl px-5 py-10">
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-medium text-primary">Stage 2 · Your application</p>
+        <p className="text-sm font-medium text-primary">Step 3: your application</p>
         <Timeline stage={2} />
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Show where you meet each requirement</h1>
         <p className="mt-1 max-w-[62ch] text-muted-foreground">
@@ -135,7 +135,7 @@ export function ApplyForm({
               done={cvParsed}
               busy={busy === "cv"}
               busyText="Reading your CV on the event's EU server…"
-              doneText="CV read · table filled in below"
+              doneText="CV read. The table below is filled in."
               actions={
                 <>
                   {stage1Cv && (
@@ -156,7 +156,7 @@ export function ApplyForm({
               done={liParsed}
               busy={busy === "linkedin"}
               busyText="Reading your LinkedIn export…"
-              doneText={toCheck ? `Compared with your CV · ${toCheck} ${toCheck === 1 ? "difference" : "differences"} for the organiser to ask about` : "Compared with your CV · no differences"}
+              doneText={toCheck ? `Compared with your CV: ${toCheck} ${toCheck === 1 ? "difference" : "differences"} the organiser may ask about` : "Compared with your CV: no differences"}
               actions={
                 <>
                   <Input
@@ -177,8 +177,8 @@ export function ApplyForm({
           </div>
           <p className="flex gap-2 border-t border-border px-5 py-3 text-xs text-muted-foreground">
             <Info className="mt-0.5 size-3.5 shrink-0" />
-            On LinkedIn: More → Save to PDF. We compare it with your CV only to point out differences to the organiser. No
-            LinkedIn? That never lowers your chances.
+            On LinkedIn: More → Save to PDF. We only use it to show differences from your CV. No LinkedIn does not lower
+            your chances.
           </p>
         </section>
 
@@ -313,8 +313,8 @@ export function ApplyForm({
         </div>
         <p className="mt-6 flex gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
-          Your documents are read by an AI model on the event&apos;s own server in the EU. It only fills in the table; it
-          never scores or ranks you. Organisers decide, and they see you without your name.
+          An AI model on the event&apos;s EU server reads your documents to fill in the table. It never scores or ranks you.
+          Organisers decide without seeing your name.
         </p>
       </div>
     </div>

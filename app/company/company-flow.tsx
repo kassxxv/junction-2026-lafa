@@ -24,7 +24,7 @@ export interface CompanyProps {
 
 type Step = "describe" | "reading" | "ask" | "card";
 
-const READING = (url: string | null) => [url ? `Reading ${url.replace(/^https?:\/\//, "")}` : "Reading what you sent", "Extracting role, skills and requirements", "Finding what is unclear"];
+const READING = (url: string | null) => [url ? `Reading ${url.replace(/^https?:\/\//, "")}` : "Reading what you sent", "Finding the role and requirements", "Checking what is unclear"];
 
 /** Applies one answer to the draft. */
 function applyAnswer(draft: CompanyCardDraft, q: CardQuestion, answer: string | string[]): CompanyCardDraft {
@@ -128,8 +128,7 @@ export function CompanyFlow({ company, companyDeadline, demo }: { company: Compa
           </div>
           <p className="mt-10 flex gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" />
-            An AI assistant reads what you paste (and the page you link) and drafts the card. You check and confirm every
-            part. It never ranks candidates.
+            An AI assistant drafts the card from what you send. You check and confirm it. It never ranks candidates.
           </p>
         </section>
       )}
@@ -198,7 +197,7 @@ function QuestionScreen({
             <ArrowLeft className="size-4" /> Back
           </button>
         ) : (
-          <span>Your card is almost ready.</span>
+          <span />
         )}
         <span className="tabular-nums">
           {total === 1 ? "One question" : `Question ${index + 1} of ${total}`}

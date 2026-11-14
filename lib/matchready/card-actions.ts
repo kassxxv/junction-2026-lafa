@@ -3,7 +3,7 @@
 import { z } from "zod";
 import type { CardRequirement, CompanyCardDraft, PoolStats } from "./card-schema";
 import { MAX_COMPANY_INPUT_CHARS } from "./config";
-import { draftCard, poolStats, resetDraft, saveConfirmedCard } from "./card-service";
+import { draftCard, poolStats, requiredLevel, resetDraft, saveConfirmedCard } from "./card-service";
 
 export type DraftResult =
   | { ok: true; draft: CompanyCardDraft; sample: boolean }
@@ -22,7 +22,7 @@ const Requirement = z.object({
   type: z.enum(["experience", "has_done", "education", "language"]),
   label: z.string().trim().min(1).max(200),
   minYears: z.number().min(0).max(40).nullable(),
-  level: z.string().max(10).nullable(),
+  level: z.string().max(10).nullable().transform((v) => requiredLevel(v)),
   detail: z.string().max(300).nullable(),
   mustHave: z.boolean(),
   keywords: z.array(z.string().max(60)).max(6),

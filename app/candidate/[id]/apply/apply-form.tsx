@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { saveLinkedin, sendApplications, uploadDocument } from "@/lib/matchready/candidate-actions";
 import type { EvidenceRow } from "@/lib/matchready/candidate-service";
 import { DEMO_CANDIDATE } from "@/lib/matchready/demo";
-import type { LinkedinCheck, RequirementType } from "@/lib/matchready/facts";
+import { needsLook, type LinkedinCheck, type RequirementType } from "@/lib/matchready/facts";
 
 type ProofType = "diploma" | "certificate" | "link" | "reference";
 const PROOF_FOR: Record<RequirementType, { type: ProofType; label: string; placeholder: string }> = {
@@ -18,6 +18,15 @@ const PROOF_FOR: Record<RequirementType, { type: ProofType; label: string; place
   language: { type: "certificate", label: "Certificate", placeholder: "Language certificate (file name or link)" },
   has_done: { type: "link", label: "Link", placeholder: "GitHub, publication or project link" },
   experience: { type: "reference", label: "Reference", placeholder: "Reference letter (file name or link)" },
+};
+
+const CHECK_LABEL: Record<LinkedinCheck["kind"], { label: string; className: string }> = {
+  match: { label: "MATCH", className: "text-status-confirmed" },
+  differs: { label: "DIFFERS", className: "text-status-ai" },
+  not_found: { label: "NOT FOUND", className: "text-status-missing" },
+  linkedin_only: { label: "LINKEDIN ONLY", className: "text-muted-foreground" },
+  info: { label: "NOTE", className: "text-muted-foreground" },
+  none: { label: "NO LINKEDIN", className: "text-muted-foreground" },
 };
 
 interface Company {
@@ -104,7 +113,7 @@ export function ApplyForm({
   }
 
   const rowsFor = (companyId: string) => preview.find((p) => p.companyId === companyId)?.rows ?? [];
-  const toCheck = checks.filter((c) => c.kind === "differs" || c.kind === "not_found").length;
+  const toCheck = checks.filter(needsLook).length;
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-10">
@@ -172,6 +181,25 @@ export function ApplyForm({
             LinkedIn? That never lowers your chances.
           </p>
         </section>
+
+        {liParsed && checks.length > 0 && (
+          <section className="mt-6 rounded-xl border border-border">
+            <h2 className="border-b border-border px-5 py-3 font-semibold">What the organiser will see about your CV and LinkedIn</h2>
+            <ul className="divide-y divide-border">
+              {checks.map((c, i) => (
+                <li key={i} className="flex gap-3 px-5 py-2.5 text-sm">
+                  <span className={`w-28 shrink-0 text-xs font-semibold ${CHECK_LABEL[c.kind].className}`}>{CHECK_LABEL[c.kind].label}</span>
+                  <span>{c.text}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
+              {toCheck
+                ? "A difference is not a rejection: the organiser asks about it or adds a note. You can also fix your CV or LinkedIn and upload it again."
+                : "Nothing here needs an explanation."}
+            </p>
+          </section>
+        )}
 
         {notice && <p className="mt-4 rounded-lg bg-status-ai-bg px-4 py-2.5 text-sm text-status-ai">{notice}</p>}
 

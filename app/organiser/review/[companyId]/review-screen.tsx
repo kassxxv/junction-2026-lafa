@@ -316,6 +316,8 @@ function Detail({
                         <span className="text-status-ask" aria-label="not covered">✗</span>
                       ) : r.meets === false ? (
                         <span className="text-muted-foreground" aria-label="not covered">✗</span>
+                      ) : r.mustHave ? (
+                        <span className="text-status-ai" aria-label="not verified">?</span>
                       ) : (
                         <span className="text-muted-foreground" aria-label="unknown">–</span>
                       )}
@@ -346,7 +348,7 @@ function Detail({
           <ul className="space-y-2">
             {app.checks.map((c, i) => (
               <li key={i} className={`flex gap-3 rounded-lg border-l-4 bg-muted/30 px-3 py-2 text-sm ${CHECK[c.kind].border}`}>
-                <span className={`w-24 shrink-0 text-xs font-semibold ${CHECK[c.kind].text}`}>{CHECK[c.kind].label}</span>
+                <span className={`w-28 shrink-0 text-xs font-semibold ${CHECK[c.kind].text}`}>{CHECK[c.kind].label}</span>
                 <span>{c.text}</span>
               </li>
             ))}
@@ -369,7 +371,9 @@ function Detail({
                   <label htmlFor="note" className="block text-sm font-medium">
                     {app.status === "missing"
                       ? "A must-have is missing. You can still approve with a short note: you decide, not the system."
-                      : "Something to check. Approve with a short note."}
+                      : app.mustUnverified > 0
+                        ? "A must-have is not verified by a document. Approve with a short note."
+                        : "Something to check. Approve with a short note."}
                   </label>
                   <Textarea
                     id="note"
@@ -404,6 +408,8 @@ const CHECK = {
   match: { label: "MATCH", border: "border-status-confirmed", text: "text-status-confirmed" },
   differs: { label: "DIFFERS", border: "border-status-ai", text: "text-status-ai" },
   not_found: { label: "NOT FOUND", border: "border-status-missing", text: "text-status-missing" },
+  linkedin_only: { label: "LINKEDIN ONLY", border: "border-border", text: "text-muted-foreground" },
+  info: { label: "NOTE", border: "border-border", text: "text-muted-foreground" },
   none: { label: "NO LINKEDIN", border: "border-border", text: "text-muted-foreground" },
 } as const;
 
@@ -419,7 +425,7 @@ function EvidenceTag({ r }: { r: RequirementRow }) {
             ? "reference letter"
             : r.linkedinMatch
               ? "matches LinkedIn"
-              : r.source === "profile"
+              : r.source === "profile" || r.source === "stated"
                 ? "stated by candidate"
                 : r.source === "cv" && r.value
                   ? "from CV"

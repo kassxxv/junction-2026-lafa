@@ -22,7 +22,7 @@ query<{ code: string; must_missing: number; must_unknown: number; checks: { kind
 )
   .then((rows) => {
     for (const r of rows) {
-      const toCheck = (r.checks ?? []).filter((x) => x.kind === "differs" || x.kind === "not_found").length;
+      const toCheck = (r.checks ?? []).filter((x) => x.kind === "differs" || x.kind === "not_found").length + r.must_unknown;
       const noLi = (r.checks ?? []).some((x) => x.kind === "none");
       const status = r.must_missing ? "missing must-have" : toCheck ? `${toCheck} to check` : "must-haves ✓";
       console.log(`${r.code}  ${status.padEnd(18)} ${noLi ? "no LinkedIn  " : "             "} ${r.first ?? "-"}`);

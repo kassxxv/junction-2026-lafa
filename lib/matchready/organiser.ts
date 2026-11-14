@@ -2,7 +2,7 @@ import "server-only";
 import { query } from "@/lib/db";
 import { BIAS_GAP_THRESHOLD, BIAS_MIN_APPROVALS } from "./config";
 import { DEMO_ORGANISER } from "./demo";
-import { requirementText, type LinkedinCheck, type RequirementType } from "./facts";
+import { needsLook, requirementText, type LinkedinCheck, type RequirementType } from "./facts";
 
 /**
  * Read model for organisers. Blind by construction: no query here touches
@@ -69,6 +69,9 @@ export interface ApplicationRow {
   keyFact: string | null;
   status: ReviewStatus;
   mustMissing: number;
+  /** Must-haves nobody could verify: typed by the candidate, or nothing found (meets = null). */
+  mustUnverified: number;
+  /** CV ↔ LinkedIn differences plus unverified must-haves: what an organiser has to look at. */
   toCheck: number;
   hasLinkedin: boolean;
   requirements: RequirementRow[];
@@ -237,7 +240,9 @@ export async function getReview(companyId: string): Promise<Review | null> {
     const reqs = byApp.get(a.id) ?? [];
     const checks = a.checks ?? [];
     const mustMissing = reqs.filter((r) => r.mustHave && r.meets === false).length;
-    const toCheck = checks.filter((c) => c.kind === "differs" || c.kind === "not_found").length;
+    // "Clean" must mean every must-have is shown by a fact. Unknown is not the same as met.
+    const mustUnverified = reqs.filter((r) => r.mustHave && r.meets === null).length;
+    const toCheck = checks.filter(needsLook).length + mustUnverified;
     const first = reqs[0];
     return {
       id: a.id,
@@ -245,6 +250,7 @@ export async function getReview(companyId: string): Promise<Review | null> {
       keyFact: first?.value ?? null,
       status: statusOf(a.status, mustMissing, toCheck),
       mustMissing,
+      mustUnverified,
       toCheck,
       hasLinkedin: !checks.some((c) => c.kind === "none"),
       requirements: reqs,

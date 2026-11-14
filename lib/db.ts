@@ -54,7 +54,7 @@ function createPool(): { pool: Pool; tlsVerified: boolean } {
   const pool = new Pool({
     connectionString: url.toString(),
     ssl,
-    max: 5,
+    max: 8, // a decision holds one connection while it re-reads the review on others
     connectionTimeoutMillis: 5_000,
     idleTimeoutMillis: 30_000,
   });

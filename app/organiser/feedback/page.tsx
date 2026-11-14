@@ -1,12 +1,14 @@
 import { ArrowRight, Info } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
+import { requireOrganiserPage } from "@/lib/auth";
 import { EVENT, formatDateRange } from "@/lib/matchready/event";
 import { getFeedbackDashboard } from "@/lib/matchready/feedback";
 
 /** Metric 2 after the event: meetings where both sides want to continue. Aggregates only. */
 export default async function FeedbackDashboardPage() {
   await connection();
+  await requireOrganiserPage("/organiser/feedback");
   const d = await getFeedbackDashboard();
   const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 

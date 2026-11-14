@@ -1,12 +1,13 @@
 import { CalendarDays } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
+import { signOutOrganiser } from "@/lib/matchready/auth-actions";
 import { DEMO_ORGANISER } from "@/lib/matchready/demo";
 import { EVENT, formatDateRange } from "@/lib/matchready/event";
 import { NavList, OrganiserNav } from "./organiser-nav";
 
 /**
  * Organiser workspace shell: Espoo-navy sidebar + light work area.
- * No login in the prototype: the organiser is a hardcoded demo account.
+ * Access is one shared password (lib/auth.ts); decisions are logged under the demo organiser.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -39,6 +40,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="font-medium">{DEMO_ORGANISER.name}</div>
             <div className="text-xs text-sidebar-muted">{DEMO_ORGANISER.role}</div>
           </div>
+          <form action={signOutOrganiser} className="ml-auto">
+            <button type="submit" className="rounded-md px-2 py-1 text-xs text-sidebar-muted hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none">
+              Sign out
+            </button>
+          </form>
         </div>
       </aside>
 

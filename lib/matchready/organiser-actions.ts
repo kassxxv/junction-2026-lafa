@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { demoMode, isOrganiser, SESSION_ENDED } from "@/lib/auth";
 import { withTransaction } from "@/lib/db";
 import { REVIEW_SESSION_GAP_MINUTES } from "./config";
 import { getReview, ORGANISER } from "./organiser";
@@ -11,6 +12,9 @@ import { getReview, ORGANISER } from "./organiser";
  * - anything else needs a written note to approve;
  * - never more approvals than places;
  * - every decision is a row in `decisions` (who, when, rule, note).
+ *
+ * Server Actions are public HTTP endpoints, so each one checks the organiser session itself
+ * (the proxy on /organiser is not enough) and validates its arguments.
  */
 
 export type ActionResult = { ok: true; message: string } | { ok: false; error: string };
@@ -32,6 +36,7 @@ async function touchSession(q: Q, companyId: string) {
 }
 
 export async function startReview(companyId: string): Promise<void> {
+  if (typeof companyId !== "string" || !(await isOrganiser())) return;
   await withTransaction((q) => touchSession(q, companyId));
 }
 
@@ -44,6 +49,10 @@ async function lockCompany(q: Q, companyId: string) {
 }
 
 export async function approveClean(companyId: string, applicationIds: string[]): Promise<ActionResult> {
+  if (!(await isOrganiser())) return { ok: false, error: SESSION_ENDED };
+  if (typeof companyId !== "string" || !Array.isArray(applicationIds) || applicationIds.length > 200 || applicationIds.some((id) => typeof id !== "string")) {
+    return { ok: false, error: "Nothing selected." };
+  }
   const ids = [...new Set(applicationIds)];
   const result = await withTransaction<ActionResult>(async (q) => {
     await lockCompany(q, companyId);
@@ -77,6 +86,10 @@ export async function decide(
   action: "approve" | "decline" | "undo",
   note: string,
 ): Promise<ActionResult> {
+  if (!(await isOrganiser())) return { ok: false, error: SESSION_ENDED };
+  if (typeof companyId !== "string" || typeof applicationId !== "string" || typeof note !== "string" || !["approve", "decline", "undo"].includes(action)) {
+    return { ok: false, error: "Application not found." };
+  }
   const text = note.trim().slice(0, 500);
   const result = await withTransaction<ActionResult>(async (q) => {
     await lockCompany(q, companyId);
@@ -115,8 +128,11 @@ export async function decide(
   return result;
 }
 
-/** Demo helper: puts one company's review back to the start. Synthetic data only. */
+/** Demo helper: puts one company's review back to the start. It deletes the decision log, so it exists only in demo mode. */
 export async function resetReview(companyId: string): Promise<ActionResult> {
+  if (!(await isOrganiser())) return { ok: false, error: SESSION_ENDED };
+  if (!demoMode()) return { ok: false, error: "Reset is only available in demo mode." };
+  if (typeof companyId !== "string") return { ok: false, error: "Company not found." };
   await withTransaction(async (q) => {
     await q(`DELETE FROM decisions WHERE application_id IN (SELECT id FROM applications WHERE company_id = $1)`, [companyId]);
     await q(`UPDATE applications SET status = 'submitted' WHERE company_id = $1`, [companyId]);

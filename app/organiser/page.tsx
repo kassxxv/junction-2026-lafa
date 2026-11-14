@@ -1,6 +1,7 @@
 import { ArrowRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
+import { requireOrganiserPage } from "@/lib/auth";
 import { formatDateRange, formatDay } from "@/lib/matchready/event";
 import { getOverview } from "@/lib/matchready/organiser";
 
@@ -9,6 +10,7 @@ const fmt = (iso: string) => formatDay(iso, "short");
 /** Organiser home: where the event is in the process, and what needs attention. */
 export default async function OrganiserOverview() {
   await connection(); // live data, never prerendered
+  await requireOrganiserPage("/organiser");
   const o = await getOverview();
   const today = new Date().toISOString().slice(0, 10);
   const confirmed = o.companies.filter((c) => c.cardStatus === "confirmed");

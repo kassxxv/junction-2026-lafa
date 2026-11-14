@@ -49,7 +49,7 @@ function applyAnswer(draft: CompanyCardDraft, q: CardQuestion, answer: string | 
   return d;
 }
 
-export function CompanyFlow({ company, companyDeadline }: { company: CompanyProps; companyDeadline: string }) {
+export function CompanyFlow({ company, companyDeadline, demo }: { company: CompanyProps; companyDeadline: string; demo: boolean }) {
   const [step, setStep] = useState<Step>("describe");
   const [text, setText] = useState("");
   const [draft, setDraft] = useState<CompanyCardDraft | null>(null);
@@ -90,6 +90,7 @@ export function CompanyFlow({ company, companyDeadline }: { company: CompanyProp
         initial={draft}
         sample={sample}
         companyDeadline={companyDeadline}
+        demo={demo}
         onBack={draft.questions.length ? () => { setQIndex(0); setStep("ask"); } : undefined}
       />
     );

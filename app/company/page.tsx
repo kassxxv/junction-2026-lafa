@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { PublicShell } from "@/components/public-shell";
+import { demoMode } from "@/lib/auth";
 import { getCompany } from "@/lib/matchready/card-service";
 import { DEMO_COMPANY_ID } from "@/lib/matchready/demo";
 import { getEvent } from "@/lib/matchready/organiser";
@@ -28,6 +29,7 @@ async function CompanyPageContent({ searchParams }: PageProps<"/company">) {
           <CompanyFlow
             company={{ id: company.id, name: company.name, field: company.field, eventFields: company.eventFields, status: company.status }}
             companyDeadline={event.companyDeadline}
+            demo={demoMode()}
           />
         ) : (
           <p className="mx-auto max-w-xl px-5 py-20 text-center text-muted-foreground">

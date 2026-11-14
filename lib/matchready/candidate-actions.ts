@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { allow, TOO_MANY } from "@/lib/rate-limit";
 import {
   addField,
   confirmedCompanies,
@@ -41,6 +42,7 @@ export async function joinTalentPool(input: z.input<typeof Join>): Promise<{ ok:
     };
     return { ok: false, error: msg[String(path)] ?? "Check the form and try again." };
   }
+  if (!(await allow("joinPool"))) return { ok: false, error: TOO_MANY };
   const id = await joinPool(parsed.data);
   return { ok: true, id };
 }
@@ -59,6 +61,7 @@ async function readUpload(form: FormData): Promise<string | null> {
 }
 
 export async function readCvForPool(form: FormData): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  if (!(await allow("documentRead"))) return { ok: false, error: TOO_MANY };
   try {
     const text = await readUpload(form);
     return text ? { ok: true, text: text.slice(0, MAX_DOCUMENT_CHARS) } : { ok: false, error: "That file looks empty." };
@@ -75,6 +78,8 @@ export async function uploadDocument(form: FormData): Promise<UploadResult> {
   const candidateId = z.string().min(1).max(100).parse(form.get("candidateId"));
   const kind = z.enum(["cv", "linkedin"]).parse(form.get("kind"));
   const companyIds = z.array(z.string().max(100)).max(MAX_COMPANIES_PER_CANDIDATE).parse(JSON.parse(String(form.get("companies") ?? "[]")));
+  // Each document is one Gemma call on our GPU server.
+  if (!(await allow("documentParse"))) return { ok: false, error: TOO_MANY };
   let text: string | null;
   try {
     text = form.get("reuse") === "1" ? null : await readUpload(form);

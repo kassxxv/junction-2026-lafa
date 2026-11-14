@@ -25,7 +25,7 @@ const STATUS: Record<ReviewStatus, { label: (a: ApplicationRow) => string; class
   clean: { label: () => "Must-haves ✓", className: "bg-status-source-bg text-status-source" },
 };
 
-export function ReviewScreen({ review }: { review: Review }) {
+export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }) {
   const { company, role, applications } = review;
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -220,10 +220,12 @@ export function ReviewScreen({ review }: { review: Review }) {
               <section className="rounded-xl border border-border bg-card p-5">
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold">Decision log</h2>
-                  <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => resetReview(company.id), () => setSelected(new Set()))}>
-                    <RotateCcw data-icon="inline-start" />
-                    Reset demo
-                  </Button>
+                  {demo && (
+                    <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => resetReview(company.id), () => setSelected(new Set()))}>
+                      <RotateCcw data-icon="inline-start" />
+                      Reset demo
+                    </Button>
+                  )}
                 </div>
                 <ul className="mt-3 max-h-60 space-y-2 overflow-y-auto text-sm">
                   {review.decisions.length ? (

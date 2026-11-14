@@ -45,12 +45,14 @@ export function CardEditor({
   initial,
   sample,
   companyDeadline,
+  demo,
   onBack,
 }: {
   company: CompanyProps;
   initial: CompanyCardDraft;
   sample: boolean;
   companyDeadline: string;
+  demo: boolean;
   onBack?: () => void;
 }) {
   const [card, setCard] = useState<CompanyCardDraft>(() => ({
@@ -248,12 +250,14 @@ export function CardEditor({
           {confirmed && pool ? (
             <>
               <PoolPanel pool={pool} deadline={companyDeadline} />
-              <button
-                onClick={() => startTransition(async () => { await resetCompanyDemo(company.id); window.location.reload(); })}
-                className="px-1 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-              >
-                Start over (demo)
-              </button>
+              {demo && (
+                <button
+                  onClick={() => startTransition(async () => { await resetCompanyDemo(company.id); window.location.reload(); })}
+                  className="px-1 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  Start over (demo)
+                </button>
+              )}
             </>
           ) : (
             <div className="rounded-xl border border-border bg-card p-5">

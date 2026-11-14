@@ -160,6 +160,19 @@ export const COMPANIES: SeedCompany[] = [
     },
   },
   {
+    // Invited but has not filled its card yet: used for the live company demo (/company).
+    id: "kuura-photonics",
+    name: "Kuura Photonics Oy",
+    website: "kuura-photonics.example",
+    field: PHOTONICS,
+    status: "draft",
+    places: 6,
+    goals: [],
+    summary: "",
+    eventGoal: "",
+    role: { title: "Not filled in yet", details: "", starter: "", requirements: [] },
+  },
+  {
     id: "qubitia",
     name: "Qubitia",
     website: "qubitia.example",

@@ -35,7 +35,7 @@ This section supersedes sections 5, 7 and the data model in section 10 where the
 
 **Out of scope:** company take-home tasks, any ranking / match % / auto-reject, AI-text detection, replacing Tavata.
 
-**Build status (2026-11-14):** DB schema + seed ✔ · organiser overview `/organiser` ✔ · organiser review `/organiser/review/[company]` ✔ (blind, batch approve clean cases, approve-with-note, decline → Program Pass, undo, decision log, bias check, review-time metric, CSV export for Tavata at `/api/organiser/export`) · company flow: needs the new requirement structure + DB save · candidate flow: not started · landing page, feedback: not started. Bias check counts current university students as "university education", so it flags bias against vocational paths rather than against students filtered out by an experience must-have.
+**Build status (2026-11-14):** DB schema + seed ✔ · organiser overview `/organiser` ✔ · organiser review `/organiser/review/[company]` ✔ (blind, batch approve clean cases, approve-with-note, decline → Program Pass, undo, decision log, bias check, review-time metric, CSV export for Tavata at `/api/organiser/export`) · company flow `/company` ✔ (any input → Context.dev for links → Gemini card with typed requirements + must-have → ≤3 questions, PhD-style soft degrees always asked → editor with live pool count → confirm saves to DB and recomputes evidence; demo company Kuura Photonics with a synthetic careers page at `/demo/kuura-photonics/careers`) · candidate flow: not started · landing page, feedback: not started. Bias check counts current university students as "university education", so it flags bias against vocational paths rather than against students filtered out by an experience must-have.
 
 ## 0. Event logistics
 

@@ -9,7 +9,8 @@
     "lint": "eslint",
     "eval:cards": "tsx --conditions=react-server --env-file=.env scripts/eval-card-draft.ts",
     "db:migrate": "tsx --conditions=react-server --env-file=.env scripts/db-migrate.ts",
-    "db:seed": "tsx --conditions=react-server --env-file=.env scripts/db-seed.ts"
+    "db:seed": "tsx --conditions=react-server --env-file=.env scripts/db-seed.ts",
+    "eval:company": "tsx --conditions=react-server --env-file=.env scripts/eval-company-card.ts"
   },
   "dependencies": {
     "@google/genai": "^3.3.0",

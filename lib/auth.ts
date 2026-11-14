@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { env } from "./env";
 import { ORGANISER_SESSION_HOURS } from "./matchready/config";
-import { createSessionToken, gateMode, LOGIN_PATH, ORGANISER_COOKIE, safeNext, verifySessionToken, type GateMode } from "./organiser-session";
+import { createSessionToken, createSubjectToken, gateMode, LOGIN_PATH, ORGANISER_COOKIE, safeNext, verifySessionToken, verifySubjectToken, type GateMode } from "./organiser-session";
 
 /**
  * Organiser access: one shared password (env ORGANISER_PASSWORD), a signed httpOnly cookie.
@@ -65,3 +65,34 @@ export function demoMode(): boolean {
   const flag = env().DEMO_MODE;
   return flag ?? process.env.NODE_ENV !== "production";
 }
+
+/* ---------------- Companies: one invitation code per company, then a signed cookie ---------------- */
+
+export const COMPANY_COOKIE = "mr_company";
+const COMPANY_SESSION_HOURS = 24 * 14;
+
+function sessionSecret(): string {
+  const e = env();
+  return e.SESSION_SECRET ?? e.ORGANISER_PASSWORD ?? e.DATABASE_URL ?? "local-development";
+}
+
+/** The company this browser is signed in as, or null. Every company action checks it. */
+export async function currentCompanyId(): Promise<string | null> {
+  return verifySubjectToken(sessionSecret(), (await cookies()).get(COMPANY_COOKIE)?.value);
+}
+
+export async function startCompanySession(companyId: string): Promise<void> {
+  (await cookies()).set(COMPANY_COOKIE, await createSubjectToken(sessionSecret(), companyId, COMPANY_SESSION_HOURS), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: COMPANY_SESSION_HOURS * 60 * 60,
+  });
+}
+
+export async function endCompanySession(): Promise<void> {
+  (await cookies()).delete(COMPANY_COOKIE);
+}
+
+export const COMPANY_SESSION_ENDED = "Your session has ended. Sign in again with your invitation code.";

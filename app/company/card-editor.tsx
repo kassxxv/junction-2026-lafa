@@ -7,8 +7,13 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { MeetingAnswers } from "@/components/meeting-answers";
 import { confirmCompanyCard, previewPool, resetCompanyDemo, suggestCardTasks } from "@/lib/matchready/card-actions";
-import { EVENT, formatDateRange, formatDay } from "@/lib/matchready/event";
+import { answerAsCompany } from "@/lib/matchready/meeting-actions";
+import type { CompanyPortal } from "@/lib/matchready/meetings";
+
+export type EventDates = { name: string; applicationDeadline: string; decisionDate: string; startsOn: string; endsOn: string };
+import { formatDateRange, formatDay } from "@/lib/matchready/event";
 import { requirementText } from "@/lib/matchready/facts";
 import { MAX_COMPANIES_PER_CANDIDATE, TASK_MINUTES } from "@/lib/matchready/config";
 import {
@@ -52,6 +57,8 @@ export function CardEditor({
   onBack,
   backLabel = "Back to questions",
   initialPool = null,
+  portal = null,
+  event,
 }: {
   company: CompanyProps;
   initial: CompanyCardDraft;
@@ -62,6 +69,10 @@ export function CardEditor({
   backLabel?: string;
   /** Set when the card was already confirmed: the company lands on its card page, not the form. */
   initialPool?: PoolStats | null;
+  /** Selection status and meetings for the company page. */
+  portal?: CompanyPortal | null;
+  /** The event as set in Event settings, for the "what happens next" dates. */
+  event: EventDates;
 }) {
   const [card, setCard] = useState<CompanyCardDraft>(() => ({
     ...initial,
@@ -135,6 +146,8 @@ export function CardEditor({
         onEdit={() => setConfirmed(false)}
         onStartOver={demo ? () => startTransition(async () => { await resetCompanyDemo(company.id); window.location.reload(); }) : undefined}
         pending={pending}
+        portal={portal}
+        event={event}
       />
     );
   }
@@ -434,7 +447,11 @@ function ConfirmedView({
   onEdit,
   onStartOver,
   pending,
+  portal,
+  event,
 }: {
+  portal: CompanyPortal | null;
+  event: EventDates;
   companyName: string;
   card: CompanyCardDraft;
   pool: PoolStats;
@@ -448,9 +465,9 @@ function ConfirmedView({
   const musts = role?.requirements.filter((r) => r.mustHave && r.label.trim()) ?? [];
   const steps = [
     { date: formatDay(companyDeadline), text: `Company deadline. Professionals in your field are invited and choose up to ${MAX_COMPANIES_PER_CANDIDATE} companies.` },
-    { date: formatDay(EVENT.applicationDeadline), text: "Applications close. Each applicant shows where they meet your requirements." },
-    { date: formatDay(EVENT.decisionDate), text: "The organisers decide who gets a meeting with you. You get the list with meeting times on Tavata." },
-    { date: formatDateRange(EVENT.startsOn, EVENT.endsOn), text: `1:1 meetings at ${EVENT.name}. After each one, you answer one question: continue or not.` },
+    { date: formatDay(event.applicationDeadline), text: "Applications close. Each applicant shows where they meet your requirements." },
+    { date: formatDay(event.decisionDate), text: "The organisers decide who gets a meeting with you. You get the list with meeting times on Tavata." },
+    { date: formatDateRange(event.startsOn, event.endsOn), text: `1:1 meetings at ${event.name}. After each one, you answer one question: continue or not.` },
   ];
 
   return (
@@ -485,6 +502,22 @@ function ConfirmedView({
               <h2 className="text-sm font-medium text-muted-foreground">Task for candidates</h2>
               <p className="mt-2 border-l-2 border-border pl-3 leading-relaxed whitespace-pre-line">{card.task}</p>
             </div>
+          )}
+
+          {portal && (portal.applications > 0 || portal.meetings.length > 0) && (
+            <>
+              <h2 className="mt-8 font-semibold">Selection</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {portal.applications} {portal.applications === 1 ? "application" : "applications"}. The organisers have filled {portal.approved} of your{" "}
+                {portal.places} meeting places.
+              </p>
+
+              <h2 className="mt-8 font-semibold">Your meetings</h2>
+              <p className="mt-1 mb-3 text-sm text-muted-foreground">
+                After each meeting, one question: want to continue? If you both say yes, the organisers connect you.
+              </p>
+              <MeetingAnswers meetings={portal.meetings} answer={answerAsCompany} empty="Meetings appear here once the organisers approve candidates." />
+            </>
           )}
 
           <h2 className="mt-8 font-semibold">What happens next</h2>

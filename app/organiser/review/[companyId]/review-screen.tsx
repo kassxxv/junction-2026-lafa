@@ -12,6 +12,7 @@ import { CHECK_STYLE, MustHaveBadge } from "@/components/fact-labels";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { approveClean, decide, resetReview, startReview, type ActionResult } from "@/lib/matchready/organiser-actions";
+import { loadSourceDocument, type SourceResult } from "@/lib/matchready/review-actions";
 import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
 import { DEMO_REVIEW_FOCUS_CODE } from "@/lib/matchready/demo";
 import type { ApplicationRow, RequirementRow, Review, ReviewStatus } from "@/lib/matchready/organiser";
@@ -274,6 +275,16 @@ function Detail({
   onDecide: (action: "approve" | "decline" | "undo", note: string) => void;
 }) {
   const [note, setNote] = useState("");
+  const [source, setSource] = useState<SourceResult | null>(null);
+  const [selectedReq, setSelectedReq] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadSourceDocument(app.id).then((r) => live && setSource(r));
+    return () => {
+      live = false;
+    };
+  }, [app.id]);
+  const doc = source?.ok && source.available ? source : null;
   const st = STATUS[app.status];
   const needsNote = app.status === "check" || app.status === "missing";
   const decided = app.status === "approved" || app.status === "declined";
@@ -306,7 +317,12 @@ function Detail({
               </thead>
               <tbody className="divide-y divide-border">
                 {app.requirements.map((r) => (
-                  <tr key={r.id}>
+                  <tr
+                    key={r.id}
+                    onClick={() => setSelectedReq(selectedReq === r.id ? null : r.id)}
+                    aria-selected={selectedReq === r.id}
+                    className={`cursor-pointer ${selectedReq === r.id ? "bg-status-ai-bg/60" : "hover:bg-muted/40"}`}
+                  >
                     <td className="px-3 py-2.5">{r.text}</td>
                     <td className="px-3 py-2.5">
                       {r.mustHave && <MustHaveBadge />}
@@ -314,6 +330,9 @@ function Detail({
                     <td className="px-3 py-2.5">
                       <span className={r.value ? "" : "text-muted-foreground"}>{r.value ?? "Not found in the CV"}</span>
                       <EvidenceTag r={r} />
+                      {r.source === "stated" && doc && (
+                        <span className="mt-1 block text-xs text-muted-foreground">CV shows: {doc.cvValues[r.id] ?? "nothing for this"}</span>
+                      )}
                     </td>
                     <td className="px-3 py-2.5 text-center text-base">
                       {r.meets === true ? (
@@ -333,6 +352,7 @@ function Detail({
               </tbody>
             </table>
           </div>
+          <SourcePanel source={source} doc={doc} selectedLines={selectedReq && doc ? doc.byRequirement[selectedReq] ?? [] : []} selected={Boolean(selectedReq)} />
         </div>
 
         <div>
@@ -490,5 +510,74 @@ function BiasPanel({ bias }: { bias: Review["bias"] }) {
             : `Approve at least ${bias.minApprovals} people to compare`}
       </p>
     </section>
+  );
+}
+
+/**
+ * The CV as text with personal details already cut out on the server, next to the facts. Clicking a requirement
+ * lights up the lines its evidence comes from; facts the AI extracted but the text does not contain are listed.
+ */
+function SourcePanel({
+  source,
+  doc,
+  selectedLines,
+  selected,
+}: {
+  source: SourceResult | null;
+  doc: (SourceResult & { ok: true; available: true }) | null;
+  selectedLines: number[];
+  selected: boolean;
+}) {
+  const firstLine = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    firstLine.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [selectedLines]);
+
+  if (!source) return <p className="mt-3 text-sm text-muted-foreground">Loading the CV text…</p>;
+  if (!source.ok) return <p className="mt-3 text-sm text-destructive">{source.error}</p>;
+  if (!doc) return <p className="mt-3 text-sm text-muted-foreground">No CV text to show for this application.</p>;
+
+  const lit = new Set(selectedLines);
+  return (
+    <div className="mt-4 space-y-3">
+      {doc.unverified.length > 0 && (
+        <div className="rounded-lg bg-status-ai-bg px-4 py-3 text-sm text-status-ai">
+          <p className="font-medium">Extracted by AI but not found in the CV text</p>
+          <ul className="mt-1 list-disc pl-5">
+            {doc.unverified.map((u) => (
+              <li key={u}>{u}</li>
+            ))}
+          </ul>
+          <p className="mt-1">Check it in the meeting before relying on it.</p>
+        </div>
+      )}
+      <div className="rounded-lg border border-border">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border px-4 py-2.5">
+          <h4 className="text-sm font-medium">CV text</h4>
+          <span className="text-xs text-muted-foreground">
+            {selected
+              ? selectedLines.length
+                ? `${selectedLines.length} ${selectedLines.length === 1 ? "line" : "lines"} behind this requirement`
+                : "No line in the CV is behind this requirement"
+              : "Click a requirement to see where it comes from"}
+          </span>
+        </div>
+        <div className="max-h-80 overflow-y-auto px-4 py-3 text-sm leading-relaxed">
+          {doc.lines.map((line, i) => (
+            <div
+              key={i}
+              ref={lit.has(i) && i === selectedLines[0] ? firstLine : undefined}
+              className={`rounded px-1.5 whitespace-pre-wrap ${lit.has(i) ? "bg-status-ai-bg text-foreground" : selected ? "text-muted-foreground" : ""} ${/\[[a-z -]+ hidden\]/.test(line) ? "italic" : ""}`}
+            >
+              {line || "\u00a0"}
+            </div>
+          ))}
+        </div>
+        <p className="border-t border-border px-4 py-2 text-xs text-muted-foreground">
+          Names, contact details, links, addresses and birth dates are hidden automatically when the CV is uploaded. If you
+          still see something personal, tell the event team.
+        </p>
+      </div>
+    </div>
   );
 }

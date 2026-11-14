@@ -1,7 +1,7 @@
 import "server-only";
 import { env } from "./env";
 
-export type ServiceName = "database" | "gemma" | "gemini" | "contextdev" | "esco";
+export type ServiceName = "database" | "gemma" | "gemini" | "contextdev" | "esco" | "email";
 
 /**
  * Fixed vocabulary for failures. Health responses and logs only ever contain

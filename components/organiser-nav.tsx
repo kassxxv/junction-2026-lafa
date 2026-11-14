@@ -1,17 +1,18 @@
 "use client";
 
-import { Building2, Download, LayoutDashboard, ListChecks, MessageSquareHeart, Users } from "lucide-react";
+import { Building2, Download, LayoutDashboard, ListChecks, MessageSquareHeart, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-/** Sidebar follows the organiser's process: overview → companies → pool → selection → Tavata → feedback. */
+/** Sidebar follows the organiser's process: overview → companies → pool → selection → Tavata → feedback, then the event itself. */
 const NAV = [
   { href: "/organiser", label: "Overview", icon: LayoutDashboard, enabled: true, exact: true },
-  { href: "/organiser/companies", label: "Companies", icon: Building2, enabled: false },
+  { href: "/organiser/companies", label: "Companies", icon: Building2, enabled: true },
   { href: "/organiser/pool", label: "Talent pool", icon: Users, enabled: false },
   { href: "/organiser/review", label: "Selection", icon: ListChecks, enabled: true },
   { href: "/organiser/tavata", label: "Codes for Tavata", icon: Download, enabled: false },
   { href: "/organiser/feedback", label: "Feedback", icon: MessageSquareHeart, enabled: true },
+  { href: "/organiser/settings", label: "Event settings", icon: Settings, enabled: true },
 ];
 
 /** Reads the URL to highlight the current stage. Render inside <Suspense> (dynamic routes). */

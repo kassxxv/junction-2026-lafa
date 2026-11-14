@@ -14,7 +14,6 @@ import {
   type EvidenceRow,
 } from "./candidate-service";
 import { MAX_COMPANIES_PER_CANDIDATE, MAX_DOCUMENT_CHARS, MAX_TASK_ANSWER_CHARS, MAX_UPLOAD_BYTES } from "./config";
-import { EVENT } from "./event";
 import type { LinkedinCheck } from "./facts";
 import { getEvent } from "./organiser";
 
@@ -45,9 +44,9 @@ export async function joinTalentPool(input: z.input<typeof Join>): Promise<{ ok:
     return { ok: false, error: msg[String(path)] ?? "Check the form and try again." };
   }
   // Only the choices the organisers offer: the form shows lists, and the server enforces them.
-  const { fields } = await getEvent();
+  const { fields, workTypes } = await getEvent();
   if (parsed.data.fields.some((f) => !fields.includes(f))) return { ok: false, error: "Choose fields from the list." };
-  if (!EVENT.workTypes.includes(parsed.data.workType)) return { ok: false, error: "Choose a type of work from the list." };
+  if (!workTypes.includes(parsed.data.workType)) return { ok: false, error: "Choose a type of work from the list." };
   if (!(await allow("joinPool"))) return { ok: false, error: TOO_MANY };
   const id = await joinPool(parsed.data);
   return { ok: true, id };

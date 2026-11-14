@@ -40,6 +40,14 @@ const EnvSchema = z.object({
 
   CONTEXT_DEV_API_KEY: optionalString,
 
+  /** Signs company and organiser session cookies. Not set: falls back to other server secrets. */
+  SESSION_SECRET: optionalString,
+  /** Resend (https://resend.com) for reminder e-mails. Not set: e-mails are shown as previews in the app. */
+  RESEND_API_KEY: optionalString,
+  /** Sender, e.g. "bridgy <onboarding@resend.dev>". */
+  EMAIL_FROM: optionalString,
+  /** Demo: every e-mail goes to this one inbox instead of the (synthetic) addresses. */
+  DEMO_EMAIL_TO: optionalString,
   /** Shared password for /organiser and /api/organiser. Not set: open in development, locked in production. */
   ORGANISER_PASSWORD: optionalString,
   /** Demo helpers that change shared data (reset review, reset company card). Not set: on outside production. */

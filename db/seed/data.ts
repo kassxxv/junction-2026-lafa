@@ -208,6 +208,11 @@ export interface SeedCandidate {
   starter?: string;
   /** Answers to company tasks, by company id (synthetic). */
   taskAnswers?: Record<string, string>;
+  /**
+   * Simulated model error (synthetic): skills the "AI" extracted that are NOT in the CV text. They are stored with
+   * the facts but left out of the generated CV, so the organiser's source check shows them as not found.
+   */
+  aiExtraSkills?: string[];
 }
 
 const exp = (title: string, employer: string, start: string, end: string | null, areas: string[], tasks: string[] = []): Experience => ({
@@ -273,6 +278,7 @@ export const CANDIDATES: SeedCandidate[] = [
     proofs: { education: { type: "diploma", ref: "msc_photonics_diploma.pdf" }, has_done: { type: "link", ref: "github.com/aisha-demo/testbench" } },
     starter: DEMO_CANDIDATE.starter,
     taskAnswers: { [DEMO_REVIEW_COMPANY_ID]: DEMO_CANDIDATE.taskAnswer },
+    aiExtraSkills: ["Lumerical FDTD"],
   },
   {
     code: "A-08", name: "Daniel Okafor", fields: [PHOTONICS, MICRO], workType: "Engineering and design", stage: "experienced", careerChanger: false,

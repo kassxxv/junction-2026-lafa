@@ -1,9 +1,13 @@
 /**
- * The event this prototype runs for: ONE source for its name, dates, deadlines and fields.
+ * The event's starting values. Organisers change the live values in Event settings (the events row, read with
+ * getEvent()); this object is what db:seed writes, the fallback when the database is down, and the stable id
+ * used for Tavata codes.
+ *
+ * Originally: ONE source for its name, dates, deadlines and fields.
  * These are public facts from espoo.fi (the event is real; companies and people are synthetic).
  *
  * - `npm run db:seed` writes this object into the `events` row.
- * - Pages that read the database use `getEvent()`; static pages (landing, headers) import EVENT.
+ * - Pages use `getEvent()` / `getEventOrDefault()`; the landing page and headers render EVENT first and stream in the live values.
  * - Both format dates with the helpers below, so no page spells out a date by hand.
  *
  * No server-only imports: safe in client components and scripts.

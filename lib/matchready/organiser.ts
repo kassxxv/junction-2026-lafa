@@ -2,6 +2,7 @@ import "server-only";
 import { query } from "@/lib/db";
 import { BIAS_GAP_THRESHOLD, BIAS_MIN_APPROVALS } from "./config";
 import { DEMO_ORGANISER } from "./demo";
+import { EVENT } from "./event";
 import { needsLook, requirementText, type LinkedinCheck, type RequirementType } from "./facts";
 
 /**
@@ -26,6 +27,8 @@ export interface EventInfo {
   applicationDeadline: string;
   decisionDate: string;
   infoUrl: string | null;
+  /** Choices on the talent-pool form. */
+  workTypes: string[];
 }
 
 export interface CompanyOverview {
@@ -108,16 +111,31 @@ export interface Review {
   companies: { id: string; name: string; applications: number; approved: number; places: number }[];
 }
 
+/** The event as organisers set it in Event settings (the events row). */
 export async function getEvent(): Promise<EventInfo> {
   const [e] = await query<{
     id: string; name: string; starts_on: string; ends_on: string; format: string; fields: string[];
-    company_deadline: string; application_deadline: string; decision_date: string; info_url: string | null;
+    company_deadline: string; application_deadline: string; decision_date: string; info_url: string | null; work_types: string[];
   }>(`SELECT id, name, starts_on::text, ends_on::text, format, fields, company_deadline::text,
-             application_deadline::text, decision_date::text, info_url FROM events LIMIT 1`);
+             application_deadline::text, decision_date::text, info_url, work_types FROM events LIMIT 1`);
   return {
     id: e.id, name: e.name, startsOn: e.starts_on, endsOn: e.ends_on, format: e.format, fields: e.fields,
     companyDeadline: e.company_deadline, applicationDeadline: e.application_deadline, decisionDate: e.decision_date, infoUrl: e.info_url,
+    workTypes: e.work_types.length ? e.work_types : EVENT.workTypes,
   };
+}
+
+/** For pages that must render even when the database is down (landing, headers): the built-in defaults. */
+export async function getEventOrDefault(): Promise<EventInfo> {
+  try {
+    return await getEvent();
+  } catch {
+    return {
+      id: EVENT.id, name: EVENT.name, startsOn: EVENT.startsOn, endsOn: EVENT.endsOn, format: EVENT.format, fields: EVENT.fields,
+      companyDeadline: EVENT.companyDeadline, applicationDeadline: EVENT.applicationDeadline, decisionDate: EVENT.decisionDate,
+      infoUrl: EVENT.infoUrl, workTypes: EVENT.workTypes,
+    };
+  }
 }
 
 export async function getOverview(): Promise<Overview> {

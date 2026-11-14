@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { BackLink } from "@/components/back-link";
-import { Timeline } from "@/components/public-shell";
+import { Timeline } from "@/components/timeline";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { addCandidateField } from "@/lib/matchready/candidate-actions";

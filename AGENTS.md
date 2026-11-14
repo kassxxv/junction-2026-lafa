@@ -26,6 +26,7 @@ These come from the sponsor's requirements and the EU AI Act. Never break them, 
 - **Meeting feedback is aggregated per card/rule**, never stored or shown as a judgement of a person.
 - **Synthetic data only.** Label seed data as synthetic. Never add real personal data.
 - **Organiser data stays behind the organiser gate.** Every organiser Server Action, route handler and page calls `isOrganiser()` / `requireOrganiserPage()` from `lib/auth.ts` itself; `proxy.ts` alone is not enough (Server Actions are POSTs to whatever page calls them). Demo resets also require `demoMode()`.
+- **A company only ever acts for itself.** Every company Server Action checks `currentCompanyId()` from `lib/auth.ts` against the company it touches; companies sign in with an invitation code (only its hash is stored, `lib/invite-code.ts`).
 - **Every AI call reachable from a public page is rate-limited** with `allow(<bucket>)` from `lib/rate-limit.ts` (rules in `lib/matchready/config.ts`).
 - **Context.dev:** company websites only. Never use People Search.
 

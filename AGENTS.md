@@ -43,6 +43,7 @@ The Next.js app lives at the repo root (`app/`, `lib/`). The Python prototype in
 - Install: `npm install`
 - Dev server: `npm run dev` (Gemma needs the SSH tunnel to Verda)
 - Service status: `GET /api/health`
+- Database: `npm run db:migrate` applies `db/migrations/*.sql`; `npm run db:seed` wipes app data and loads the seed (real event, synthetic companies and people). Read-only status check: `npx tsx --conditions=react-server --env-file=.env scripts/_check-seed.ts [company-id]`.
 - AI quality check for card drafting (synthetic inputs, calls Gemini): `npm run eval:cards` or `npm run eval:cards -- <case-id>`. Run it after every change to `lib/prompts/card-draft.ts`.
 - Before every commit: `npm run lint && npm run build && npx tsc --noEmit` (build first: it generates the route types tsc needs)
 

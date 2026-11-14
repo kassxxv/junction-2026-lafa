@@ -92,6 +92,33 @@ export async function query<T extends QueryResultRow>(text: string, params: unkn
   }
 }
 
+/** Runs `fn` inside one transaction (all or nothing). */
+export async function withTransaction<T>(fn: (q: <R extends QueryResultRow>(text: string, params?: unknown[]) => Promise<R[]>) => Promise<T>): Promise<T> {
+  const client = await getPool().pool.connect();
+  // Without this, a dropped connection mid-transaction crashes the process and leaves the
+  // transaction open on the server. With it, the failing query rejects and we roll back.
+  const onError = (err: Error) => logFailure("database", "transaction client", classifyError(err));
+  client.on("error", onError);
+  try {
+    await client.query("BEGIN");
+    const result = await fn(async <R extends QueryResultRow>(text: string, params: unknown[] = []) => (await client.query<R>(text, params)).rows);
+    await client.query("COMMIT");
+    return result;
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw err;
+  } finally {
+    client.off("error", onError);
+    client.release();
+  }
+}
+
+/** Closes the pool (scripts only, so the process can exit). */
+export async function closeDb(): Promise<void> {
+  await globalThis.__lafaPgPool?.pool.end();
+  globalThis.__lafaPgPool = undefined;
+}
+
 export async function health(): Promise<ServiceHealth> {
   if (!isDbConfigured()) return { status: "not_configured", mode: "stub", error: "not_configured" };
 

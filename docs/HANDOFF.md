@@ -110,6 +110,8 @@ Re-seed before the pitch: `npm run db:seed`. On the deploy set `ORGANISER_PASSWO
 
 **Added night of 2026-11-14:** company sign-in by invitation code (/company; demo codes KUURA-2026, NORDIC-2026, QUANTUMLAB-2026), company page with selection status and meetings, meeting answers on the candidate status page, reminder e-mails from /organiser/feedback (lib/email.ts, Resend or preview). Migration 007; seed now never approves more people than a company has places.
 
+**Source check:** review shows the de-identified CV text (lib/matchready/redact.ts, written at upload) with the lines behind each requirement (lib/matchready/sources.ts) and the facts not found in the text. Seed candidate A-07 has one simulated model error (aiExtraSkills) so the check is visible in the demo. Migration 008.
+
 **Still open after the 2026-11-14 pass**
 - Several vacancies per company (one card per vacancy) is shown as "next step" only.
 - Gemma still tags the demo CV's research job "optical testing" (its lines say "optical measurements"), so it is counted. The value now shows the split ("Valo Optics 3 y 5 m + University photonics lab 1 y 9 m") so the organiser sees it; a stricter fix (area tags must be backed by the job's own lines) would change seed results and needs a decision.

@@ -7,6 +7,7 @@ import { closeDb, withTransaction } from "../lib/db";
 import { hashInviteCode } from "../lib/invite-code";
 import { DEMO_FEEDBACK_COMPANY_ID, DEMO_ORGANISER, DEMO_REVIEW_COMPANY_ID, demoInviteCode, SEED_REFERENCE_MONTH } from "../lib/matchready/demo";
 import { compareCvLinkedin, evidenceFor, type Requirement } from "../lib/matchready/facts";
+import { redactPersonalDetails } from "../lib/matchready/redact";
 import { classifyError } from "../lib/service";
 
 const CANDIDATES = [...BASE_CANDIDATES, ...EXTRA_CANDIDATES];
@@ -62,7 +63,9 @@ async function main() {
     for (const [n, p] of CANDIDATES.entries()) {
       const id = `cand.${String(n + 1).padStart(3, "0")}`;
       const li = linkedinFrom(p.cv, p.linkedin);
-      const checks = compareCvLinkedin(p.cv, li, SEED_REFERENCE_MONTH);
+      // What the app stores is what the "model" extracted, including any simulated error (aiExtraSkills).
+      const facts = p.aiExtraSkills ? { ...p.cv, skills: [...p.cv.skills, ...p.aiExtraSkills] } : p.cv;
+      const checks = compareCvLinkedin(facts, li, SEED_REFERENCE_MONTH);
       const fi = p.cv.languages.find((l) => l.language === "Finnish");
 
       await q(`INSERT INTO candidates (id, event_id, code) VALUES ($1,$2,$3)`, [id, EVENT.id, p.code]);
@@ -74,8 +77,9 @@ async function main() {
       await q(`INSERT INTO consents (candidate_id, purpose) VALUES ($1,'event')`, [id]);
       if (n % 3 !== 2) await q(`INSERT INTO consents (candidate_id, purpose, expires_at) VALUES ($1,'talent_pool', now() + interval '12 months')`, [id]);
       await q(
-        `INSERT INTO candidate_documents (candidate_id, cv_text, cv_facts, linkedin_url, linkedin_facts, linkedin_checks) VALUES ($1,$2,$3,$4,$5,$6)`,
-        [id, cvText(p.name, p.cv), JSON.stringify(p.cv), li ? `linkedin.com/in/${slug(p.name)}-demo` : null, li ? JSON.stringify(li) : null, JSON.stringify(checks)],
+        `INSERT INTO candidate_documents (candidate_id, cv_text, cv_facts, linkedin_url, linkedin_facts, linkedin_checks, cv_text_blind) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        [id, cvText(p.name, p.cv), JSON.stringify(facts), li ? `linkedin.com/in/${slug(p.name)}-demo` : null, li ? JSON.stringify(li) : null, JSON.stringify(checks),
+         redactPersonalDetails(cvText(p.name, p.cv), { name: p.name, email: `${slug(p.name)}@example.com` }).text],
       );
       await q(
         `INSERT INTO candidate_background (candidate_id, finnish_speaker, has_degree, career_changer) VALUES ($1,$2,$3,$4)`,
@@ -91,7 +95,7 @@ async function main() {
           [appId, id, companyId, roleByCompany.get(companyId), starter, String(48 - n), p.taskAnswers?.[companyId] ?? null],
         );
         for (const req of requirementsByCompany.get(companyId) ?? []) {
-          const ev = evidenceFor(req, p.cv, li, p.cv.languages, SEED_REFERENCE_MONTH);
+          const ev = evidenceFor(req, facts, li, p.cv.languages, SEED_REFERENCE_MONTH);
           const proof = p.proofs?.[req.type];
           await q(
             `INSERT INTO evidence (application_id, requirement_id, value, meets, source, proof_type, proof_ref, linkedin_match)

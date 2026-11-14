@@ -79,11 +79,13 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 - No cover letters: candidates confirm evidence per requirement and attach proof if they want.
 - An optional company task, answered from the candidate's own past work and walked through at the start of the meeting. Candidates say whether an AI tool helped.
 - CV ↔ LinkedIn differences are shown as facts (“CV says Test Lead, LinkedIn says Test Engineer”), never as a score.
+- Every fact traces back to the CV: click a requirement and the lines it comes from light up in the CV text.
 
 **Responsible and feasible execution (20%)**
 - No score, rank or match percentage exists anywhere, in the UI or the database.
 - Candidate documents go only to the self-hosted open model in the EU. Gemini only sees company data.
 - Blind review, a logged decision for every approval, a bias check per company.
+- The AI is checked by code against the document: anything it extracted that the CV text does not contain is listed for the organiser. Personal details are cut out of the CV text on upload, before any organiser can see it.
 - Running on real services: Vercel, Aiven, Gemini, Gemma on Verda, Context.dev.
 
 - Companies sign in with an invitation code and get their own page: card, selection status and their meetings. After the event both sides get an e-mail reminder and answer “want to continue?”; if both say yes, the organisers connect them.

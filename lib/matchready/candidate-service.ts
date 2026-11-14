@@ -17,7 +17,15 @@ import {
   type Requirement,
   type RequirementType,
 } from "./facts";
+import { redactPersonalDetails } from "./redact";
 import { accessCode } from "./tavata";
+
+/** The CV as organisers may see it: personal details cut out at upload (lib/matchready/redact.ts). */
+async function blindCv(candidateId: string, text: string | null): Promise<string | null> {
+  if (!text) return null;
+  const [who] = await query<{ email: string | null; full_name: string | null }>(`SELECT email, full_name FROM candidate_identity WHERE candidate_id = $1`, [candidateId]);
+  return redactPersonalDetails(text, { email: who?.email, name: who?.full_name }).text;
+}
 
 /**
  * Candidate side. Candidate text (CV, LinkedIn export, answers) goes ONLY to Gemma on our
@@ -60,7 +68,9 @@ export async function joinPool(input: JoinInput): Promise<string> {
     ]);
     await q(`INSERT INTO consents (candidate_id, purpose) VALUES ($1, 'event')`, [id]);
     if (input.consentPool) await q(`INSERT INTO consents (candidate_id, purpose, expires_at) VALUES ($1, 'talent_pool', now() + interval '12 months')`, [id]);
-    await q(`INSERT INTO candidate_documents (candidate_id, cv_text) VALUES ($1, $2)`, [id, input.cvText]);
+    await q(`INSERT INTO candidate_documents (candidate_id, cv_text, cv_text_blind) VALUES ($1, $2, $3)`, [
+      id, input.cvText, input.cvText ? redactPersonalDetails(input.cvText, { email: input.email }).text : null,
+    ]);
   });
   return id;
 }
@@ -194,7 +204,7 @@ export async function parseDocument(candidateId: string, kind: "cv" | "linkedin"
   // overwrite real facts or turn every job into "not on LinkedIn".
   if (result.source === "stub") {
     const [kept] = await query<{ linkedin_checks: LinkedinCheck[] | null }>(`SELECT linkedin_checks FROM candidate_documents WHERE candidate_id = $1`, [candidateId]);
-    if (kind === "cv") await query(`UPDATE candidate_documents SET cv_text = coalesce(cv_text, $2), updated_at = now() WHERE candidate_id = $1`, [candidateId, text]);
+    if (kind === "cv") await query(`UPDATE candidate_documents SET cv_text = coalesce(cv_text, $2), cv_text_blind = coalesce(cv_text_blind, $3), updated_at = now() WHERE candidate_id = $1`, [candidateId, text, await blindCv(candidateId, text)]);
     return { ok: false, source: "stub", facts: null, checks: kept?.linkedin_checks ?? [] };
   }
 
@@ -210,8 +220,8 @@ export async function parseDocument(candidateId: string, kind: "cv" | "linkedin"
   const checks = cv ? compareCvLinkedin(cv, li) : [];
 
   if (kind === "cv") {
-    await query(`UPDATE candidate_documents SET cv_text = $2, cv_facts = $3, linkedin_checks = $4, updated_at = now() WHERE candidate_id = $1`, [
-      candidateId, text, JSON.stringify(facts), JSON.stringify(checks),
+    await query(`UPDATE candidate_documents SET cv_text = $2, cv_facts = $3, linkedin_checks = $4, cv_text_blind = $5, updated_at = now() WHERE candidate_id = $1`, [
+      candidateId, text, JSON.stringify(facts), JSON.stringify(checks), await blindCv(candidateId, text),
     ]);
   } else {
     await query(`UPDATE candidate_documents SET linkedin_facts = $2, linkedin_checks = $3, updated_at = now() WHERE candidate_id = $1`, [

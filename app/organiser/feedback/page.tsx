@@ -2,7 +2,8 @@ import { Info } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { requireOrganiserPage } from "@/lib/auth";
-import { EVENT, formatDateRange } from "@/lib/matchready/event";
+import { formatDateRange } from "@/lib/matchready/event";
+import { getEvent } from "@/lib/matchready/organiser";
 import { getFeedbackDashboard } from "@/lib/matchready/feedback";
 import { companiesWithMeetings } from "@/lib/matchready/reminders";
 import { ReminderPanel } from "./reminder-panel";
@@ -11,7 +12,7 @@ import { ReminderPanel } from "./reminder-panel";
 export default async function FeedbackDashboardPage() {
   await connection();
   await requireOrganiserPage("/organiser/feedback");
-  const [d, reminderCompanies] = await Promise.all([getFeedbackDashboard(), companiesWithMeetings()]);
+  const [d, reminderCompanies, EVENT] = await Promise.all([getFeedbackDashboard(), companiesWithMeetings(), getEvent()]);
   const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
   return (

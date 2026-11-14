@@ -1,7 +1,7 @@
 import "server-only";
 import { query } from "@/lib/db";
 import type { Email } from "@/lib/email";
-import { EVENT } from "./event";
+import { getEvent } from "./organiser";
 
 /**
  * Reminder e-mails after the meetings of one company: "Want to continue the conversation?", sent to each side
@@ -17,6 +17,7 @@ export interface Reminder extends Email {
 }
 
 export async function remindersFor(companyId: string, origin: string): Promise<Reminder[]> {
+  const EVENT = await getEvent();
   const rows = await query<{
     id: string; candidate_id: string; code: string; company: string; company_email: string | null; candidate_email: string;
     role: string | null; company_answered: boolean; candidate_answered: boolean;

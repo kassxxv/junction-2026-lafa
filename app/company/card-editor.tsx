@@ -11,7 +11,9 @@ import { MeetingAnswers } from "@/components/meeting-answers";
 import { confirmCompanyCard, previewPool, resetCompanyDemo, suggestCardTasks } from "@/lib/matchready/card-actions";
 import { answerAsCompany } from "@/lib/matchready/meeting-actions";
 import type { CompanyPortal } from "@/lib/matchready/meetings";
-import { EVENT, formatDateRange, formatDay } from "@/lib/matchready/event";
+
+export type EventDates = { name: string; applicationDeadline: string; decisionDate: string; startsOn: string; endsOn: string };
+import { formatDateRange, formatDay } from "@/lib/matchready/event";
 import { requirementText } from "@/lib/matchready/facts";
 import { MAX_COMPANIES_PER_CANDIDATE, TASK_MINUTES } from "@/lib/matchready/config";
 import {
@@ -56,6 +58,7 @@ export function CardEditor({
   backLabel = "Back to questions",
   initialPool = null,
   portal = null,
+  event,
 }: {
   company: CompanyProps;
   initial: CompanyCardDraft;
@@ -68,6 +71,8 @@ export function CardEditor({
   initialPool?: PoolStats | null;
   /** Selection status and meetings for the company page. */
   portal?: CompanyPortal | null;
+  /** The event as set in Event settings, for the "what happens next" dates. */
+  event: EventDates;
 }) {
   const [card, setCard] = useState<CompanyCardDraft>(() => ({
     ...initial,
@@ -142,6 +147,7 @@ export function CardEditor({
         onStartOver={demo ? () => startTransition(async () => { await resetCompanyDemo(company.id); window.location.reload(); }) : undefined}
         pending={pending}
         portal={portal}
+        event={event}
       />
     );
   }
@@ -442,8 +448,10 @@ function ConfirmedView({
   onStartOver,
   pending,
   portal,
+  event,
 }: {
   portal: CompanyPortal | null;
+  event: EventDates;
   companyName: string;
   card: CompanyCardDraft;
   pool: PoolStats;
@@ -457,9 +465,9 @@ function ConfirmedView({
   const musts = role?.requirements.filter((r) => r.mustHave && r.label.trim()) ?? [];
   const steps = [
     { date: formatDay(companyDeadline), text: `Company deadline. Professionals in your field are invited and choose up to ${MAX_COMPANIES_PER_CANDIDATE} companies.` },
-    { date: formatDay(EVENT.applicationDeadline), text: "Applications close. Each applicant shows where they meet your requirements." },
-    { date: formatDay(EVENT.decisionDate), text: "The organisers decide who gets a meeting with you. You get the list with meeting times on Tavata." },
-    { date: formatDateRange(EVENT.startsOn, EVENT.endsOn), text: `1:1 meetings at ${EVENT.name}. After each one, you answer one question: continue or not.` },
+    { date: formatDay(event.applicationDeadline), text: "Applications close. Each applicant shows where they meet your requirements." },
+    { date: formatDay(event.decisionDate), text: "The organisers decide who gets a meeting with you. You get the list with meeting times on Tavata." },
+    { date: formatDateRange(event.startsOn, event.endsOn), text: `1:1 meetings at ${event.name}. After each one, you answer one question: continue or not.` },
   ];
 
   return (

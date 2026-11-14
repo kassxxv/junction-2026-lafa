@@ -2,7 +2,6 @@ import "server-only";
 import { query, withTransaction } from "@/lib/db";
 import type { Email } from "@/lib/email";
 import { generateInviteCode, hashInviteCode } from "@/lib/invite-code";
-import { EVENT } from "./event";
 
 /**
  * Organisers manage the companies of the event: add a company, hand out its invitation code. The code is
@@ -83,7 +82,7 @@ export async function rotateInviteCode(companyId: string): Promise<{ code: strin
   return c ? { code, name: c.name, contactEmail: c.contact_email } : null;
 }
 
-export function invitationEmail(company: { name: string; contactEmail: string }, code: string, origin: string): Email {
+export function invitationEmail(company: { name: string; contactEmail: string }, code: string, origin: string, EVENT: { name: string }): Email {
   return {
     to: company.contactEmail,
     subject: `Your invitation to ${EVENT.name}`,

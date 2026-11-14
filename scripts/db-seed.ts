@@ -25,9 +25,9 @@ async function main() {
     await q(`TRUNCATE ${APP_TABLES.join(", ")} RESTART IDENTITY CASCADE`);
 
     await q(
-      `INSERT INTO events (id, name, starts_on, ends_on, format, fields, company_deadline, application_deadline, decision_date, info_url)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
-      [EVENT.id, EVENT.name, EVENT.startsOn, EVENT.endsOn, EVENT.format, EVENT.fields, EVENT.companyDeadline, EVENT.applicationDeadline, EVENT.decisionDate, EVENT.infoUrl],
+      `INSERT INTO events (id, name, starts_on, ends_on, format, fields, company_deadline, application_deadline, decision_date, info_url, work_types)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+      [EVENT.id, EVENT.name, EVENT.startsOn, EVENT.endsOn, EVENT.format, EVENT.fields, EVENT.companyDeadline, EVENT.applicationDeadline, EVENT.decisionDate, EVENT.infoUrl, EVENT.workTypes],
     );
 
     const requirementsByCompany = new Map<string, Requirement[]>();

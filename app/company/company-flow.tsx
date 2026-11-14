@@ -13,7 +13,7 @@ import { draftCompanyCard } from "@/lib/matchready/card-actions";
 import { GOAL_LABEL, type CardQuestion, type CompanyCardDraft, type GoalId, type PoolStats } from "@/lib/matchready/card-schema";
 import { demoCompanyText } from "@/lib/matchready/demo";
 import type { CompanyPortal } from "@/lib/matchready/meetings";
-import { CardEditor } from "./card-editor";
+import { CardEditor, type EventDates } from "./card-editor";
 
 export interface CompanyProps {
   id: string;
@@ -58,6 +58,7 @@ export function CompanyFlow({
   demo,
   saved,
   portal,
+  event,
 }: {
   company: CompanyProps;
   companyDeadline: string;
@@ -65,6 +66,7 @@ export function CompanyFlow({
   /** The confirmed card, if there is one: the company lands on its card page instead of the input step. */
   saved: { draft: CompanyCardDraft; pool: PoolStats } | null;
   portal: CompanyPortal | null;
+  event: EventDates;
 }) {
   const [useSaved, setUseSaved] = useState(Boolean(saved));
   const [step, setStep] = useState<Step>("describe");
@@ -110,6 +112,7 @@ export function CompanyFlow({
         demo={demo}
         initialPool={saved.pool}
         portal={portal}
+        event={event}
         onBack={() => setUseSaved(false)}
         backLabel="Draft again from new text"
       />
@@ -126,6 +129,8 @@ export function CompanyFlow({
         demo={demo}
         onBack={draft.questions.length ? () => { setQIndex(0); setStep("ask"); } : () => setStep("describe")}
         backLabel={draft.questions.length ? "Back to questions" : "Back to your text"}
+        portal={portal}
+        event={event}
       />
     );
   }

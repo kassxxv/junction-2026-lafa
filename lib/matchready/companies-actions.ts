@@ -22,7 +22,7 @@ async function origin(): Promise<string> {
 
 async function deliver(company: { name: string; contactEmail: string | null }, code: string): Promise<Omit<Extract<InviteResult, { ok: true }>, "ok" | "companyName" | "code">> {
   if (!company.contactEmail) return { delivered: false, previewOnly: true, preview: null };
-  const email = invitationEmail({ name: company.name, contactEmail: company.contactEmail }, code, await origin());
+  const email = invitationEmail({ name: company.name, contactEmail: company.contactEmail }, code, await origin(), await getEvent());
   const sent = emailConfigured() ? await sendEmail(email) : null;
   return { delivered: Boolean(sent?.delivered), previewOnly: !emailConfigured(), preview: { subject: email.subject, text: email.text } };
 }

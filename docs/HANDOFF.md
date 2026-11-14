@@ -8,7 +8,7 @@ A working end-to-end prototype on real services (Next.js 16 on Vercel, Aiven Pos
 
 | Route | Who | What it does |
 |---|---|---|
-| `/` | everyone | Static landing page of the real event, three ways in |
+| `/` | everyone | Landing page of the event (live values from Event settings, built-in values as fallback), three ways in |
 | `/company?company=<id>` | company | Any input → Context.dev (links) + Gemini → card with typed requirements + must-have → ≤3 questions → editor with live pool count → confirm (DB) → pool stats. Default demo company: `kuura-photonics` (draft, no applications) |
 | `/demo/kuura-photonics/careers` | Context.dev | Synthetic careers page so the demo reads a real URL (only works on the public deploy) |
 | `/candidate` | professional | Stage 1 talent pool (fields, work type, career stage, languages, email, optional CV, 2 consents) |
@@ -111,6 +111,8 @@ Re-seed before the pitch: `npm run db:seed`. On the deploy set `ORGANISER_PASSWO
 **Added night of 2026-11-14:** company sign-in by invitation code (/company; demo codes KUURA-2026, NORDIC-2026, QUANTUMLAB-2026), company page with selection status and meetings, meeting answers on the candidate status page, reminder e-mails from /organiser/feedback (lib/email.ts, Resend or preview). Migration 007; seed now never approves more people than a company has places.
 
 **Source check:** review shows the de-identified CV text (lib/matchready/redact.ts, written at upload) with the lines behind each requirement (lib/matchready/sources.ts) and the facts not found in the text. Seed candidate A-07 has one simulated model error (aiExtraSkills) so the check is visible in the demo. Migration 008.
+
+**Event settings:** /organiser/settings (lib/matchready/event-settings.ts, event-settings-actions.ts, migration 009 adds events.work_types). Organisers edit name, format, event page link, the five dates (order checked), fields and types of work; a field or work type in use cannot be removed. Every page reads the events row; lib/matchready/event.ts is only the seed default and the fallback when the database is down (landing and headers render it first and stream the live values). db:seed resets the settings.
 
 **Organiser Companies page:** /organiser/companies (lib/matchready/companies-admin.ts, companies-actions.ts). Careful in the demo: "New code" on a seeded company replaces its demo code (KUURA-2026 etc.) until the next db:seed.
 

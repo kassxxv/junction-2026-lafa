@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { PublicShell } from "@/components/public-shell";
-import { CAREER_STAGES, confirmedCompanies, WORK_TYPES } from "@/lib/matchready/candidate-service";
+import { CAREER_STAGES, confirmedCompanies } from "@/lib/matchready/candidate-service";
 import { getEvent } from "@/lib/matchready/organiser";
 import { JoinForm } from "./join-form";
 
@@ -22,7 +22,7 @@ async function Content() {
   return (
     <JoinForm
       fields={event.fields}
-      workTypes={WORK_TYPES}
+      workTypes={event.workTypes}
       stages={CAREER_STAGES.map((s) => ({ id: s.id, label: s.label }))}
       confirmed={companies.map((c) => ({ name: c.name, field: c.field ?? "" }))}
       companyDeadline={event.companyDeadline}

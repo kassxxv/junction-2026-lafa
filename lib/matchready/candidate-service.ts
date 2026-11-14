@@ -33,8 +33,7 @@ async function blindCv(candidateId: string, text: string | null): Promise<string
  */
 
 
-/** Talent-pool choices come from the event configuration (lib/matchready/event.ts), not from this file. */
-export const WORK_TYPES = EVENT.workTypes;
+/** Career stages are fixed (the database checks them); types of work are set per event in Event settings. */
 export const CAREER_STAGES = EVENT.careerStages;
 
 /* ---------------- Stage 1: talent pool ---------------- */

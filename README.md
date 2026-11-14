@@ -91,7 +91,7 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 - Companies sign in with an invitation code and get their own page: card, selection status and their meetings. After the event both sides get an e-mail reminder and answer “want to continue?”; if both say yes, the organisers connect them.
 - Organisers add companies and hand out invitation codes on their own Companies page, so the platform is not tied to the demo data. A code is shown once and only its fingerprint is stored.
 
-**Next steps:** several vacancies per company; event settings that organisers can change for any event; organiser accounts instead of one shared password.
+**Next steps:** several vacancies per company; several events side by side; organiser accounts instead of one shared password.
 
 ## Try the demo
 

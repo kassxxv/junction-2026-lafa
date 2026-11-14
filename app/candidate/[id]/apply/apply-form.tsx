@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { BackLink } from "@/components/back-link";
 import { CHECK_STYLE, MustHaveBadge } from "@/components/fact-labels";
-import { Timeline } from "@/components/public-shell";
+import { Timeline } from "@/components/timeline";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";

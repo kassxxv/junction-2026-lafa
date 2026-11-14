@@ -3,17 +3,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@/lib/brand";
 import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import { EVENT, formatDateRange, formatDay } from "@/lib/matchready/event";
+import { getEventOrDefault } from "@/lib/matchready/organiser";
 
 /**
- * Landing page of the real event, with the three ways in. Static on purpose: the event facts are
- * public (espoo.fi) and come from lib/matchready/event.ts, so this page never depends on the database.
+ * Landing page of the real event, with the three ways in. The event facts come from Event settings (the database);
+ * the built-in values from lib/matchready/event.ts render first and stay if the database is down.
  */
 
 const NUMBER_WORD = ["zero", "one", "two", "three", "four", "five"];
 const maxCompanies = NUMBER_WORD[MAX_COMPANIES_PER_CANDIDATE] ?? String(MAX_COMPANIES_PER_CANDIDATE);
 
-const ENTRIES = [
+const entries = (EVENT: LandingEvent) => [
   {
     href: "/company",
     icon: Building2,
@@ -43,7 +46,7 @@ const ENTRIES = [
   },
 ];
 
-const STEPS = [
+const steps = (EVENT: LandingEvent) => [
   { date: "Now", label: "Companies confirm their cards; professionals join the pool" },
   { date: formatDay(EVENT.companyDeadline, "short"), label: "Company deadline: invitations go out by field" },
   { date: formatDay(EVENT.applicationDeadline, "short"), label: `Applications close: CV and proof for up to ${maxCompanies} companies` },
@@ -57,7 +60,7 @@ const PRINCIPLES = [
   { icon: Lock, title: "Data stays in the EU", body: "Candidate documents are read by an open model on the event's own EU server. Names stay hidden during review." },
 ];
 
-export default function Landing() {
+function LandingView({ event: EVENT }: { event: LandingEvent }) {
   return (
     <div className="min-h-screen bg-background">
       <section className="bg-sidebar text-sidebar-foreground">
@@ -79,7 +82,7 @@ export default function Landing() {
               decide.
             </p>
             <a
-              href={EVENT.infoUrl}
+              href={EVENT.infoUrl ?? undefined}
               target="_blank"
               rel="noreferrer"
               className="mt-6 inline-flex items-center gap-1.5 text-sm text-sidebar-muted underline-offset-4 hover:text-sidebar-foreground hover:underline"
@@ -91,7 +94,7 @@ export default function Landing() {
       </section>
 
       <section aria-label="Ways in" className="page-wide -mt-20 grid gap-4 px-5 md:grid-cols-3">
-        {ENTRIES.map(({ href, icon: Icon, who, title, body, when, cta }) => (
+        {entries(EVENT).map(({ href, icon: Icon, who, title, body, when, cta }) => (
           <Link
             key={href}
             href={href}
@@ -115,7 +118,7 @@ export default function Landing() {
       <section className="page-wide px-5 py-16">
         <h2 className="text-2xl font-semibold tracking-tight">How it works</h2>
         <ol className="mt-6 grid gap-6 md:grid-cols-5">
-          {STEPS.map((s, i) => (
+          {steps(EVENT).map((s, i) => (
             <li key={s.date} className="border-t-2 border-border pt-3 first:border-primary">
               <span className={`text-sm font-semibold tabular-nums ${i === 0 ? "text-primary" : ""}`}>{s.date}</span>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{s.label}</p>
@@ -140,4 +143,39 @@ export default function Landing() {
       </footer>
     </div>
   );
+}
+
+interface LandingEvent {
+  name: string;
+  startsOn: string;
+  endsOn: string;
+  format: string;
+  fields: string[];
+  companyDeadline: string;
+  applicationDeadline: string;
+  decisionDate: string;
+  infoUrl: string | null;
+  infoUrlLabel: string;
+}
+
+export default function Landing() {
+  return (
+    <Suspense fallback={<LandingView event={EVENT} />}>
+      <LiveLanding />
+    </Suspense>
+  );
+}
+
+async function LiveLanding() {
+  await connection();
+  const e = await getEventOrDefault();
+  return <LandingView event={{ ...e, infoUrlLabel: hostLabel(e.infoUrl) }} />;
+}
+
+function hostLabel(url: string | null): string {
+  try {
+    return url ? new URL(url).hostname.replace(/^www\./, "") : "the event site";
+  } catch {
+    return "the event site";
+  }
 }

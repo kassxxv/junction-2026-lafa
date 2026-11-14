@@ -58,6 +58,7 @@ async function CompanyPageContent() {
         demo={demoMode()}
         saved={saved}
         portal={portal}
+        event={event}
       />
     </PublicShell>
   );

@@ -11,7 +11,7 @@ We build an add-on for Espoo's recruitment events (which run on the Tavata platf
 
 1. **Company** describes its need in ~5 minutes → AI turns it into a structured **card** (task, must-have vs trainable skills, language actually needed, what a strong answer looks like, one question for candidates).
 2. **Candidate** picks up to 3 cards and answers each card's question in their own words, any language → AI translates, anonymises, extracts skills with evidence.
-3. **Organiser HR** (external to the companies) selects in one table with explicit rules, batch approval and a decision log → CSV/codes for Tavata.
+3. **Event organisers** (City of Espoo; the people who run the event, not HR) select in one table with explicit rules, batch approval and a decision log → CSV/codes for Tavata.
 
 ## Non-negotiable product rules
 
@@ -19,10 +19,10 @@ These come from the sponsor's requirements and the EU AI Act. Never break them, 
 
 - **AI never scores, ranks, accepts or rejects a person.** No score/rank fields on candidates, in the UI or in the database. Humans decide; AI asks, structures, translates and explains.
 - **Candidate data goes only to Gemma** (self-hosted on Verda, EU). Never send candidate text to Gemini, Context.dev or any other external API.
-- **Gemini gets company data only** (card drafting, HR glossary).
+- **Gemini gets company data only** (card drafting, glossary for organisers).
 - **Keep the candidate's original answer** next to the processed version, and record what AI changed.
 - **Identity is stored separately from answers.** Reviewer screens show anonymised answers.
-- **Every HR decision is logged**: reviewer, timestamp, rule, decision.
+- **Every selection decision is logged**: reviewer, timestamp, rule, decision.
 - **Meeting feedback is aggregated per card/rule**, never stored or shown as a judgement of a person.
 - **Synthetic data only.** Label seed data as synthetic. Never add real personal data.
 - **Context.dev:** company websites only. Never use People Search.
@@ -43,6 +43,7 @@ The Next.js app lives at the repo root (`app/`, `lib/`). The Python prototype in
 - Install: `npm install`
 - Dev server: `npm run dev` (Gemma needs the SSH tunnel to Verda)
 - Service status: `GET /api/health`
+- AI quality check for card drafting (synthetic inputs, calls Gemini): `npm run eval:cards` or `npm run eval:cards -- <case-id>`. Run it after every change to `lib/prompts/card-draft.ts`.
 - Before every commit: `npm run lint && npm run build && npx tsc --noEmit` (build first: it generates the route types tsc needs)
 
 ## Coding rules

@@ -241,7 +241,7 @@ docs/             CONTEXT.md (decisions), HANDOFF.md (state and open work)
 
 ## Team
 
-<!-- TODO: add team members -->
-TODO
+
+Filip Fylyp, Oleksandr Lysytsia, Svitlana Meleshko, Atrem Lobodiuchenko.
 
 Made at Junction 2026, Helsinki. All companies and people in this project are fictional.

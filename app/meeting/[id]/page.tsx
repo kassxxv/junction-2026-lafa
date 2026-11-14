@@ -23,5 +23,6 @@ async function Content({ params, searchParams }: PageProps<"/meeting/[id]">) {
   const side = sp.side === "company" ? "company" : "candidate";
   const meeting = await getMeeting(decodeURIComponent(id));
   if (!meeting) notFound();
-  return <MeetingQuestion meeting={meeting} side={side} />;
+  // key: switching side must start a fresh question, not keep the other side's answered state.
+  return <MeetingQuestion key={side} meeting={meeting} side={side} />;
 }

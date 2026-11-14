@@ -26,7 +26,7 @@ async function Content({ searchParams }: PageProps<"/login">) {
   return (
     <div className="mx-auto max-w-sm px-5 py-16">
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Organiser sign-in</h1>
+        <h1 className="title-panel">Organiser sign-in</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           The review screens, decisions and the export for Tavata are for the event team only.
         </p>

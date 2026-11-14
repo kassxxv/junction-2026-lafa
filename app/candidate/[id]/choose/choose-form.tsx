@@ -55,14 +55,14 @@ export function ChooseForm({
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="page-form px-5 py-10">
       <BackLink href={`/candidate/${encodeURIComponent(candidateId)}`}>Back to your status</BackLink>
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <p className="text-sm font-medium text-primary">Step 2: choose companies</p>
         <Timeline stage={2} />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h1 className="title-page">
               {mine.length} {mine.length === 1 ? "company" : "companies"} confirmed in {fields.join(" and ")}
             </h1>
             <p className="mt-1 text-muted-foreground">Choose up to {max} you really want to meet.</p>

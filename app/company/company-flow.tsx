@@ -98,10 +98,10 @@ export function CompanyFlow({ company, companyDeadline, demo }: { company: Compa
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-5 py-10 sm:py-16">
+    <div className="page-narrow px-5 py-10 sm:py-16">
       {step === "describe" && (
         <section>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Who do you want to meet at the event?</h1>
+          <h1 className="title-page">Who do you want to meet at the event?</h1>
           <p className="mt-3 max-w-[56ch] text-lg text-muted-foreground">
             Any format works: a long description, two lines, or a link to your website or job ad. We draft your card and
             ask only about what is unclear.
@@ -203,7 +203,7 @@ function QuestionScreen({
           {total === 1 ? "One question" : `Question ${index + 1} of ${total}`}
         </span>
       </div>
-      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{q.question}</h1>
+      <h1 className="title-page">{q.question}</h1>
 
       <div className="mt-8">
         {freeText ? (

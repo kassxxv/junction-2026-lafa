@@ -73,7 +73,7 @@ export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }
             <Link href="/organiser" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
               <ArrowLeft className="size-4" /> Overview
             </Link>
-            <h1 className="text-xl font-semibold tracking-tight">
+            <h1 className="title-panel">
               {company.name}
               {role && <span className="font-normal text-muted-foreground">, {role.title}</span>}
             </h1>

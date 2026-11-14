@@ -135,7 +135,7 @@ export function CardEditor({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:py-12">
+    <div className="page-wide px-5 py-8 sm:py-12">
       {sample && (
         <p className="mb-6 flex gap-2 rounded-lg bg-status-ai-bg px-4 py-3 text-sm text-status-ai">
           <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -153,7 +153,7 @@ export function CardEditor({
         <section className="rounded-xl border border-border bg-card">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">Company card</h1>
+              <h1 className="title-panel">Company card</h1>
               <p className="text-sm text-muted-foreground">{company.name}</p>
             </div>
             {confirmed ? (
@@ -259,7 +259,7 @@ export function CardEditor({
             )}
             <div className="flex flex-wrap items-center gap-3">
               {error && <span className="text-sm text-destructive">{error}</span>}
-              <Button size="lg" disabled={pending} onClick={confirm} className="bg-status-confirmed hover:bg-status-confirmed/85">
+              <Button size="lg" disabled={pending} onClick={confirm}>
                 <Check data-icon="inline-start" />
                 {pending ? "Saving…" : company.status === "confirmed" ? "Save changes" : "Confirm card"}
               </Button>
@@ -424,13 +424,13 @@ function ConfirmedView({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:py-12">
+    <div className="page-wide px-5 py-8 sm:py-12">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-status-confirmed-bg px-3 py-1 text-sm font-medium text-status-confirmed">
             <Check className="size-4" /> Card confirmed
           </span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+          <h1 className="title-page mt-4">
             {hiring && role?.title ? `${companyName} is looking for: ${role.title}` : `${companyName} is on the list`}
           </h1>
           <p className="mt-2 max-w-[60ch] text-muted-foreground">

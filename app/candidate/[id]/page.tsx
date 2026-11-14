@@ -33,7 +33,7 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
   const approved = c.applications.filter((a) => a.status === "approved");
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-10">
+    <div className="page-narrow px-5 py-10">
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-status-confirmed-bg px-3 py-1 text-sm font-medium text-status-confirmed">
           <Check className="size-4" /> {applied ? "Application sent" : "You are in the talent pool"}
@@ -43,7 +43,7 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
 
         {!applied && (
           <>
-            <h1 className="text-2xl font-semibold tracking-tight">What happens next</h1>
+            <h1 className="title-page">What happens next</h1>
             <p className="mt-3 text-muted-foreground">
               Your fields: <strong className="text-foreground">{c.fields.join(", ")}</strong>.
             </p>
@@ -59,7 +59,7 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
 
         {applied && (
           <>
-            <h1 className="text-2xl font-semibold tracking-tight">{approved.length ? "You have a meeting pass" : "Waiting for organiser review"}</h1>
+            <h1 className="title-page">{approved.length ? "You have a meeting pass" : "Waiting for organiser review"}</h1>
             <ul className="mt-4 divide-y divide-border rounded-lg border border-border">
               {c.applications.map((a) => (
                 <li key={a.companyId} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
@@ -68,7 +68,7 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
                     <div className="text-sm text-muted-foreground">{a.role}</div>
                   </div>
                   {a.status === "approved" ? (
-                    <span className="inline-flex items-center gap-2 rounded-lg bg-status-confirmed-bg px-3 py-1.5 text-sm font-medium text-status-confirmed">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-status-confirmed-bg px-3 py-1.5 text-sm font-medium text-status-confirmed">
                       <Ticket className="size-4" /> Tavata code <span className="font-mono tracking-wide">{a.accessCode}</span>
                     </span>
                   ) : a.status === "declined" ? (

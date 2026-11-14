@@ -32,7 +32,7 @@ async function CompanyPageContent({ searchParams }: PageProps<"/company">) {
             demo={demoMode()}
           />
         ) : (
-          <p className="mx-auto max-w-xl px-5 py-20 text-center text-muted-foreground">
+          <p className="page-narrow px-5 py-20 text-center text-muted-foreground">
             This invitation link is not valid. Ask the event organisers for a new one.
           </p>
         )}

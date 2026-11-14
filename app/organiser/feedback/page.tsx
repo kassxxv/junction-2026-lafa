@@ -16,7 +16,7 @@ export default async function FeedbackDashboardPage() {
     <div className="flex-1 overflow-y-auto">
       <header className="border-b border-border bg-card px-6 py-5">
         <p className="text-sm text-muted-foreground">After the event</p>
-        <h1 className="text-xl font-semibold tracking-tight">Meeting feedback</h1>
+        <h1 className="title-panel">Meeting feedback</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Right after each 1:1 meeting both sides answer one question: “Want to continue the conversation?”
         </p>

@@ -69,10 +69,10 @@ export function JoinForm({
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="page-wide grid gap-6 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <p className="text-sm font-medium text-primary">Step 1: talent pool</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Join the talent pool</h1>
+        <h1 className="title-page mt-1">Join the talent pool</h1>
         <p className="mt-2 max-w-[58ch] text-muted-foreground">
           About one minute. Nobody is selected here. You choose companies later, when you know who is coming.
         </p>
@@ -154,7 +154,7 @@ export function JoinForm({
             <p className="text-sm font-medium">Your CV (optional now)</p>
             <p className="mb-2 text-xs text-muted-foreground">Needed when you apply. We reuse it so you don&apos;t type your history twice.</p>
             {cv ? (
-              <span className="inline-flex items-center gap-2 rounded-lg bg-status-confirmed-bg px-3 py-1.5 text-sm text-status-confirmed">
+              <span className="inline-flex items-center gap-2 rounded-full bg-status-confirmed-bg px-3 py-1.5 text-sm text-status-confirmed">
                 <Check className="size-4" /> {cv.name}
                 <button aria-label="Remove CV" onClick={() => setCv(null)} className="ml-1 opacity-70 hover:opacity-100">
                   <X className="size-3.5" />

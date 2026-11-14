@@ -31,7 +31,7 @@ export default async function OrganiserOverview() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-sm text-muted-foreground">Overview</p>
-            <h1 className="text-xl font-semibold tracking-tight">{o.event.name}</h1>
+            <h1 className="title-panel">{o.event.name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {formatDateRange(o.event.startsOn, o.event.endsOn, { year: true })}, {o.event.format.charAt(0).toLowerCase() + o.event.format.slice(1)}. Fields:{" "}
               {o.event.fields.join(", ")}

@@ -117,12 +117,12 @@ export function ApplyForm({
   const toCheck = checks.filter(needsLook).length;
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="page-form px-5 py-10">
       <BackLink href={`/candidate/${encodeURIComponent(candidateId)}/choose`}>Back to choose companies</BackLink>
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <p className="text-sm font-medium text-primary">Step 3: your application</p>
         <Timeline stage={2} />
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Show where you meet each requirement</h1>
+        <h1 className="title-page">Show where you meet each requirement</h1>
         <p className="mt-1 max-w-[62ch] text-muted-foreground">
           Only what your chosen companies ask for. Proof is optional: without it, the organiser sees “stated by candidate”.
         </p>
@@ -354,7 +354,7 @@ function DocRow({
         ) : (
           <>
             {done && (
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-status-confirmed-bg px-2.5 py-1 text-sm text-status-confirmed">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-status-confirmed-bg px-2.5 py-1 text-sm text-status-confirmed">
                 <Check className="size-4" /> {doneText}
               </span>
             )}

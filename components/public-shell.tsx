@@ -9,7 +9,7 @@ export function PublicShell({ right, children }: { right?: ReactNode; children: 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="bg-sidebar text-sidebar-foreground">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
+        <div className="page-wide flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
           <span className="flex items-center gap-2.5">
             <Link href="/" aria-label={`${BRAND.name} home`} className="shrink-0 border-r border-sidebar-border pr-3">
               <Image src={BRAND.logoOnDark.src} width={BRAND.logoOnDark.width} height={BRAND.logoOnDark.height} alt="" loading="eager" className="h-8 w-auto" />

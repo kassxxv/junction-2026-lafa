@@ -61,7 +61,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <section className="bg-sidebar text-sidebar-foreground">
-        <div className="mx-auto max-w-6xl px-5 pt-6 pb-32">
+        <div className="page-wide px-5 pt-6 pb-32">
           <div className="flex items-center justify-between text-sm">
             <Image src={BRAND.logoOnDark.src} width={BRAND.logoOnDark.width} height={BRAND.logoOnDark.height} alt={BRAND.name} preload className="h-11 w-auto" />
             <span className="text-sidebar-muted">Prototype for the City of Espoo</span>
@@ -91,7 +91,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section aria-label="Ways in" className="mx-auto -mt-20 grid max-w-6xl gap-4 px-5 md:grid-cols-3">
+      <section aria-label="Ways in" className="page-wide -mt-20 grid gap-4 px-5 md:grid-cols-3">
         {ENTRIES.map(({ href, icon: Icon, who, title, body, when, cta }) => (
           <Link
             key={href}
@@ -113,7 +113,7 @@ export default function Landing() {
         ))}
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-16">
+      <section className="page-wide px-5 py-16">
         <h2 className="text-2xl font-semibold tracking-tight">How it works</h2>
         <ol className="mt-6 grid gap-6 md:grid-cols-5">
           {STEPS.map((s, i) => (

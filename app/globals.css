@@ -144,3 +144,34 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Layout and type tokens: three page widths and two title sizes. Use these instead of
+ * max-w-* / text-* on pages, so every screen of one kind has the same width and title.
+ *   page-narrow  one question, one status, one message (status, meeting, 404, company input)
+ *   page-form    multi-part forms (choose companies, application)
+ *   page-wide    form + side panel, landing, headers
+ *   title-page   the h1 of a public page (the landing hero has its own display size)
+ *   title-panel  the h1 of an organiser screen or of a card's header
+ */
+@utility page-narrow {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 42rem;
+}
+@utility page-form {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 64rem;
+}
+@utility page-wide {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+}
+@utility title-page {
+  @apply text-2xl font-semibold tracking-tight sm:text-3xl;
+}
+@utility title-panel {
+  @apply text-2xl font-semibold tracking-tight;
+}

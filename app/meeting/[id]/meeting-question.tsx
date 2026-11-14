@@ -26,12 +26,12 @@ export function MeetingQuestion({ meeting, side }: { meeting: MeetingView; side:
   }
 
   return (
-    <div className="mx-auto max-w-xl px-5 py-14">
+    <div className="page-narrow px-5 py-14">
       <div className="rounded-xl border border-border bg-card p-8 text-center">
         <p className="text-sm font-medium text-primary">Right after the meeting</p>
-        <h1 className="mt-2 text-xl font-semibold tracking-tight">
+        <p className="mt-2 text-lg font-semibold tracking-tight">
           {meeting.company} <span className="text-muted-foreground">×</span> Candidate {meeting.candidateCode}
-        </h1>
+        </p>
         <p className="mt-1 text-sm text-muted-foreground">Both sides answer the same question.</p>
 
         {result ? (
@@ -64,9 +64,9 @@ export function MeetingQuestion({ meeting, side }: { meeting: MeetingView; side:
           </div>
         ) : (
           <>
-            <h2 className="mt-10 text-2xl font-semibold tracking-tight">Want to continue the conversation?</h2>
+            <h1 className="title-page mt-10">Want to continue the conversation?</h1>
             <div className="mt-6 flex justify-center gap-3">
-              <Button size="lg" disabled={pending} onClick={() => answer(true)} className="min-w-28 bg-status-confirmed hover:bg-status-confirmed/85">
+              <Button size="lg" disabled={pending} onClick={() => answer(true)} className="min-w-28">
                 Yes
               </Button>
               <Button size="lg" variant="outline" disabled={pending} onClick={() => answer(false)} className="min-w-28 bg-card">

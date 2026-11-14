@@ -106,7 +106,10 @@ Re-seed before the pitch: `npm run db:seed`. On the deploy set `ORGANISER_PASSWO
 - `scripts/_db-activity.ts` terminates stuck transactions of the app user; keep as a documented dev tool or remove.
 - `ESCO` wrapper exists but is unused (skill names are not normalised).
 
+**Added late 2026-11-14:** optional company task (card editor "Task (optional)", "Suggest tasks" via Gemini with rate limit taskSuggest; candidate answers in the application; organisers see it in review) and the company page (a confirmed company lands on its saved card). Run npm run db:migrate on any database without migration 005.
+
 **Still open after the 2026-11-14 pass**
+- Several vacancies per company (one card per vacancy) is shown as "next step" only.
 - Gemma still tags the demo CV's research job "optical testing" (its lines say "optical measurements"), so it is counted. The value now shows the split ("Valo Optics 3 y 5 m + University photonics lab 1 y 9 m") so the organiser sees it; a stricter fix (area tags must be backed by the job's own lines) would change seed results and needs a decision.
 - Meeting feedback links (`/meeting/[id]?side=`) are unauthenticated: anyone with an application id can answer for either side. Per-side tokens are needed before real use.
 - One shared organiser password, not accounts: decisions are still logged as the demo organiser.

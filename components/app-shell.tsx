@@ -35,15 +35,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Suspense>
 
         <div className="mt-auto hidden items-center gap-3 border-t border-sidebar-border px-5 py-4 md:flex">
-          <span className="flex size-8 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold">
             {DEMO_ORGANISER.initials}
           </span>
-          <div className="text-sm leading-tight">
+          <div className="min-w-0 text-sm leading-tight">
             <div className="font-medium">{DEMO_ORGANISER.name}</div>
             <div className="text-xs text-sidebar-muted">{DEMO_ORGANISER.role}</div>
           </div>
-          <form action={signOutOrganiser} className="ml-auto">
-            <button type="submit" className="rounded-md px-2 py-1 text-xs text-sidebar-muted hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none">
+          <form action={signOutOrganiser} className="ml-auto shrink-0">
+            <button type="submit" className="rounded-md px-2 py-1 text-xs whitespace-nowrap text-sidebar-muted hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none">
               Sign out
             </button>
           </form>

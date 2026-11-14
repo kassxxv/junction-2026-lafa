@@ -23,7 +23,7 @@ async function CompanyPageContent({ searchParams }: PageProps<"/company">) {
   const [company, event, saved] = await Promise.all([getCompany(companyId), getEvent(), getSavedCard(companyId)]);
 
   return (
-    <PublicShell right={company ? `Invited: ${company.name}` : undefined}>
+    <PublicShell right={company ? `Company: ${company.name}` : undefined}>
       <>
         {company ? (
           <CompanyFlow

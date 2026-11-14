@@ -152,7 +152,7 @@ export default async function OrganiserOverview() {
 
           <section className="rounded-xl border border-border bg-card p-5">
             <h2 className="font-semibold">Talent pool by field</h2>
-            <p className="mt-1 text-sm text-muted-foreground">People choose their fields themselves. Nobody is selected at this stage.</p>
+            <p className="mt-1 text-sm text-muted-foreground">People choose their fields themselves.</p>
             <ul className="mt-4 space-y-3">
               {o.poolByField.map((f) => (
                 <li key={f.field} className="grid grid-cols-[minmax(0,1fr)_120px_2.5rem] items-center gap-3 text-sm">

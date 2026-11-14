@@ -90,7 +90,7 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
               {approved.length
                 ? `Use the code on Tavata to book your 1:1 meetings for ${formatDateRange(event.startsOn, event.endsOn)}.`
                 : decided
-                  ? "Some decisions are in. The rest follow by the date below."
+                  ? `Some decisions are in. The rest follow by ${fmt(event.decisionDate)}.`
                   : `You will hear back by ${fmt(event.decisionDate)}. If you are not selected for meetings, you can still join the talks with a Program Pass.`}
             </p>
             {c.applications.length < MAX_COMPANIES_PER_CANDIDATE && !decided && (

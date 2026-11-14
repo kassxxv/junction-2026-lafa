@@ -354,14 +354,18 @@ function Detail({
             <p className={`mt-2 border-l-2 border-border pl-3 leading-relaxed whitespace-pre-line ${app.taskAnswer ? "" : "text-muted-foreground"}`}>
               {app.taskAnswer ?? "No answer."}
             </p>
+            {app.taskAnswer && (
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {app.taskAiUsed ? "The candidate says an AI tool helped write this answer." : "The candidate says no AI tool was used."} Ask about it in the meeting.
+              </p>
+            )}
           </div>
         )}
 
         <div>
           <h3 className="font-medium">CV and LinkedIn profile</h3>
           <p className="mb-2 text-sm text-muted-foreground">
-            Compared with the LinkedIn profile the candidate provided. The profile link is shown after approval, to keep the
-            review blind.
+            The profile link is shown after approval, to keep the review blind.
           </p>
           <ul className="space-y-2">
             {app.checks.map((c, i) => (
@@ -457,7 +461,7 @@ function BiasPanel({ bias }: { bias: Review["bias"] }) {
   return (
     <section className="rounded-xl border border-border bg-card p-5">
       <h2 className="font-semibold">Bias check</h2>
-      <p className="text-sm text-muted-foreground">Share among approved vs all applicants for this company. Aggregate only.</p>
+      <p className="text-sm text-muted-foreground">Share of each group among approved vs all applicants.</p>
       <ul className="mt-4 space-y-3">
         {rows.map((r) => (
           <li key={r.label} className="text-sm">

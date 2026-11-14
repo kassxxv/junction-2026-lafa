@@ -132,8 +132,7 @@ export function CompanyFlow({
         <section>
           <h1 className="title-page">Who do you want to meet at the event?</h1>
           <p className="mt-3 max-w-[56ch] text-lg text-muted-foreground">
-            Any format works: a long description, two lines, or a link to your website or job ad. We draft your card and
-            ask only about what is unclear.
+            A job ad, two lines or a link. We draft the card and ask only what is unclear.
           </p>
           <Textarea
             value={text}

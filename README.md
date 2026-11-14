@@ -67,12 +67,6 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 
 **AI never decides.** Gemini drafts the company card from company data. Gemma, an open model on our own EU server, turns a CV into facts. **Plain code compares** those facts with the requirements, so every flag an organiser sees traces back to a line in a document.
 
-| Company card | Candidate application |
-|---|---|
-| ![Company card drafted from a job ad, with must-haves and a live count of matching people in the pool](docs/screenshots/company-card.png) | ![Candidate application: CV and LinkedIn read, requirement table pre-filled](docs/screenshots/candidate-apply.png) |
-| **Organiser review** | **Landing page** |
-| ![Blind organiser review: facts next to each requirement and the source lines in the de-identified CV](docs/screenshots/organiser-review.png) | ![Landing page of the event with the three ways in](docs/screenshots/landing.png) |
-
 ## How it meets the judging criteria
 
 **Impact and relevance (45%)**

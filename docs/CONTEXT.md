@@ -292,7 +292,7 @@ Resolve each before building the part that depends on it. Record the decision an
 | --- | --- | --- | --- |
 | **Next.js** (TypeScript, App Router, Tailwind) | UI for company, candidate, HR + server routes that call every service | \[PROPOSED\] | One repo, one app. All API keys used only in server code. |
 | **Vercel** | Hosting with auto-deploy from `main` | Not set up | EU function region if offered. See D2. |
-| **Aiven PostgreSQL + pgvector** | All data: cards, answers, decisions, log; vector search | \[FACT\] running: PostgreSQL 18.7, Developer tier, region Europe; pgvector created (verify) | Check "Allowed IP addresses" for the deployed app. Use `sslmode=require`. |
+| **Aiven PostgreSQL + pgvector** | All data: cards, answers, decisions, log; vector search | \[FACT\] running: PostgreSQL 18.7, Developer tier, region Europe; pgvector 0.8.7 verified (2026-11-14) | Check "Allowed IP addresses" for the deployed app. TLS: current `pg` treats `sslmode=require` as verify-full and fails on Aiven's CA, so `lib/db.ts` strips sslmode from the URL and verifies with the CA file in `DATABASE_CA_CERT` (falls back to unverified TLS if unset). |
 | **Gemini API** | Company side: clarifying dialogue, card drafting (JSON), HR glossary | \[FACT\] key created | Only non-personal (company) data goes to Gemini. |
 | **Gemma on Verda (Ollama)** | Candidate side: translate, anonymise, extract skills with evidence | \[FACT\] A100 40GB on-demand, Ubuntu 26.04 + CUDA 13.4, Ollama 0.40.16, `gemma3:12b` | \~€1.5/h; delete after submission. Ollama on localhost; SSH tunnel (dev) or authenticated proxy (deploy). OpenAI-compatible `/v1`. |
 | **Context.dev** | Company website → profile and open roles | \[FACT\] key created | Scrape / answers / map; never People Search. Cache in Aiven. |
@@ -313,12 +313,23 @@ Services never call each other; the Next.js server is the hub.
 
 ```
 GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.1-flash-lite   # cheap stable model for the prototype; unset = Gemini stubbed
 CONTEXT_DEV_API_KEY=
-DATABASE_URL=            # Aiven Service URI, ends with ?sslmode=require
+DATABASE_URL=            # Aiven Service URI (sslmode in it is ignored, see lib/db.ts)
+DATABASE_CA_CERT=./certs/ca.pem      # path to Aiven CA; /certs and *.pem are git-ignored
 GEMMA_BASE_URL=          # dev: http://localhost:11434/v1 (SSH tunnel)
 GEMMA_MODEL=gemma3:12b
 GEMMA_API_KEY=           # any string for Ollama; real secret behind a proxy
+VERDA_API_KEY=           # Verda account (fallback inference); not used in code yet
+USE_STUBS=               # 1 = all wrappers return stub data
+HEALTH_PROBE_CONTEXTDEV= # 1 = /api/health calls Context.dev (default: key presence only)
 ```
+
+### Service layer and health \[FACT — built 2026-11-14\]
+
+- Next.js 16.4 app at the repo root (App Router, Tailwind 4, `cacheComponents` on: no `runtime`/`dynamic` route exports; use `await connection()` for request-time routes). Python prototype stays in `src/` (uv-managed `.venv`), excluded from TS/ESLint.
+- One wrapper per service in `lib/` (`db.ts`, `gemma.ts`, `gemini.ts`, `contextdev.ts`, `esco.ts`), all `server-only`. AI/HTTP wrappers return `Sourced<T>` = `{source: "live" | "stub"}`; callers must not store stub output as real. Gemma never falls back to another provider. DB has no stub: it throws `ServiceUnavailableError`.
+- `GET /api/health` returns per-service `status` (ok / unchecked / degraded / down / not_configured), `mode`, latency and a fixed error code. No keys, hosts, URLs or upstream messages. Always HTTP 200.
 
 Rules: keys only in `.env` (git-ignored) and in the host's environment settings; never in client components; never with a `NEXT_PUBLIC_` prefix; never pasted into AI prompts (Entire uploads transcripts of a public repo).
 

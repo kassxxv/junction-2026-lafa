@@ -220,7 +220,7 @@ export function JoinForm({
         </div>
         <p className="flex gap-2 px-1 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
-          When you apply, an AI model on the event&apos;s EU server reads your CV to fill in the table. It never scores or ranks you.
+          When you apply, an open AI model on our own EU server reads your CV to fill in the table. It never scores or ranks you.
           Organisers decide without seeing your name.
         </p>
       </aside>

@@ -7,8 +7,7 @@ export default function NotFound() {
   return (
     <PublicShell>
       <div className="page-narrow px-5 py-20 text-center">
-        <p className="text-sm font-medium text-muted-foreground">Page not found</p>
-        <h1 className="title-page mt-2">This link does not lead anywhere</h1>
+        <h1 className="title-page">This link does not lead anywhere</h1>
         <p className="mt-3 text-muted-foreground">
           It may be mistyped, or the demo data was reset. Start again from the event page.
         </p>

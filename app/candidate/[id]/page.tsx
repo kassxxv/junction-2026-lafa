@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Clock, Ticket } from "lucide-react";
+import { Check, Clock, Ticket } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
@@ -53,7 +53,7 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
               After that, companies in your fields are open to choose. No action needed until then.
             </p>
             <Link href={`${base}/choose`} className="mt-6 inline-flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm hover:bg-muted/50">
-              Demo: jump to after the company deadline <ArrowRight className="size-4" />
+              Demo: jump to after the company deadline
             </Link>
           </>
         )}

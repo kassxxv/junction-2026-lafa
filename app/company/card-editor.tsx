@@ -4,6 +4,7 @@ import { AlertCircle, ArrowLeft, Check, Info, Plus, Quote, Sparkles, Trash2, Use
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { confirmCompanyCard, previewPool, resetCompanyDemo } from "@/lib/matchready/card-actions";
@@ -187,16 +188,12 @@ export function CardEditor({
             </Row>
 
             <Row label="Field">
-              <select
-                value={card.field}
-                onChange={(e) => update({ field: e.target.value })}
-                className="h-9 rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
+              <NativeSelect wrapperClassName="max-w-80" value={card.field} onChange={(e) => update({ field: e.target.value })} aria-label="Field">
                 <option value="">Choose a field</option>
                 {company.eventFields.map((f) => (
                   <option key={f}>{f}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </Row>
 
             <Row label="What you want from the event">
@@ -317,19 +314,20 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 
 function RequirementRow({ r, onChange, onRemove }: { r: CardRequirement; onChange: (p: Partial<CardRequirement>) => void; onRemove: () => void }) {
   return (
-    <li className="grid gap-3 px-4 py-3 md:grid-cols-[96px_minmax(0,1fr)_auto] md:items-center">
-      <select
+    <li className="grid gap-3 px-4 py-3 md:grid-cols-[8rem_minmax(0,1fr)_auto] md:items-center">
+      <NativeSelect
+        wrapperClassName="w-full md:w-32"
         value={r.type}
         onChange={(e) => onChange({ type: e.target.value as ReqType, origin: "text" })}
         aria-label="Requirement type"
-        className="h-8 w-fit rounded-md bg-muted px-2 text-xs font-medium text-muted-foreground outline-none"
+        className="bg-muted text-xs font-medium text-muted-foreground md:text-xs"
       >
         {(Object.keys(REQ_TYPE_LABEL) as ReqType[]).map((t) => (
           <option key={t} value={t}>
             {REQ_TYPE_LABEL[t]}
           </option>
         ))}
-      </select>
+      </NativeSelect>
 
       <div className="min-w-0 space-y-1.5">
         <input
@@ -355,11 +353,11 @@ function RequirementRow({ r, onChange, onRemove }: { r: CardRequirement; onChang
           </label>
         )}
         {r.type === "language" && (
-          <select value={r.level ?? "B2"} onChange={(e) => onChange({ level: e.target.value, origin: "text" })} className="rounded-md border border-input bg-card px-1.5 py-0.5 text-sm" aria-label="Level">
+          <NativeSelect wrapperClassName="w-20" value={r.level ?? "B2"} onChange={(e) => onChange({ level: e.target.value, origin: "text" })} aria-label="Level">
             {CEFR.map((l) => (
               <option key={l}>{l}</option>
             ))}
-          </select>
+          </NativeSelect>
         )}
         {r.type === "education" && (
           <input

@@ -28,8 +28,7 @@ export function MeetingQuestion({ meeting, side }: { meeting: MeetingView; side:
   return (
     <div className="page-narrow px-5 py-14">
       <div className="rounded-xl border border-border bg-card p-8 text-center">
-        <p className="text-sm font-medium text-primary">Right after the meeting</p>
-        <p className="mt-2 text-lg font-semibold tracking-tight">
+        <p className="text-lg font-semibold tracking-tight">
           {meeting.company} <span className="text-muted-foreground">×</span> Candidate {meeting.candidateCode}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">Both sides answer the same question.</p>

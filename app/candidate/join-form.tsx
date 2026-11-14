@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { joinTalentPool, readCvForPool } from "@/lib/matchready/candidate-actions";
 import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
 import { DEMO_CANDIDATE } from "@/lib/matchready/demo";
@@ -100,22 +101,22 @@ export function JoinForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-medium">
-              Type of work
-              <select value={workType} onChange={(e) => setWorkType(e.target.value)} className="mt-1.5 h-9 w-full rounded-lg border border-input bg-card px-3 font-normal">
+              <span className="mb-1.5 block">Type of work</span>
+              <NativeSelect value={workType} onChange={(e) => setWorkType(e.target.value)}>
                 {workTypes.map((w) => (
                   <option key={w}>{w}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label className="text-sm font-medium">
-              Career stage
-              <select value={stage} onChange={(e) => setStage(e.target.value)} className="mt-1.5 h-9 w-full rounded-lg border border-input bg-card px-3 font-normal">
+              <span className="mb-1.5 block">Career stage</span>
+              <NativeSelect value={stage} onChange={(e) => setStage(e.target.value)}>
                 {stages.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
           </div>
 
@@ -125,11 +126,11 @@ export function JoinForm({
               {langs.map((l, i) => (
                 <li key={i} className="flex items-center gap-2">
                   <Input value={l.language} onChange={(e) => setLangs(langs.map((x, j) => (j === i ? { ...x, language: e.target.value } : x)))} aria-label="Language" className="max-w-56 bg-card" />
-                  <select value={l.level} onChange={(e) => setLangs(langs.map((x, j) => (j === i ? { ...x, level: e.target.value as Level } : x)))} aria-label="Level" className="h-8 rounded-lg border border-input bg-card px-2 text-sm">
+                  <NativeSelect wrapperClassName="w-28" value={l.level} onChange={(e) => setLangs(langs.map((x, j) => (j === i ? { ...x, level: e.target.value as Level } : x)))} aria-label="Level">
                     {LEVELS.map((v) => (
                       <option key={v}>{v}</option>
                     ))}
-                  </select>
+                  </NativeSelect>
                   {langs.length > 1 && (
                     <Button size="icon-sm" variant="ghost" aria-label="Remove language" onClick={() => setLangs(langs.filter((_, j) => j !== i))}>
                       <X />

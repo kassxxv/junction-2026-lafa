@@ -1,4 +1,4 @@
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { requireOrganiserPage } from "@/lib/auth";
@@ -30,7 +30,6 @@ export default async function OrganiserOverview() {
       <header className="border-b border-border bg-card px-6 py-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-sm text-muted-foreground">Overview</p>
             <h1 className="title-panel">{o.event.name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {formatDateRange(o.event.startsOn, o.event.endsOn, { year: true })}, {o.event.format.charAt(0).toLowerCase() + o.event.format.slice(1)}. Fields:{" "}
@@ -117,7 +116,7 @@ export default async function OrganiserOverview() {
                     <td className="px-5 py-3 text-right">
                       {c.applications > 0 ? (
                         <Link href={`/organiser/review/${c.id}`} className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
-                          Review <ArrowRight className="size-3.5" />
+                          Review
                         </Link>
                       ) : (
                         <span className="whitespace-nowrap text-xs text-muted-foreground">No applications</span>

@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, ExternalLink, FileCheck2, Lock, Scale, UserRound, Users } from "lucide-react";
+import { Building2, ExternalLink, FileCheck2, Lock, Scale, UserRound, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@/lib/brand";
@@ -106,7 +106,7 @@ export default function Landing() {
             <span className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
               <span className="text-muted-foreground">{when}</span>
               <span className="inline-flex items-center gap-1 font-medium text-primary">
-                {cta} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                {cta}
               </span>
             </span>
           </Link>

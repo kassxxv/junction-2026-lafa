@@ -141,6 +141,16 @@ export function CardEditor({
 
   return (
     <div className="page-wide px-5 py-8 sm:py-12">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-4 inline-flex items-center gap-1.5 rounded-sm text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+        >
+          <ArrowLeft className="size-4" />
+          {backLabel}
+        </button>
+      )}
       {sample && (
         <p className="mb-6 flex gap-2 rounded-lg bg-status-ai-bg px-4 py-3 text-sm text-status-ai">
           <AlertCircle className="mt-0.5 size-4 shrink-0" />

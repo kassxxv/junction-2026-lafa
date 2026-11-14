@@ -210,11 +210,11 @@ export function JoinForm({
           <p className="mt-1 text-sm text-muted-foreground">
             Companies confirm what they need until {fmtDate(companyDeadline)}. Then you choose up to {MAX_COMPANIES_PER_CANDIDATE}.
           </p>
-          <ul className="mt-4 space-y-2">
+          <ul className="mt-4 space-y-3">
             {confirmed.map((c) => (
-              <li key={c.name} className="flex items-baseline justify-between gap-3 text-sm">
-                <span className="font-medium">{c.name}</span>
-                <span className="text-xs text-muted-foreground">{c.field}</span>
+              <li key={c.name} className="text-sm">
+                <div className="font-medium">{c.name}</div>
+                <div className="text-xs text-muted-foreground">{c.field}</div>
               </li>
             ))}
           </ul>

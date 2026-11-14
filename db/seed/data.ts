@@ -33,6 +33,8 @@ export interface SeedCompany {
   goals: string[];
   summary: string;
   eventGoal: string;
+  /** Optional task for candidates (synthetic). */
+  task?: string;
   role: { title: string; details: string; starter: string; requirements: SeedRequirement[] };
 }
 
@@ -55,6 +57,7 @@ export const COMPANIES: SeedCompany[] = [
     goals: ["fill"],
     summary: "Designs and manufactures photonic components for telecom and sensing.",
     eventGoal: "Hire one test engineer and meet more people for the growing test team.",
+    task: "Pick one optical measurement from your own work. Describe the setup, how you made sure the reference was right, and one result that looked wrong at first: how did you find the cause?",
     role: {
       title: "Test Engineer, Photonics",
       details: "Full-time, Espoo",
@@ -203,6 +206,8 @@ export interface SeedCandidate {
   applies: string[];
   proofs?: Record<string, { type: "diploma" | "certificate" | "link" | "reference"; ref: string }>;
   starter?: string;
+  /** Answers to company tasks, by company id (synthetic). */
+  taskAnswers?: Record<string, string>;
 }
 
 const exp = (title: string, employer: string, start: string, end: string | null, areas: string[], tasks: string[] = []): Experience => ({
@@ -267,6 +272,7 @@ export const CANDIDATES: SeedCandidate[] = [
     applies: ["nordic-photonics", "quantumlab", "luxbeam"],
     proofs: { education: { type: "diploma", ref: "msc_photonics_diploma.pdf" }, has_done: { type: "link", ref: "github.com/aisha-demo/testbench" } },
     starter: DEMO_CANDIDATE.starter,
+    taskAnswers: { [DEMO_REVIEW_COMPANY_ID]: DEMO_CANDIDATE.taskAnswer },
   },
   {
     code: "A-08", name: "Daniel Okafor", fields: [PHOTONICS, MICRO], workType: "Engineering and design", stage: "experienced", careerChanger: false,

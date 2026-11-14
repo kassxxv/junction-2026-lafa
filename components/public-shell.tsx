@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BRAND } from "@/lib/brand";
-import { EVENT, formatDateRange } from "@/lib/matchready/event";
+import { EVENT } from "@/lib/matchready/event";
 
 /** Header + footer for public pages (companies and candidates). */
 export function PublicShell({ right, children }: { right?: ReactNode; children: ReactNode }) {
@@ -14,12 +14,7 @@ export function PublicShell({ right, children }: { right?: ReactNode; children: 
             <Link href="/" aria-label={`${BRAND.name} home`} className="shrink-0 border-r border-sidebar-border pr-3">
               <Image src={BRAND.logoOnDark.src} width={BRAND.logoOnDark.width} height={BRAND.logoOnDark.height} alt="" loading="eager" className="h-8 w-auto" />
             </Link>
-            <span>
-              <span className="font-semibold">{EVENT.name}</span>
-            <span className="text-sidebar-muted">
-              , {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })}, {EVENT.place}
-            </span>
-            </span>
+            <span className="font-semibold">{EVENT.name}</span>
           </span>
           {right && <span className="text-sidebar-muted">{right}</span>}
         </div>

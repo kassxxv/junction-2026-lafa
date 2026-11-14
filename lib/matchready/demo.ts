@@ -9,7 +9,7 @@
 export const DEMO_ORGANISER = {
   name: "Laura",
   initials: "LA",
-  role: "Organiser, demo account",
+  role: "Demo organiser",
   /** Written to `decisions.organiser` and `review_sessions.organiser`. */
   logName: "Laura (organiser, demo)",
 };

@@ -34,9 +34,9 @@ async function main() {
     for (const c of COMPANIES) {
       await q(`INSERT INTO companies (id, event_id, name, website, field) VALUES ($1,$2,$3,$4,$5)`, [c.id, EVENT.id, c.name, c.website, c.field]);
       await q(
-        `INSERT INTO company_cards (company_id, goals, summary, event_goal, status, places, source_text, confirmed_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7, CASE WHEN $5 = 'confirmed' THEN now() END)`,
-        [c.id, c.goals, c.summary, c.eventGoal || null, c.status, c.places, `${c.summary} ${c.website}/careers`],
+        `INSERT INTO company_cards (company_id, goals, summary, event_goal, status, places, source_text, task, confirmed_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8, CASE WHEN $5 = 'confirmed' THEN now() END)`,
+        [c.id, c.goals, c.summary, c.eventGoal || null, c.status, c.places, `${c.summary} ${c.website}/careers`, c.task ?? null],
       );
       const roleId = `${c.id}.role.1`;
       roleByCompany.set(c.id, roleId);
@@ -83,9 +83,9 @@ async function main() {
         const appId = `${id}.${companyId}`;
         const starter = p.starter ?? null;
         await q(
-          `INSERT INTO applications (id, candidate_id, company_id, role_id, available, starter_answer, submitted_at)
-           VALUES ($1,$2,$3,$4,true,$5, now() - ($6 || ' hours')::interval)`,
-          [appId, id, companyId, roleByCompany.get(companyId), starter, String(48 - n)],
+          `INSERT INTO applications (id, candidate_id, company_id, role_id, available, starter_answer, submitted_at, task_answer)
+           VALUES ($1,$2,$3,$4,true,$5, now() - ($6 || ' hours')::interval, $7)`,
+          [appId, id, companyId, roleByCompany.get(companyId), starter, String(48 - n), p.taskAnswers?.[companyId] ?? null],
         );
         for (const req of requirementsByCompany.get(companyId) ?? []) {
           const ev = evidenceFor(req, p.cv, li, p.cv.languages, SEED_REFERENCE_MONTH);

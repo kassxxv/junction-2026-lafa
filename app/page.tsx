@@ -68,8 +68,7 @@ export default function Landing() {
           </div>
 
           <div className="mt-16 max-w-3xl">
-            <p className="text-sidebar-muted">Registration and selection for the 1:1 meetings</p>
-            <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">{EVENT.name}</h1>
+            <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">{EVENT.name}</h1>
             <p className="mt-5 text-lg text-sidebar-muted">
               {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })}, {EVENT.format.charAt(0).toLowerCase() + EVENT.format.slice(1)}
               <br />

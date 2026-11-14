@@ -4,8 +4,8 @@ import { z } from "zod";
 import { demoMode } from "@/lib/auth";
 import { allow, TOO_MANY } from "@/lib/rate-limit";
 import type { CardRequirement, CompanyCardDraft, PoolStats } from "./card-schema";
-import { MAX_COMPANY_INPUT_CHARS } from "./config";
-import { draftCard, poolStats, requiredLevel, resetDraft, saveConfirmedCard } from "./card-service";
+import { MAX_COMPANY_INPUT_CHARS, MAX_TASK_CHARS } from "./config";
+import { draftCard, poolStats, requiredLevel, resetDraft, saveConfirmedCard, suggestTasks } from "./card-service";
 
 export type DraftResult =
   | { ok: true; draft: CompanyCardDraft; sample: boolean }
@@ -44,6 +44,7 @@ const Card = z.object({
     .array(z.object({ title: z.string().trim().min(1).max(200), details: z.string().max(200), starter: z.string().max(500), requirements: z.array(Requirement).max(10) }))
     .max(3),
   sourceText: z.string().max(40_000),
+  task: z.string().max(MAX_TASK_CHARS),
 });
 export type CardInput = z.infer<typeof Card>;
 
@@ -71,4 +72,23 @@ export async function confirmCompanyCard(card: CardInput): Promise<{ ok: true; p
   await saveConfirmedCard(parsed.data);
   const firstReqs = parsed.data.roles[0]?.requirements ?? [];
   return { ok: true, pool: await poolStats(parsed.data.field || null, firstReqs) };
+}
+
+const TaskInput = z.object({
+  companyId: z.string().min(1).max(100),
+  summary: z.string().max(500),
+  field: z.string().max(100),
+  roleTitle: z.string().max(200),
+  requirements: z.array(z.string().max(300)).max(10),
+});
+
+/** Three task ideas from Gemini, based only on the company's own card. */
+export async function suggestCardTasks(input: z.input<typeof TaskInput>): Promise<{ ok: true; tasks: { title: string; prompt: string }[]; sample: boolean } | { ok: false; error: string }> {
+  const parsed = TaskInput.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Some part of the card is not valid. Check the fields and try again." };
+  if (!(await allow("taskSuggest"))) return { ok: false, error: TOO_MANY };
+  const { companyId, ...card } = parsed.data;
+  const result = await suggestTasks(companyId, card);
+  if (!result) return { ok: false, error: "This invitation link is not valid." };
+  return { ok: true, tasks: result.data.tasks, sample: result.source === "stub" };
 }

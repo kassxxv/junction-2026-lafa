@@ -1,4 +1,4 @@
-# Handoff — Bridgy, formerly MatchReady (state on 2026-11-14 evening)
+# Handoff — bridgy, formerly MatchReady (state on 2026-11-14 evening)
 
 Read this, then `AGENTS.md` and the **★ Current concept** section at the top of `docs/CONTEXT.md`. Together they replace the chat history. Submission: **Sunday 15 Nov 2026, 10:00**.
 

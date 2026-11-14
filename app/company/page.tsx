@@ -2,7 +2,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { PublicShell } from "@/components/public-shell";
 import { demoMode } from "@/lib/auth";
-import { getCompany } from "@/lib/matchready/card-service";
+import { getCompany, getSavedCard } from "@/lib/matchready/card-service";
 import { DEMO_COMPANY_ID } from "@/lib/matchready/demo";
 import { getEvent } from "@/lib/matchready/organiser";
 import { CompanyFlow } from "./company-flow";
@@ -20,7 +20,7 @@ async function CompanyPageContent({ searchParams }: PageProps<"/company">) {
   await connection();
   const sp = await searchParams;
   const companyId = typeof sp.company === "string" ? sp.company : DEMO_COMPANY_ID;
-  const [company, event] = await Promise.all([getCompany(companyId), getEvent()]);
+  const [company, event, saved] = await Promise.all([getCompany(companyId), getEvent(), getSavedCard(companyId)]);
 
   return (
     <PublicShell right={company ? `Invited: ${company.name}` : undefined}>
@@ -30,6 +30,7 @@ async function CompanyPageContent({ searchParams }: PageProps<"/company">) {
             company={{ id: company.id, name: company.name, field: company.field, eventFields: company.eventFields, status: company.status }}
             companyDeadline={event.companyDeadline}
             demo={demoMode()}
+            saved={saved}
           />
         ) : (
           <p className="page-narrow px-5 py-20 text-center text-muted-foreground">

@@ -17,7 +17,7 @@ Nothing marked \[PROPOSED\] or \[OPEN\] is final. When a better option appears, 
 
 This section supersedes sections 5, 7 and the data model in section 10 where they disagree.
 
-**Name.** The product is called **Bridgy** (team decision 2026-11-14; earlier name MatchReady, still used for the `lib/matchready/` folder). Logo: white llama + wordmark; variants for dark and light backgrounds in `public/brand/`.
+**Name.** The product is called **bridgy** (always lowercase) (team decision 2026-11-14; earlier name MatchReady, still used for the `lib/matchready/` folder). Logo: white llama + wordmark; variants for dark and light backgrounds in `public/brand/`.
 
 **Users.** Event **organisers** (City of Espoo event team) decide who gets a Tavata meeting pass. Never say "HR".
 

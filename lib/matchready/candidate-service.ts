@@ -111,13 +111,15 @@ export interface InvitedCompany {
   summary: string | null;
   role: { id: string; title: string; details: string | null; starter: string | null } | null;
   requirements: (Requirement & { text: string })[];
+  /** Optional task from the company; null = none. */
+  task: string | null;
 }
 
 export async function confirmedCompanies(): Promise<InvitedCompany[]> {
   const rows = await query<{
-    id: string; name: string; field: string | null; summary: string | null; role_id: string | null; title: string | null; details: string | null; starter: string | null;
+    id: string; name: string; field: string | null; summary: string | null; role_id: string | null; title: string | null; details: string | null; starter: string | null; task: string | null;
   }>(
-    `SELECT c.id, c.name, c.field, cc.summary, r.id AS role_id, r.title, r.details, r.conversation_starter AS starter
+    `SELECT c.id, c.name, c.field, cc.summary, cc.task, r.id AS role_id, r.title, r.details, r.conversation_starter AS starter
      FROM companies c JOIN company_cards cc ON cc.company_id = c.id
      LEFT JOIN LATERAL (SELECT * FROM roles WHERE company_id = c.id ORDER BY position LIMIT 1) r ON true
      WHERE cc.status = 'confirmed' ORDER BY c.name`,
@@ -130,6 +132,7 @@ export async function confirmedCompanies(): Promise<InvitedCompany[]> {
     name: r.name,
     field: r.field,
     summary: r.summary,
+    task: r.task,
     role: r.role_id ? { id: r.role_id, title: r.title ?? "", details: r.details, starter: r.starter } : null,
     requirements: reqs
       .filter((q) => q.role_id === r.role_id)
@@ -256,6 +259,8 @@ export interface SubmitInput {
   applications: {
     companyId: string;
     starter: string;
+    /** Answer to the company's optional task, in the candidate's own words. */
+    taskAnswer: string;
     /** Values the candidate typed for a requirement (overrides the CV prefill). */
     stated: Record<string, string>;
     proofs: Record<string, { type: "diploma" | "certificate" | "link" | "reference"; ref: string }>;
@@ -285,8 +290,8 @@ export async function submitApplications(input: SubmitInput): Promise<{ ok: true
       if (!company) continue;
       const appId = `${input.candidateId}.${company.id}`;
       await q(
-        `INSERT INTO applications (id, candidate_id, company_id, role_id, available, starter_answer) VALUES ($1,$2,$3,$4,$5,$6)`,
-        [appId, input.candidateId, company.id, company.role?.id ?? null, input.available, a.starter.trim() || null],
+        `INSERT INTO applications (id, candidate_id, company_id, role_id, available, starter_answer, task_answer) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        [appId, input.candidateId, company.id, company.role?.id ?? null, input.available, a.starter.trim() || null, (company.task && a.taskAnswer.trim()) || null],
       );
       for (const r of company.requirements) {
         const ev = evidenceFor(r, doc.cv_facts!, doc.linkedin_facts, doc.languages);

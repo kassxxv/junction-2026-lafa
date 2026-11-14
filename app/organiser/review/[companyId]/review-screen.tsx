@@ -8,6 +8,7 @@
 import { ArrowLeft, Check, Download, EyeOff, Info, RotateCcw, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { CHECK_STYLE, MustHaveBadge } from "@/components/fact-labels";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { approveClean, decide, resetReview, startReview, type ActionResult } from "@/lib/matchready/organiser-actions";
@@ -209,6 +210,7 @@ export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }
                 app={open}
                 pending={pending}
                 placesFull={free <= 0}
+                task={company.task}
                 onDecide={(action, note) => run(() => decide(company.id, open.id, action, note))}
               />
             ) : (
@@ -263,7 +265,9 @@ function Detail({
   pending,
   placesFull,
   onDecide,
+  task,
 }: {
+  task: string | null;
   app: ApplicationRow;
   pending: boolean;
   placesFull: boolean;
@@ -295,7 +299,7 @@ function Detail({
               <thead className="bg-muted/50 text-muted-foreground">
                 <tr>
                   <th className="w-[38%] px-3 py-2 font-medium">Company requirement</th>
-                  <th className="w-[4.5rem] px-2 py-2" />
+                  <th className="w-24 px-2 py-2" />
                   <th className="px-3 py-2 font-medium">Where the candidate has it</th>
                   <th className="w-10 px-3 py-2" />
                 </tr>
@@ -305,7 +309,7 @@ function Detail({
                   <tr key={r.id}>
                     <td className="px-3 py-2.5">{r.text}</td>
                     <td className="px-3 py-2.5">
-                      {r.mustHave && <span className="rounded bg-status-ask-bg px-1.5 py-0.5 text-[0.7rem] font-semibold text-status-ask">MUST</span>}
+                      {r.mustHave && <MustHaveBadge />}
                     </td>
                     <td className="px-3 py-2.5">
                       <span className={r.value ? "" : "text-muted-foreground"}>{r.value ?? "Not found in the CV"}</span>
@@ -336,10 +340,22 @@ function Detail({
             Conversation starter{" "}
             <span className="text-sm font-normal text-muted-foreground">(for the meeting, not for selection)</span>
           </h3>
-          <p className={`mt-1.5 font-serif leading-relaxed ${app.starter ? "" : "text-muted-foreground"}`}>
+          <p className={`mt-1.5 border-l-2 border-border pl-3 leading-relaxed ${app.starter ? "" : "text-muted-foreground"}`}>
             {app.starter ? `“${app.starter}”` : "No answer yet."}
           </p>
         </div>
+
+        {task && (
+          <div>
+            <h3 className="font-medium">
+              Company task <span className="text-sm font-normal text-muted-foreground">(walked through at the start of the meeting, not scored)</span>
+            </h3>
+            <p className="mt-1.5 text-sm text-muted-foreground whitespace-pre-line">{task}</p>
+            <p className={`mt-2 border-l-2 border-border pl-3 leading-relaxed whitespace-pre-line ${app.taskAnswer ? "" : "text-muted-foreground"}`}>
+              {app.taskAnswer ?? "No answer."}
+            </p>
+          </div>
+        )}
 
         <div>
           <h3 className="font-medium">CV and LinkedIn profile</h3>
@@ -349,8 +365,8 @@ function Detail({
           </p>
           <ul className="space-y-2">
             {app.checks.map((c, i) => (
-              <li key={i} className={`flex gap-3 rounded-lg border-l-4 bg-muted/30 px-3 py-2 text-sm ${CHECK[c.kind].border}`}>
-                <span className={`w-28 shrink-0 text-xs font-semibold ${CHECK[c.kind].text}`}>{CHECK[c.kind].label}</span>
+              <li key={i} className={`flex gap-3 rounded-lg border-l-4 bg-muted/30 px-3 py-2 text-sm ${CHECK_STYLE[c.kind].border}`}>
+                <span className={`w-28 shrink-0 text-xs font-semibold ${CHECK_STYLE[c.kind].text}`}>{CHECK_STYLE[c.kind].label}</span>
                 <span>{c.text}</span>
               </li>
             ))}
@@ -406,14 +422,6 @@ function Detail({
   );
 }
 
-const CHECK = {
-  match: { label: "MATCH", border: "border-status-confirmed", text: "text-status-confirmed" },
-  differs: { label: "DIFFERS", border: "border-status-ai", text: "text-status-ai" },
-  not_found: { label: "NOT FOUND", border: "border-status-missing", text: "text-status-missing" },
-  linkedin_only: { label: "LINKEDIN ONLY", border: "border-border", text: "text-muted-foreground" },
-  info: { label: "NOTE", border: "border-border", text: "text-muted-foreground" },
-  none: { label: "NO LINKEDIN", border: "border-border", text: "text-muted-foreground" },
-} as const;
 
 function EvidenceTag({ r }: { r: RequirementRow }) {
   const tag =

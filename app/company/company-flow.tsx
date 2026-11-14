@@ -10,7 +10,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { draftCompanyCard } from "@/lib/matchready/card-actions";
-import { GOAL_LABEL, type CardQuestion, type CompanyCardDraft, type GoalId } from "@/lib/matchready/card-schema";
+import { GOAL_LABEL, type CardQuestion, type CompanyCardDraft, type GoalId, type PoolStats } from "@/lib/matchready/card-schema";
 import { demoCompanyText } from "@/lib/matchready/demo";
 import { CardEditor } from "./card-editor";
 
@@ -51,7 +51,19 @@ function applyAnswer(draft: CompanyCardDraft, q: CardQuestion, answer: string | 
   return d;
 }
 
-export function CompanyFlow({ company, companyDeadline, demo }: { company: CompanyProps; companyDeadline: string; demo: boolean }) {
+export function CompanyFlow({
+  company,
+  companyDeadline,
+  demo,
+  saved,
+}: {
+  company: CompanyProps;
+  companyDeadline: string;
+  demo: boolean;
+  /** The confirmed card, if there is one: the company lands on its card page instead of the input step. */
+  saved: { draft: CompanyCardDraft; pool: PoolStats } | null;
+}) {
+  const [useSaved, setUseSaved] = useState(Boolean(saved));
   const [step, setStep] = useState<Step>("describe");
   const [text, setText] = useState("");
   const [draft, setDraft] = useState<CompanyCardDraft | null>(null);
@@ -83,6 +95,21 @@ export function CompanyFlow({ company, companyDeadline, demo }: { company: Compa
       setQIndex(0);
       setStep(r.draft.questions.length ? "ask" : "card");
     });
+  }
+
+  if (useSaved && saved) {
+    return (
+      <CardEditor
+        company={company}
+        initial={saved.draft}
+        sample={false}
+        companyDeadline={companyDeadline}
+        demo={demo}
+        initialPool={saved.pool}
+        onBack={() => setUseSaved(false)}
+        backLabel="Draft again from new text"
+      />
+    );
   }
 
   if (step === "card" && draft) {

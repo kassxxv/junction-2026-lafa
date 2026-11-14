@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Company card (Bridgy). Shared by the UI and the server: no secrets, no server-only imports.
+ * Company card (bridgy). Shared by the UI and the server: no secrets, no server-only imports.
  * The model returns `ModelCard`; code verifies quotes and maps it to `CompanyCardDraft`.
  */
 
@@ -101,7 +101,17 @@ export interface CompanyCardDraft {
   sourceText: string;
   readUrl: string | null;
   readUrlOk: boolean;
+  /** Optional task for candidates, discussed at the start of the meeting. Empty = no task. */
+  task: string;
 }
+
+/** Gemini's suggestions for that task (company data only). */
+export const TaskSuggestions = z.object({
+  tasks: z
+    .array(z.object({ title: z.string().describe("3-8 words"), prompt: z.string().describe("The task as the candidate reads it, 2-5 sentences") }))
+    .describe("Exactly three different tasks"),
+});
+export type TaskSuggestions = z.infer<typeof TaskSuggestions>;
 
 export interface PoolStats {
   field: string | null;

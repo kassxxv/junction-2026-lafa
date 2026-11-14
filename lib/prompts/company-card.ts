@@ -1,5 +1,5 @@
 /**
- * Company input (text and/or a fetched web page) → Bridgy company card.
+ * Company input (text and/or a fetched web page) → bridgy company card.
  * Gemini only: company data, never candidate data.
  */
 

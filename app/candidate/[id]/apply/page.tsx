@@ -42,6 +42,7 @@ async function Content({ params, searchParams }: PageProps<"/candidate/[id]/appl
         name: co.name,
         role: co.role?.title ?? "",
         starter: co.role?.starter ?? "",
+        task: co.task,
         requirements: co.requirements.map((r) => ({ id: r.id, text: r.text, type: r.type, mustHave: r.mustHave })),
       }))}
       stage1Cv={Boolean(doc?.cv_text) && !c.cvParsed}

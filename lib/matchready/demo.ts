@@ -42,6 +42,9 @@ export const DEMO_CANDIDATE = {
   email: () => `aisha.demo+${Date.now().toString(36)}@example.com`,
   cvFile: "/demo/aisha-rahman-cv.pdf",
   linkedinFile: "/demo/aisha-rahman-linkedin.pdf",
+  /** Synthetic answer to Nordic Photonics' demo task (also used by "Fill demo answers"). */
+  taskAnswer:
+    "At Valo Optics I set up an insertion-loss bench for fibre couplers: a tunable laser, a polarisation scrambler, the coupler under test and an optical power meter, all driven from Python. First I measured the reference without the device to get the baseline. One batch looked 0.4 dB too lossy; I checked the connectors first, then repeated the reference measurement, and found a dirty patch cord. After cleaning, the results matched the datasheet. I would check connector cleanliness and the reference again before blaming the device.",
   starter:
     "At Valo Optics I built an automated insertion-loss test bench for fibre couplers. Python drives the spectrum analyser, and test time per batch went from 3 hours to 40 minutes.",
 };

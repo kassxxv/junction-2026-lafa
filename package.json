@@ -7,7 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "eval:cards": "tsx --conditions=react-server --env-file=.env scripts/eval-card-draft.ts",
     "db:migrate": "tsx --conditions=react-server --env-file=.env scripts/db-migrate.ts",
     "db:seed": "tsx --conditions=react-server --env-file=.env scripts/db-seed.ts",
     "eval:company": "tsx --conditions=react-server --env-file=.env scripts/eval-company-card.ts",

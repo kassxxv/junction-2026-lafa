@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Instructions for AI coding agents (Codex, Claude Code, Cursor) working in this repo.
-Read this file fully. Read `docs/CONTEXT.md` before any change to architecture, data model, AI prompts or user flows.
+Read this file fully. Then read `docs/HANDOFF.md` (current state, routes, known issues, open work) and the ★ section of `docs/CONTEXT.md` before any change to architecture, data model, AI prompts or user flows.
 
 ## Project
 

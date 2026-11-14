@@ -109,6 +109,10 @@ Any stage (before, during, after an event) or the whole journey. Any technology.
 
 ## 3. What we learned from Espoo's mentors \[MENTORS\]
 
+> **Update 2026-11-14 (second mentoring round) — terminology and audience \[MENTORS\]:** the product is a platform for **event organisers** (the City of Espoo team that runs the recruitment events), not for "HR". Organisers hired external HR only because of the recent flood of CVs; the tool serves the organisers. Say "event organisers" / "organisers" in the UI, pitch and docs, never "HR". Older text below that says "organiser HR" or "external HR" means the event organisers. More feedback from this round (a teammate's prototype and concept) is still to be added.
+>
+> **Company card (built):** the company fills its card itself (`/company`); the card has a company-level "What you hope to get from the event" field, and roles describe "Main tasks" (renamed from "first 3 months").
+
 - **Places are limited.** Not everyone who registers can be admitted: the event platform (Tavata) would not cope, and companies don't have time for hundreds of meetings.
 - **So the organisers select at registration (step 1) — and today they select almost blind.**
 - **Companies** describe needs poorly and late: an industry and "N years of experience".
@@ -223,7 +227,7 @@ The card is the anchor: candidates choose and answer cards (stage 2), HR compare
 7. Stored: original answer, processed answer, skills, chosen cards. Identity stored separately.
 8. Optional, self-reported demographics for the aggregate bias check, stored separately, never shown on individual cards. \[OPEN — D4\]
 
-### Stage 3 — Organiser HR selects
+### Stage 3 — Event organisers select
 
 1. Table per event: rows = applications, columns = answers to each card's question, next to the card's must-haves and "what a strong answer looks like".
 2. AI glossary next to each card explains industry terms to HR (explains words, does not judge people).
@@ -350,7 +354,7 @@ Rules: keys only in `.env` (git-ignored) and in the host's environment settings;
 ### Server routes (draft) \[PROPOSED\]
 
 - `POST /api/company/enrich` — URL → Context.dev → profile draft
-- `POST /api/company/card/draft` — text + answers → Gemini → card JSON
+- `POST /api/cards/draft` — \[FACT, built\] company text → Gemini → card draft (field status + verified quote) + 0–5 follow-up questions; falls back to a labelled sample. Prompt in `lib/prompts/card-draft.ts`, mapping/rules in `lib/card/from-model.ts`, quality check `npm run eval:cards`
 - `POST /api/company/card/confirm`
 - `GET /api/event/:id/cards`
 - `POST /api/candidate/answer` — answer → Gemma → ESCO → store
@@ -419,7 +423,7 @@ Questions added since:
 ## 14. Glossary
 
 - **Card** — structured description of one company's need for one event; the anchor every comparison uses.
-- **Organiser HR** — Espoo staff who select which candidates are admitted; external to the companies.
+- **Event organisers** — the City of Espoo team that runs the event and selects which candidates are admitted (not "HR"); external to the companies.
 - **Admission / selection** — deciding who gets a place at the event (stage 3).
 - **ESCO** — the EU's multilingual skills and occupations vocabulary.
 - **Anonymised answer** — a candidate's answer with identifiers removed and translated; the original is kept separately.

@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 const NAV = [
   { href: "/cards", label: "Company cards", icon: LayoutList, enabled: true },
   { href: "#", label: "Candidates", icon: Users, enabled: false },
-  { href: "#", label: "HR selection", icon: ListChecks, enabled: false },
+  { href: "#", label: "Selection", icon: ListChecks, enabled: false },
   { href: "#", label: "Export to Tavata", icon: Download, enabled: false },
 ];
 

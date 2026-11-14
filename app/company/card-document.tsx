@@ -22,6 +22,7 @@ export function CardDocument({
   const company = sections.find((s) => s.id === "company");
   const name = company?.fields.find((f) => f.id === "name");
   const summary = company?.fields.find((f) => f.id === "summary");
+  const eventGoal = company?.fields.find((f) => f.id === "event-goal");
   const goalText = GOALS.filter((g) => goals.includes(g.id)).map((g) => g.label.toLowerCase());
 
   return (
@@ -33,6 +34,14 @@ export function CardDocument({
         </div>
       )}
       {goalText.length > 0 && <p className="mt-5">At this event you want to {goalText.join(" and ")}.</p>}
+      {eventGoal && (
+        <div className="mt-5">
+          <div className="text-sm text-muted-foreground">{eventGoal.label}</div>
+          <div className="mt-0.5">
+            <EditableValue field={eventGoal} onUpdate={(p) => onUpdate(eventGoal.id, p)} />
+          </div>
+        </div>
+      )}
 
       {sections
         .filter((s) => s.id !== "company")

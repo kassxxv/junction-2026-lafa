@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Light theme only for now: `dark:` styles apply only inside an explicit `.dark` element,
+   never because the visitor's OS is in dark mode. */
+@custom-variant dark (&:is(.dark *));
+
 /*
  * Design tokens. Change colours here, never in components.
  * Brand values are placeholders until we have Espoo's graphic guidelines:

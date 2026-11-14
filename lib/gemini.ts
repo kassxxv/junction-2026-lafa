@@ -6,7 +6,7 @@ import { env } from "./env";
 import { classifyError, logFailure, runProbe, stubsForced, type ServiceHealth, type Sourced } from "./service";
 
 /**
- * Gemini — COMPANY DATA ONLY (card drafting, HR glossary).
+ * Gemini — COMPANY DATA ONLY (card drafting, glossary for event organisers).
  * Never pass candidate text to this module; candidate data goes to lib/gemma.ts.
  */
 

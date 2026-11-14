@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { CompanyFlow } from "./company-flow";
 
 /** Company-facing page. No login in the prototype: the invite is hardcoded. */
@@ -14,7 +15,10 @@ export default function CompanyPage() {
         </div>
       </header>
       <main className="flex-1">
-        <CompanyFlow />
+        {/* useSearchParams() is request data, so it needs a Suspense boundary. */}
+        <Suspense fallback={null}>
+          <CompanyFlow />
+        </Suspense>
       </main>
       <footer className="px-5 py-6 text-center text-xs text-muted-foreground">
         City of Espoo recruitment events prototype. Sample data only.

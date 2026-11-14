@@ -1,70 +1,18 @@
 /**
- * STUB DATA — synthetic draft that the AI step will return later.
+ * STUB DATA for the staff review screen — synthetic draft.
  * Fictional company, fictional job ad. Every `quote` must appear verbatim in its source.
- * The real zod card schema replaces these types when we connect Gemini.
+ * Types live in lib/card/types.ts and are re-exported here for existing imports.
  */
 
-/**
- * staff     – typed by Espoo staff in the input step: confirmed, edit only
- * source    – taken from a source with an exact quote: auto-confirmed, editable
- * ai        – AI suggestion without direct evidence: needs a human decision
- * missing   – nothing found: needs input
- * confirmed – a person accepted or edited it
- * ask       – parked: the company has to answer
- */
-export type FieldStatus = "staff" | "source" | "ai" | "missing" | "confirmed" | "ask";
+import type { DraftField, DraftSection, DraftSource, GoalId } from "@/lib/card/types";
 
-export type GoalId = "fill" | "explore" | "brand";
-
-export interface DraftField {
-  id: string;
-  label: string;
-  required: boolean;
-  kind: "text" | "list";
-  value: string | string[];
-  status: FieldStatus;
-  /** Evidence: which source, and the exact sentence. */
-  sourceId?: string;
-  quote?: string;
-  /** What the AI wants to know when the value is missing or unsure. */
-  question?: string;
-  /** Quick answers for the question; `suggested` is the AI's pick. */
-  options?: string[];
-  suggested?: string;
-}
-
-export interface DraftSection {
-  id: string;
-  title: string;
-  /** Shown only when this goal is selected. Missing = always shown. */
-  goal?: GoalId;
-  fields: DraftField[];
-}
-
-export interface DraftSource {
-  id: string;
-  label: string;
-  /** link = read from a URL, typed = entered in step 1, added = pasted later (removable). */
-  kind: "link" | "typed" | "added";
-  url?: string;
-  text: string;
-}
-
-export const GOALS: { id: GoalId; label: string; hint: string }[] = [
-  { id: "fill", label: "Fill a position", hint: "They have an open role and want to fill it" },
-  { id: "explore", label: "Explore talent", hint: "Open conversations, may get interested in someone" },
-  { id: "brand", label: "Employer branding", hint: "Presentation or pitch to show who they are" },
-];
-
-/** Counts as done for publishing. */
-export const DONE: FieldStatus[] = ["staff", "source", "confirmed"];
-/** Needs the staff member's attention now. */
-export const NEEDS_ATTENTION: FieldStatus[] = ["ai", "missing"];
+export { DONE, GOALS, NEEDS_ATTENTION } from "@/lib/card/types";
+export type { DraftField, DraftSection, DraftSource, FieldStatus, GoalId } from "@/lib/card/types";
 
 export const STUB_INPUT = {
   companyName: "Norrvik Logistics Oy",
   links: "https://norrvik-logistics.example/careers/backend-developer",
-  notes: "Need a backend dev, maybe also open to junior data people. Talked by phone with their HR.",
+  notes: "Need a backend dev, maybe also open to junior data people. Talked by phone with their recruiter.",
   goals: ["fill", "explore"] as GoalId[],
 };
 
@@ -93,7 +41,7 @@ We value people who can explain a technical problem clearly to non-technical col
     id: "notes",
     label: "Your text",
     kind: "typed",
-    text: "Need a backend dev, maybe also open to junior data people. Talked by phone with their HR.",
+    text: "Need a backend dev, maybe also open to junior data people. Talked by phone with their recruiter.",
   },
 ];
 
@@ -131,8 +79,8 @@ export const STUB_SECTIONS: DraftSection[] = [
         quote: "Our order volume has doubled in two years, so we are growing the platform team.",
       },
       {
-        id: "first-months",
-        label: "First 3 months",
+        id: "main-tasks",
+        label: "Main tasks",
         required: true,
         kind: "text",
         value: "Maintain and extend the order tracking API; help move batch jobs to an event-based setup.",
@@ -262,7 +210,7 @@ export function emptyPosition(): DraftSection {
     fields: [
       f("title", "Job title", "text"),
       f("why-open", "Why the role is open", "text"),
-      f("first-months", "First 3 months", "text"),
+      f("main-tasks", "Main tasks", "text"),
       f("must-have", "Must-have skills", "list"),
       f("nice-to-have", "Can be learned on the job", "list", false),
       f("language", "Language needed", "text"),

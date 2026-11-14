@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { ExternalLink, Plus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -23,12 +23,20 @@ export default function CardsPage() {
           <p className="text-sm text-muted-foreground">Tech and Logistics Day</p>
           <h1 className="text-xl font-semibold tracking-tight">Company cards</h1>
         </div>
-        <Button asChild>
-          <Link href="/cards/new">
-            <Plus data-icon="inline-start" />
-            New card
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" className="bg-card">
+            <Link href="/company">
+              <ExternalLink data-icon="inline-start" />
+              Company view
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/cards/new">
+              <Plus data-icon="inline-start" />
+              New card
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <div className="p-6">

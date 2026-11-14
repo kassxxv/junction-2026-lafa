@@ -8,7 +8,10 @@ Companies send their needs late and in any shape: a long text, two words, a job-
 
 ## Who uses it
 
-Espoo event staff (one hardcoded demo account, no registration). They fill the card on behalf of the company, often from notes or a phone call.
+**Changed 2026-11-14: the company fills the card itself.** It must be as easy as possible for a busy contact person.
+
+- **Company flow (`/company`, primary):** one big box (link, any text, or a few words) → AI fills what it finds → at most ~4 short questions, one per screen, with tap-able answers, a suggested answer, "skip" and "write your own" → the finished card as a plain document; click anything to change it; guesses are marked "We guessed this — that's right?" → "Send my card". No boxes per field, no status badges, no source pane.
+- **Espoo staff review (`/cards`, parked):** the two-pane source | fields screen below. Kept as-is until the team decides whether company cards are published directly or reviewed by Espoo first.
 
 ## The card (one per company)
 
@@ -50,6 +53,8 @@ Publishing needs every required field to be done (entered, from source or confir
 ## Next steps
 
 1. ~~UX fixes and visual pass on stub data~~ (done).
-2. Zod card schema + `POST /api/cards/draft`: Context.dev reads links (or finds the website from the name), Gemini fills the template with a status and quote per field. Any quote that is not found verbatim in the source is downgraded to "AI suggestion". Long texts are split into the right fields and the AI lists what is missing.
+2. ~~1a: card schema + `POST /api/cards/draft` on pasted text~~ (done): Gemini fills the template with a status and quote per field; quotes not found verbatim become guesses; 0–5 questions only for required, shown fields that are missing or guessed; the candidate question is always shown for confirmation.
+   1b (next): adaptive questions — after each answer, a light call updates fields, drops answered questions and may add one follow-up (max 5 in total).
+   Then: Context.dev reads links (or finds the website from the name).
 3. ESCO skill normalisation, save cards to the database.
 4. Later: voice input for staff notes (company data, so Gemini may process it).

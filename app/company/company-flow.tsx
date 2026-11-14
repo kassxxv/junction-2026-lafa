@@ -1,42 +1,69 @@
 "use client";
 
 /**
- * Company-facing flow, on stub data: describe → we read it → a few questions → your card.
+ * Company-facing flow: describe → AI reads it (POST /api/cards/draft) → a few questions → your card.
  * Built for a busy company contact: one thing per screen, answers you can tap.
  */
 
-import { ArrowLeft, Check, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowLeft, Check, Loader2, Sparkles } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { STUB_SECTIONS, type DraftField, type DraftSection, type GoalId } from "../cards/new/stub-draft";
+import { toCardDraft } from "@/lib/card/from-model";
+import { STUB_MODEL_DRAFT } from "@/lib/card/stub-model";
+import type { CardDraft, CardQuestion, DraftField, DraftSection, GoalId } from "@/lib/card/types";
 import { CardDocument } from "./card-document";
-import { STUB_QUESTIONS, type Question } from "./questions";
 
 type Step = "describe" | "reading" | "ask" | "card" | "sent";
 
-const EXAMPLE = `https://norrvik-logistics.example/careers/backend-developer
+/** Prototype: the invite is hardcoded. */
+export const INVITED_COMPANY = "Norrvik Logistics Oy";
 
-We need a backend developer. Maybe also open to junior data people.`;
+const EXAMPLE = `Backend Developer (Espoo, hybrid)
 
-const READING = ["Reading your job ad", "Finding what is still missing"];
+Norrvik Logistics Oy plans and tracks deliveries for 40 retail chains in Finland and Sweden. Our order volume has doubled in two years, so we are growing the platform team.
 
-/** Company view starts from the same draft; nothing is parked for “ask company” here. */
-const initialSections = (): DraftSection[] =>
-  STUB_SECTIONS.map((s) => ({
-    ...s,
-    fields: s.fields.map((f) => (f.status === "ask" ? { ...f, status: "missing" as const } : f)),
-  }));
+In your first months you will maintain and extend the order tracking API and help move our batch jobs to an event-based setup.
+
+What we expect:
+- Solid experience with Python and SQL.
+- Experience with REST APIs in production.
+- Docker is a plus, but we can teach it.
+
+Our working language is English. Finnish is not required.
+
+Maybe we are also open to meeting junior data people.`;
+
+const READING = ["Reading what you sent", "Filling in your card", "Finding what is still missing"];
+
+const GOAL_OPTIONS: { id: GoalId; label: string; hint: string }[] = [
+  { id: "fill", label: "Hire for an open role", hint: "You have a position to fill" },
+  { id: "explore", label: "Meet people for later", hint: "No fixed role, open conversations" },
+  { id: "brand", label: "Present our company", hint: "A pitch, to be known as an employer" },
+];
+
+/** Sample draft for `?step=` demo jumps and when the AI is unavailable. */
+const sampleDraft = () => toCardDraft(STUB_MODEL_DRAFT, { companyName: INVITED_COMPANY, text: "" });
 
 export function CompanyFlow() {
-  const [step, setStep] = useState<Step>("describe");
+  // `?step=ask` or `?step=card` jumps straight to a screen with sample data (demos, screenshots).
+  const jump = useSearchParams().get("step");
+  const initial = jump === "ask" || jump === "card" ? sampleDraft() : null;
+
+  const [step, setStep] = useState<Step>(jump === "ask" || jump === "card" ? jump : "describe");
   const [text, setText] = useState("");
   const [reading, setReading] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [sample, setSample] = useState<"demo" | "unavailable" | null>(initial ? "demo" : null);
   const [qIndex, setQIndex] = useState(0);
-  const [goals, setGoals] = useState<GoalId[]>([]);
-  const [sections, setSections] = useState<DraftSection[]>(initialSections);
+  const [questions, setQuestions] = useState<CardQuestion[]>(initial?.questions ?? []);
+  const [goals, setGoals] = useState<GoalId[]>(initial?.goals ?? []);
+  const [sections, setSections] = useState<DraftSection[]>(initial?.sections ?? []);
 
   const visible = useMemo(() => sections.filter((s) => !s.goal || goals.includes(s.goal)), [sections, goals]);
+  const allFields = useMemo(() => sections.flatMap((s) => s.fields), [sections]);
+  const foundCount = allFields.filter((f) => f.status === "source").length;
 
   function updateField(id: string, patch: Partial<DraftField>) {
     setSections((prev) =>
@@ -44,33 +71,82 @@ export function CompanyFlow() {
     );
   }
 
-  function startReading() {
+  async function analyse() {
+    setError(null);
     setStep("reading");
-    READING.forEach((_, i) => setTimeout(() => setReading(i), i * 900));
-    setTimeout(() => setStep("ask"), READING.length * 900 + 300);
+    setReading(0);
+    const timers = READING.slice(1).map((_, i) => setTimeout(() => setReading(i + 1), (i + 1) * 1200));
+    try {
+      const res = await fetch("/api/cards/draft", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ companyName: INVITED_COMPANY, text }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const body = (await res.json()) as { source: "live" | "stub"; draft: CardDraft };
+      setSample(body.source === "stub" ? "unavailable" : null);
+      setSections(body.draft.sections);
+      setGoals(body.draft.goals);
+      setQuestions(body.draft.questions);
+      setQIndex(0);
+      setStep(body.draft.questions.length ? "ask" : "card");
+    } catch {
+      setError("We could not read your text just now. Check your connection and try again.");
+      setStep("describe");
+    } finally {
+      timers.forEach(clearTimeout);
+    }
   }
 
-  function next() {
-    if (qIndex + 1 < STUB_QUESTIONS.length) setQIndex(qIndex + 1);
+  function answer(q: CardQuestion, value: string | string[] | null) {
+    if (q.kind === "goals") setGoals((value as GoalId[]) ?? []);
+    else if (value === null || (Array.isArray(value) && value.length === 0)) updateField(q.fieldId, { status: "missing" });
+    else {
+      const f = allFields.find((x) => x.id === q.fieldId);
+      const toList = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
+      const v =
+        f?.kind === "list"
+          ? (Array.isArray(value) ? value : [value]).flatMap(toList)
+          : Array.isArray(value)
+            ? value.join(", ")
+            : value;
+      updateField(q.fieldId, { value: v, status: "confirmed" });
+    }
+    if (qIndex + 1 < questions.length) setQIndex(qIndex + 1);
     else setStep("card");
   }
 
   return (
     <div className="mx-auto w-full max-w-2xl px-5 py-10 sm:py-16">
+      {sample && step !== "describe" && step !== "sent" && (
+        <p className="mb-8 flex gap-2 rounded-lg bg-status-ai-bg px-4 py-3 text-sm text-status-ai">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {sample === "unavailable"
+            ? "Our assistant is not available right now, so this is a sample. Please check and change every part."
+            : "Demo link: this screen shows sample data."}
+        </p>
+      )}
+
       {step === "describe" && (
         <section>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Who would you like to meet?</h1>
           <p className="mt-3 max-w-[56ch] text-lg text-muted-foreground">
-            Paste a link to a job ad or your website, any text you already have, or just a few words. We fill in your
-            card and only ask about what is missing.
+            Paste a job ad, any text you already have, or just a few words. We fill in your card and only ask about what
+            is missing.
           </p>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="For example: a link to your job ad, or “a backend developer who can talk to customers”"
+            placeholder="For example: your job ad, or “a backend developer who can talk to customers”"
             className="mt-8 min-h-44 bg-card p-4 text-base"
             autoFocus
           />
+          {error && (
+            <p role="alert" className="mt-3 flex items-center gap-2 text-sm text-destructive">
+              <AlertCircle className="size-4" />
+              {error}
+            </p>
+          )}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <button
               type="button"
@@ -79,11 +155,14 @@ export function CompanyFlow() {
             >
               Use the sample text
             </button>
-            <Button size="lg" disabled={!text.trim()} onClick={startReading}>
+            <Button size="lg" disabled={!text.trim()} onClick={analyse}>
               Continue
             </Button>
           </div>
-          <p className="mt-10 text-sm text-muted-foreground">Takes about three minutes. You can change everything later.</p>
+          <p className="mt-10 text-sm text-muted-foreground">
+            Takes about three minutes. You can change everything later. Links are not read yet in this prototype; paste
+            the text instead.
+          </p>
         </section>
       )}
 
@@ -106,20 +185,19 @@ export function CompanyFlow() {
         </section>
       )}
 
-      {step === "ask" && (
+      {step === "ask" && questions[qIndex] && (
         <QuestionScreen
-          key={STUB_QUESTIONS[qIndex].id}
-          question={STUB_QUESTIONS[qIndex]}
+          key={questions[qIndex].id}
+          question={questions[qIndex]}
+          field={(() => {
+            const q = questions[qIndex];
+            return q.kind === "goals" ? undefined : allFields.find((f) => f.id === q.fieldId);
+          })()}
           index={qIndex}
-          total={STUB_QUESTIONS.length}
-          foundCount={sections.flatMap((s) => s.fields).filter((f) => f.status === "source").length}
+          total={questions.length}
+          foundCount={foundCount}
           onBack={qIndex > 0 ? () => setQIndex(qIndex - 1) : undefined}
-          onAnswer={(q, answer) => {
-            if (q.kind === "goals") setGoals(answer as GoalId[]);
-            else if (answer === null) updateField(q.fieldId, { status: "missing" });
-            else updateField(q.fieldId, { value: answer, status: "confirmed" });
-            next();
-          }}
+          onAnswer={answer}
         />
       )}
 
@@ -131,10 +209,20 @@ export function CompanyFlow() {
           </p>
           <CardDocument sections={visible} goals={goals} onUpdate={updateField} />
           <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
-            <Button variant="ghost" onClick={() => setStep("ask")}>
-              <ArrowLeft data-icon="inline-start" />
-              Back to questions
-            </Button>
+            {questions.length > 0 ? (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setQIndex(0);
+                  setStep("ask");
+                }}
+              >
+                <ArrowLeft data-icon="inline-start" />
+                Back to questions
+              </Button>
+            ) : (
+              <span />
+            )}
             <Button size="lg" onClick={() => setStep("sent")}>
               Send my card
             </Button>
@@ -161,26 +249,37 @@ export function CompanyFlow() {
 
 function QuestionScreen({
   question: q,
+  field,
   index,
   total,
   foundCount,
   onBack,
   onAnswer,
 }: {
-  question: Question;
+  question: CardQuestion;
+  field?: DraftField;
   index: number;
   total: number;
   foundCount: number;
   onBack?: () => void;
   /** null = skipped */
-  onAnswer: (q: Question, answer: string | string[] | GoalId[] | null) => void;
+  onAnswer: (q: CardQuestion, answer: string | string[] | null) => void;
 }) {
-  const [picked, setPicked] = useState<string[]>(
-    q.kind === "goals" ? q.suggested : q.kind === "choice" && q.suggested ? [q.suggested] : [],
-  );
+  // Start from what is already known: the AI's suggestion or a guessed value.
+  const [picked, setPicked] = useState<string[]>(() => {
+    if (q.kind === "goals") return q.suggested;
+    if (q.kind === "choice" && q.suggested) return [q.suggested];
+    return [];
+  });
   const [own, setOwn] = useState("");
   const [writing, setWriting] = useState(false);
   const multi = q.kind === "goals" || (q.kind === "choice" && q.multiple);
+  const options =
+    q.kind === "goals"
+      ? GOAL_OPTIONS
+      : q.kind === "choice"
+        ? q.options.map((o) => ({ id: o, label: o, hint: "" }))
+        : [];
 
   function toggle(v: string) {
     setPicked((p) => (multi ? (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]) : [v]));
@@ -189,12 +288,13 @@ function QuestionScreen({
   function submit() {
     if (q.kind === "goals") return onAnswer(q, picked);
     if (q.kind === "confirm-text") return onAnswer(q, writing ? own.trim() : q.draft);
-    const values = own.trim() ? [...picked, own.trim()] : picked;
-    onAnswer(q, q.multiple ? values : (values[values.length - 1] ?? null));
+    const values = own.trim() ? [...(multi ? picked : []), own.trim()] : picked;
+    onAnswer(q, multi ? values : (values[values.length - 1] ?? null));
   }
 
   const canContinue =
     q.kind === "confirm-text" ? !writing || own.trim().length > 0 : picked.length > 0 || own.trim().length > 0;
+  const freeTextOnly = q.kind === "choice" && q.options.length === 0;
 
   return (
     <section>
@@ -204,7 +304,7 @@ function QuestionScreen({
             <ArrowLeft className="size-4" /> Back
           </button>
         ) : (
-          <span>We filled in {foundCount} things from your text.</span>
+          <span>{foundCount > 0 ? `We filled in ${foundCount} things from your text.` : "A few quick questions."}</span>
         )}
         <span className="tabular-nums">
           Question {index + 1} of {total}
@@ -229,9 +329,17 @@ function QuestionScreen({
               {q.draft}
             </blockquote>
           )
+        ) : freeTextOnly ? (
+          <Textarea
+            autoFocus
+            value={own}
+            onChange={(e) => setOwn(e.target.value)}
+            placeholder={field?.kind === "list" ? "Separate several with commas" : "Your answer"}
+            className="min-h-24 bg-card p-4 text-base"
+          />
         ) : (
           <div className={q.kind === "goals" ? "grid gap-3 sm:grid-cols-3" : "flex flex-wrap gap-2"}>
-            {(q.kind === "goals" ? q.options : q.options.map((o) => ({ id: o, label: o, hint: "" }))).map((o) => {
+            {options.map((o) => {
               const on = picked.includes(o.id);
               const suggested =
                 q.kind === "goals" ? q.suggested.includes(o.id as GoalId) : q.kind === "choice" && q.suggested === o.id;
@@ -245,7 +353,7 @@ function QuestionScreen({
                   } ${on ? "border-primary bg-accent" : "border-border bg-card hover:border-input"}`}
                 >
                   <span className="flex items-center gap-2 font-medium">
-                    {on && <Check className="size-4 text-primary" />}
+                    {on && <Check className="size-4 shrink-0 text-primary" />}
                     {o.label}
                   </span>
                   {o.hint && <span className="mt-1 block text-sm text-muted-foreground">{o.hint}</span>}
@@ -256,7 +364,7 @@ function QuestionScreen({
           </div>
         )}
 
-        {q.kind === "choice" && (
+        {q.kind === "choice" && !freeTextOnly && (
           <input
             value={own}
             onChange={(e) => setOwn(e.target.value)}

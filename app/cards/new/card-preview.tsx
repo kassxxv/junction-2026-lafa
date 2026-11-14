@@ -1,7 +1,7 @@
 import { hasValue } from "./field-row";
 import { DONE, GOALS, type DraftField, type DraftSection, type GoalId } from "./stub-draft";
 
-/** The card as HR and candidates will see it. Values not yet confirmed are marked. */
+/** The card as event organisers and candidates will see it. Values not yet confirmed are marked. */
 export function CardPreview({ sections, goals }: { sections: DraftSection[]; goals: GoalId[] }) {
   const get = (sectionId: string, fieldId: string) =>
     sections.find((s) => s.id === sectionId)?.fields.find((f) => f.id === fieldId);

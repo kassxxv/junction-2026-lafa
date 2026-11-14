@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { health as contextdevHealth } from "@/lib/contextdev";
 import { health as dbHealth } from "@/lib/db";
+import { health as emailHealth } from "@/lib/email";
 import { health as escoHealth } from "@/lib/esco";
 import { health as geminiHealth } from "@/lib/gemini";
 import { health as gemmaHealth } from "@/lib/gemma";
@@ -26,6 +27,7 @@ export async function GET() {
     gemini: geminiHealth,
     contextdev: contextdevHealth,
     esco: escoHealth,
+    email: emailHealth,
   };
 
   const entries = await Promise.all(

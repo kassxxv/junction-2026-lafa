@@ -36,6 +36,26 @@ function sameString(a: string, b: string): boolean {
   return diff === 0;
 }
 
+/** Signed token naming a subject (a company id): "<expiry>.<signature>.<subject>". */
+export async function createSubjectToken(secret: string, subject: string, hours: number): Promise<string> {
+  const expires = Date.now() + hours * 60 * 60 * 1000;
+  return `${expires}.${await sign(secret, `subject:${subject}:${expires}`)}.${encodeURIComponent(subject)}`;
+}
+
+/** The subject of a valid, unexpired token, or null. */
+export async function verifySubjectToken(secret: string, token: string | undefined): Promise<string | null> {
+  if (!token) return null;
+  const [expires, signature, encoded, ...rest] = token.split(".");
+  if (!expires || !signature || !encoded || rest.length || !/^\d{1,16}$/.test(expires) || Number(expires) < Date.now()) return null;
+  let subject: string;
+  try {
+    subject = decodeURIComponent(encoded);
+  } catch {
+    return null;
+  }
+  return sameString(signature, await sign(secret, `subject:${subject}:${expires}`)) ? subject : null;
+}
+
 export async function createSessionToken(password: string, hours: number): Promise<string> {
   const expires = Date.now() + hours * 60 * 60 * 1000;
   return `${expires}.${await sign(password, `organiser:${expires}`)}`;

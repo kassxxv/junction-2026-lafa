@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { draftCompanyCard } from "@/lib/matchready/card-actions";
 import { GOAL_LABEL, type CardQuestion, type CompanyCardDraft, type GoalId, type PoolStats } from "@/lib/matchready/card-schema";
 import { demoCompanyText } from "@/lib/matchready/demo";
+import type { CompanyPortal } from "@/lib/matchready/meetings";
 import { CardEditor } from "./card-editor";
 
 export interface CompanyProps {
@@ -56,12 +57,14 @@ export function CompanyFlow({
   companyDeadline,
   demo,
   saved,
+  portal,
 }: {
   company: CompanyProps;
   companyDeadline: string;
   demo: boolean;
   /** The confirmed card, if there is one: the company lands on its card page instead of the input step. */
   saved: { draft: CompanyCardDraft; pool: PoolStats } | null;
+  portal: CompanyPortal | null;
 }) {
   const [useSaved, setUseSaved] = useState(Boolean(saved));
   const [step, setStep] = useState<Step>("describe");
@@ -106,6 +109,7 @@ export function CompanyFlow({
         companyDeadline={companyDeadline}
         demo={demo}
         initialPool={saved.pool}
+        portal={portal}
         onBack={() => setUseSaved(false)}
         backLabel="Draft again from new text"
       />

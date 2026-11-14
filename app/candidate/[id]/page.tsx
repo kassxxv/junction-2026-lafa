@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { PublicShell, Timeline } from "@/components/public-shell";
+import { MeetingAnswers } from "@/components/meeting-answers";
 import { getCandidate } from "@/lib/matchready/candidate-service";
+import { answerAsCandidate } from "@/lib/matchready/meeting-actions";
+import { getCandidateMeetings } from "@/lib/matchready/meetings";
 import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
 import { formatDateRange, formatDay } from "@/lib/matchready/event";
 import { getEvent } from "@/lib/matchready/organiser";
@@ -25,7 +28,8 @@ export default function CandidateStatusPage(props: PageProps<"/candidate/[id]">)
 async function Content({ params }: PageProps<"/candidate/[id]">) {
   await connection();
   const { id } = await params;
-  const [c, event] = await Promise.all([getCandidate(decodeURIComponent(id)), getEvent()]);
+  const candidateId = decodeURIComponent(id);
+  const [c, event, meetings] = await Promise.all([getCandidate(candidateId), getEvent(), getCandidateMeetings(candidateId)]);
   if (!c) notFound();
   const base = `/candidate/${encodeURIComponent(c.id)}`;
   const applied = c.applications.length > 0;
@@ -97,6 +101,15 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
               <Link href={`${base}/choose`} className="mt-4 inline-flex text-sm text-primary hover:underline">
                 Add another company
               </Link>
+            )}
+            {meetings.length > 0 && (
+              <div className="mt-8">
+                <h2 className="font-semibold">Your meetings</h2>
+                <p className="mt-1 mb-3 text-sm text-muted-foreground">
+                  After each meeting, one question: want to continue? If you both say yes, the organisers connect you.
+                </p>
+                <MeetingAnswers meetings={meetings} answer={answerAsCandidate.bind(null, c.id)} />
+              </div>
             )}
           </>
         )}

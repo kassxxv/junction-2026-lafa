@@ -14,6 +14,14 @@ export const DEMO_ORGANISER = {
   logName: "Laura (organiser, demo)",
 };
 
+/**
+ * Demo invitation codes, one per seeded company ("kuura-photonics" → "KUURA-2026"). They are in a public repo,
+ * so they are demo-only: real codes come from generateInviteCode() and only their hash is stored.
+ */
+export function demoInviteCode(companyId: string): string {
+  return `${companyId.split("-")[0].toUpperCase()}-2026`;
+}
+
 /** Draft company with no applications: the live company demo (/company) starts here. */
 export const DEMO_COMPANY_ID = "kuura-photonics";
 /** Synthetic careers page served by this app, so the demo reads a real URL. */

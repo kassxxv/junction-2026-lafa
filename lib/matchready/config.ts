@@ -63,6 +63,8 @@ export const RATE_LIMITS = {
   documentRead: { perClient: 20, windowSeconds: 10 * 60, perDay: 2000 },
   /** New talent-pool registrations. */
   joinPool: { perClient: 10, windowSeconds: 10 * 60, perDay: 1000 },
+  /** Company invitation-code attempts. */
+  companyLogin: { perClient: 10, windowSeconds: 10 * 60, perDay: 1000 },
   /** Organiser password attempts. */
   organiserLogin: { perClient: 8, windowSeconds: 10 * 60, perDay: 500 },
 } satisfies Record<string, RateRule>;

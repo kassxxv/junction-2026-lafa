@@ -4,7 +4,8 @@
  */
 import { CANDIDATES as BASE_CANDIDATES, COMPANIES, cvText, EVENT, EXTRA_CANDIDATES, linkedinFrom } from "../db/seed/data";
 import { closeDb, withTransaction } from "../lib/db";
-import { DEMO_FEEDBACK_COMPANY_ID, DEMO_ORGANISER, DEMO_REVIEW_COMPANY_ID, SEED_REFERENCE_MONTH } from "../lib/matchready/demo";
+import { hashInviteCode } from "../lib/invite-code";
+import { DEMO_FEEDBACK_COMPANY_ID, DEMO_ORGANISER, DEMO_REVIEW_COMPANY_ID, demoInviteCode, SEED_REFERENCE_MONTH } from "../lib/matchready/demo";
 import { compareCvLinkedin, evidenceFor, type Requirement } from "../lib/matchready/facts";
 import { classifyError } from "../lib/service";
 
@@ -32,7 +33,9 @@ async function main() {
     const roleByCompany = new Map<string, string>();
 
     for (const c of COMPANIES) {
-      await q(`INSERT INTO companies (id, event_id, name, website, field) VALUES ($1,$2,$3,$4,$5)`, [c.id, EVENT.id, c.name, c.website, c.field]);
+      await q(`INSERT INTO companies (id, event_id, name, website, field, invite_code_hash, contact_email) VALUES ($1,$2,$3,$4,$5,$6,$7)`, [
+        c.id, EVENT.id, c.name, c.website, c.field, hashInviteCode(demoInviteCode(c.id)), `hiring@${c.website}`,
+      ]);
       await q(
         `INSERT INTO company_cards (company_id, goals, summary, event_goal, status, places, source_text, task, confirmed_at)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8, CASE WHEN $5 = 'confirmed' THEN now() END)`,
@@ -110,7 +113,13 @@ async function main() {
       [DEMO_REVIEW_COMPANY_ID],
     );
     const pendingDemo = held.find((h) => h.company_id === DEMO_FEEDBACK_COMPANY_ID)?.id; // left without answers for the live demo
+    // Never approve more people than the company has meeting places (the same rule organisers work under).
+    const approvedSoFar = new Map<string, number>();
     for (const [i, h] of held.entries()) {
+      const places = COMPANIES.find((c) => c.id === h.company_id)?.places ?? 0;
+      const n = approvedSoFar.get(h.company_id) ?? 0;
+      if (n >= places) continue;
+      approvedSoFar.set(h.company_id, n + 1);
       await q(`UPDATE applications SET status = 'approved' WHERE id = $1`, [h.id]);
       await q(`INSERT INTO decisions (application_id, organiser, action, batch, rule, created_at) VALUES ($1, $2, 'approve', true, 'must-haves met, nothing to check', now() - interval '2 days')`, [h.id, DEMO_ORGANISER.logName]);
       if (h.id === pendingDemo) continue;

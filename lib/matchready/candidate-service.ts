@@ -4,6 +4,7 @@ import { query, withTransaction } from "@/lib/db";
 import { chatJSON } from "@/lib/gemma";
 import { CV_PARSE_SYSTEM, cvParsePrompt } from "@/lib/prompts/cv-parse";
 import { MAX_COMPANIES_PER_CANDIDATE, MAX_DOCUMENT_CHARS } from "./config";
+import { EVENT } from "./event";
 import { CvParse } from "./cv-schema";
 import {
   compareCvLinkedin,
@@ -24,13 +25,9 @@ import { accessCode } from "./tavata";
  */
 
 
-export const WORK_TYPES = ["Testing and validation", "Engineering and design", "Research", "Production", "Business and sales"];
-export const CAREER_STAGES = [
-  { id: "student", label: "Student" },
-  { id: "early", label: "Early career (0–2 years)" },
-  { id: "experienced", label: "Experienced (2–7 years)" },
-  { id: "senior", label: "Senior (7+ years)" },
-] as const;
+/** Talent-pool choices come from the event configuration (lib/matchready/event.ts), not from this file. */
+export const WORK_TYPES = EVENT.workTypes;
+export const CAREER_STAGES = EVENT.careerStages;
 
 /* ---------------- Stage 1: talent pool ---------------- */
 

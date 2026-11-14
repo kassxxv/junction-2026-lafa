@@ -252,7 +252,7 @@ export function compareCvLinkedin(cv: CvFacts, li: LinkedinFacts | null, asOf: s
     } else {
       // A small difference still counts as the same job, but it is shown, not hidden.
       const note = p.gap > 0 ? ` (dates differ by ${plural(p.gap, "month")}, within the ${DATE_TOLERANCE_MONTHS}-month tolerance)` : "";
-      out.push({ kind: "match", text: `${e.title}, ${e.employer}, ${yearSpan(e)} · in CV and LinkedIn${note}` });
+      out.push({ kind: "match", text: `${e.title}, ${e.employer}, ${yearSpan(e)}: in both CV and LinkedIn${note}` });
     }
   });
   for (const x of unused) {
@@ -271,7 +271,7 @@ export function compareCvLinkedin(cv: CvFacts, li: LinkedinFacts | null, asOf: s
       out.push(
         yearGap > EDUCATION_YEAR_TOLERANCE
           ? { kind: "differs", text: `${ed.degree} ${ed.field}: CV says ${ed.year}, LinkedIn says ${hit.x.year}.` }
-          : { kind: "match", text: `${ed.degree} ${ed.field}, ${ed.year} · in CV and LinkedIn${yearGap ? ` (LinkedIn says ${hit.x.year})` : ""}` },
+          : { kind: "match", text: `${ed.degree} ${ed.field}, ${ed.year}: in both CV and LinkedIn${yearGap ? ` (LinkedIn says ${hit.x.year})` : ""}` },
       );
     } else if (sameDegree[0]) {
       liEduUsed.add(sameDegree[0].i);
@@ -324,6 +324,7 @@ export function evidenceFor(req: Requirement, cv: CvFacts, li: LinkedinFacts | n
       const total = monthsCovered(hits, asOf);
       // Show which jobs were counted, each with its own time, so the organiser can see what the total is made of.
       const employers = hits.map((e) => e.employer).filter((name, i, all) => all.findIndex((x) => sameEmployer(x, name)) === i);
+      // "3 y 5 m at Valo Optics" or "5 y 2 m in total: Valo Optics 3 y 5 m + University lab 1 y 9 m".
       const where =
         employers.length === 1
           ? employers[0]
@@ -336,13 +337,13 @@ export function evidenceFor(req: Requirement, cv: CvFacts, li: LinkedinFacts | n
           return !!p && p.titleSame && p.gap <= DATE_TOLERANCE_MONTHS;
         });
       }
-      return { ...base, value: `${formatDuration(total)} · ${where}`, meets: total >= (req.minYears ?? 0) * 12, source: "cv", linkedinMatch };
+      return { ...base, value: employers.length === 1 ? `${formatDuration(total)} at ${where}` : `${formatDuration(total)} in total: ${where}`, meets: total >= (req.minYears ?? 0) * 12, source: "cv", linkedinMatch };
     }
     case "has_done": {
       const task = cv.experience.find((e) => mentions(searchPhrases(req), [...e.tasks, ...e.areas]));
-      if (task) return { ...base, value: `${task.employer} · described in tasks`, meets: true, source: "cv" };
+      if (task) return { ...base, value: `In the tasks at ${task.employer}`, meets: true, source: "cv" };
       const skill = cv.skills.find((s) => mentions(searchPhrases(req), [s]));
-      if (skill) return { ...base, value: `${skill} · listed in skills`, meets: true, source: "cv" };
+      if (skill) return { ...base, value: `${skill}, in the skills list`, meets: true, source: "cv" };
       return { ...base, value: null, meets: null, source: "none" };
     }
     case "education": {
@@ -369,15 +370,15 @@ export function evidenceFor(req: Requirement, cv: CvFacts, li: LinkedinFacts | n
   }
 }
 
-/** Human-readable requirement, e.g. "Optical testing · 2+ years". */
+/** Human-readable requirement, e.g. "Optical testing, 2+ years". */
 export function requirementText(r: Pick<Requirement, "type" | "label" | "minYears" | "level" | "detail">): string {
   switch (r.type) {
     case "experience":
-      return r.minYears ? `${r.label} · ${r.minYears}+ ${r.minYears === 1 ? "year" : "years"}` : r.label;
+      return r.minYears ? `${r.label}, ${r.minYears}+ ${r.minYears === 1 ? "year" : "years"}` : r.label;
     case "education":
-      return r.detail ? `${r.label} · ${r.detail}` : r.label;
+      return r.detail ? `${r.label} in ${r.detail}` : r.label;
     case "language":
-      return r.level ? `${r.label} · ${r.level}+` : r.label;
+      return r.level ? `${r.label}, ${r.level} or higher` : r.label;
     default:
       return r.label;
   }

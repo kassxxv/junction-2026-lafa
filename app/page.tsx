@@ -71,7 +71,8 @@ export default function Landing() {
             <p className="text-sidebar-muted">Registration and selection for the 1:1 meetings</p>
             <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">{EVENT.name}</h1>
             <p className="mt-5 text-lg text-sidebar-muted">
-              {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })} · {EVENT.format.charAt(0).toLowerCase() + EVENT.format.slice(1)} ·{" "}
+              {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })}, {EVENT.format.charAt(0).toLowerCase() + EVENT.format.slice(1)}
+              <br />
               {EVENT.fields.join(", ")}
             </p>
             <p className="mt-6 max-w-[56ch] text-lg leading-relaxed">

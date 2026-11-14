@@ -20,6 +20,9 @@ export interface EventFacts {
   /** Short form for headers. */
   place: string;
   fields: string[];
+  /** Choices on the talent-pool form. Set by the organisers per event, like the fields; the server accepts nothing else. */
+  workTypes: string[];
+  careerStages: { id: "student" | "early" | "experienced" | "senior"; label: string }[];
   companyDeadline: string;
   applicationDeadline: string;
   decisionDate: string;
@@ -35,6 +38,13 @@ export const EVENT: EventFacts = {
   format: "Online, in English",
   place: "online",
   fields: ["Semiconductors & Microelectronics", "Photonics", "Quantum technologies"],
+  workTypes: ["Testing and validation", "Engineering and design", "Research", "Production", "Business and sales"],
+  careerStages: [
+    { id: "student", label: "Student" },
+    { id: "early", label: "Early career (0–2 years)" },
+    { id: "experienced", label: "Experienced (2–7 years)" },
+    { id: "senior", label: "Senior (7+ years)" },
+  ],
   companyDeadline: "2026-11-18",
   applicationDeadline: "2026-11-20",
   decisionDate: "2026-11-21",

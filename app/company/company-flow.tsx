@@ -91,7 +91,8 @@ export function CompanyFlow({ company, companyDeadline, demo }: { company: Compa
         sample={sample}
         companyDeadline={companyDeadline}
         demo={demo}
-        onBack={draft.questions.length ? () => { setQIndex(0); setStep("ask"); } : undefined}
+        onBack={draft.questions.length ? () => { setQIndex(0); setStep("ask"); } : () => setStep("describe")}
+        backLabel={draft.questions.length ? "Back to questions" : "Back to your text"}
       />
     );
   }
@@ -153,7 +154,8 @@ export function CompanyFlow({ company, companyDeadline, demo }: { company: Compa
           index={qIndex}
           total={draft.questions.length}
           multi={draft.questions[qIndex].target === "goals"}
-          onBack={qIndex > 0 ? () => setQIndex(qIndex - 1) : undefined}
+          onBack={qIndex > 0 ? () => setQIndex(qIndex - 1) : () => setStep("describe")}
+          backLabel={qIndex > 0 ? "Previous question" : "Back to your text"}
           onAnswer={(answer) => {
             const q = draft.questions[qIndex];
             const next = answer === null ? draft : applyAnswer(draft, q, answer);
@@ -173,13 +175,15 @@ function QuestionScreen({
   total,
   multi,
   onBack,
+  backLabel,
   onAnswer,
 }: {
   q: CardQuestion;
   index: number;
   total: number;
   multi: boolean;
-  onBack?: () => void;
+  onBack: () => void;
+  backLabel: string;
   onAnswer: (answer: string | string[] | null) => void;
 }) {
   const [picked, setPicked] = useState<string[]>(q.suggested ? [q.suggested] : []);
@@ -192,13 +196,9 @@ function QuestionScreen({
   return (
     <section>
       <div className="mb-8 flex items-center justify-between text-sm text-muted-foreground">
-        {onBack ? (
-          <button onClick={onBack} className="inline-flex items-center gap-1 hover:text-foreground">
-            <ArrowLeft className="size-4" /> Back
-          </button>
-        ) : (
-          <span />
-        )}
+        <button onClick={onBack} className="inline-flex items-center gap-1.5 hover:text-foreground hover:underline underline-offset-4">
+          <ArrowLeft className="size-4" /> {backLabel}
+        </button>
         <span className="tabular-nums">
           {total === 1 ? "One question" : `Question ${index + 1} of ${total}`}
         </span>

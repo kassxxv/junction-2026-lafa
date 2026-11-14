@@ -3,6 +3,7 @@
 import { Check, FileUp, Info, Loader2, Paperclip, Plus, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { BackLink } from "@/components/back-link";
 import { Timeline } from "@/components/public-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,6 +118,7 @@ export function ApplyForm({
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-10">
+      <BackLink href={`/candidate/${encodeURIComponent(candidateId)}/choose`}>Back to choose companies</BackLink>
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
         <p className="text-sm font-medium text-primary">Step 3: your application</p>
         <Timeline stage={2} />

@@ -33,7 +33,8 @@ export default async function OrganiserOverview() {
             <p className="text-sm text-muted-foreground">Overview</p>
             <h1 className="text-xl font-semibold tracking-tight">{o.event.name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {formatDateRange(o.event.startsOn, o.event.endsOn, { year: true })} · {o.event.format} · {o.event.fields.join(", ")}
+              {formatDateRange(o.event.startsOn, o.event.endsOn, { year: true })}, {o.event.format.charAt(0).toLowerCase() + o.event.format.slice(1)}. Fields:{" "}
+              {o.event.fields.join(", ")}
             </p>
           </div>
           {o.event.infoUrl && (
@@ -54,7 +55,7 @@ export default async function OrganiserOverview() {
                 <span className={`text-sm ${state === "next" ? "text-muted-foreground" : "font-medium"}`}>{s.label}</span>
                 <span className="text-xs text-muted-foreground">
                   {s.date ? fmt(s.date) : `until ${fmt(s.until!)}`}
-                  {state === "now" && " · now"}
+                  {state === "now" && " (now)"}
                 </span>
               </li>
             );

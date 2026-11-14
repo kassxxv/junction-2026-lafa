@@ -49,6 +49,7 @@ export function CardEditor({
   companyDeadline,
   demo,
   onBack,
+  backLabel = "Back to questions",
 }: {
   company: CompanyProps;
   initial: CompanyCardDraft;
@@ -56,6 +57,7 @@ export function CardEditor({
   companyDeadline: string;
   demo: boolean;
   onBack?: () => void;
+  backLabel?: string;
 }) {
   const [card, setCard] = useState<CompanyCardDraft>(() => ({
     ...initial,
@@ -160,7 +162,7 @@ export function CardEditor({
               </span>
             ) : (
               <span className="rounded-full bg-status-ai-bg px-3 py-1 text-sm font-medium text-status-ai">
-                Draft from {card.readUrlOk ? "your website" : "your text"} · not confirmed
+                Draft from {card.readUrlOk ? "your website" : "your text"}, not confirmed yet
               </span>
             )}
           </div>
@@ -206,7 +208,7 @@ export function CardEditor({
                 <Row label="Role">
                   <div className="grid gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                     <Input value={role.title} onChange={(e) => updateRole({ title: e.target.value })} placeholder="Job title" className="bg-card font-medium" />
-                    <Input value={role.details} onChange={(e) => updateRole({ details: e.target.value })} placeholder="Full-time · Espoo" className="bg-card" />
+                    <Input value={role.details} onChange={(e) => updateRole({ details: e.target.value })} placeholder="Full-time, Espoo" className="bg-card" />
                   </div>
                 </Row>
 
@@ -250,7 +252,7 @@ export function CardEditor({
             {onBack ? (
               <Button variant="ghost" onClick={onBack}>
                 <ArrowLeft data-icon="inline-start" />
-                Back to questions
+                {backLabel}
               </Button>
             ) : (
               <span />

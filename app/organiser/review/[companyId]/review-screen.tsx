@@ -5,7 +5,7 @@
  * AI shows facts (evidence + CV ↔ LinkedIn). It never scores or ranks.
  */
 
-import { Check, Download, EyeOff, Info, RotateCcw, Undo2, X } from "lucide-react";
+import { ArrowLeft, Check, Download, EyeOff, Info, RotateCcw, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -70,12 +70,12 @@ export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }
       <header className="border-b border-border bg-card px-6 py-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
-            <Link href="/organiser" className="text-sm text-muted-foreground hover:text-foreground">
-              Selection
+            <Link href="/organiser" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
+              <ArrowLeft className="size-4" /> Overview
             </Link>
             <h1 className="text-xl font-semibold tracking-tight">
               {company.name}
-              {role && <span className="font-normal text-muted-foreground"> · {role.title}</span>}
+              {role && <span className="font-normal text-muted-foreground">, {role.title}</span>}
             </h1>
             <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
               <EyeOff className="size-3.5" />
@@ -235,7 +235,7 @@ export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }
                         {d.organiser.split(" ")[0]} {d.action === "approve" ? "approved" : d.action === "decline" ? "declined" : "undid"}{" "}
                         <span className="font-medium">{d.code}</span>
                         <span className="text-muted-foreground">
-                          {d.batch ? " · batch, must-haves met" : d.note ? ` · note: “${d.note}”` : d.rule ? ` · ${d.rule}` : ""}
+                          {d.batch ? " in a batch (must-haves met)" : d.note ? ` with a note: “${d.note}”` : d.rule ? ` (${d.rule})` : ""}
                         </span>
                       </li>
                     ))
@@ -456,7 +456,7 @@ function BiasPanel({ bias }: { bias: Review["bias"] }) {
             <div className="mb-1 flex justify-between">
               <span>{r.label}</span>
               <span className="tabular-nums text-muted-foreground">
-                approved {r.approved === null ? "–" : pct(r.approved)} · applicants {pct(r.applicants)}
+                approved {r.approved === null ? "–" : pct(r.approved)}, applicants {pct(r.applicants)}
               </span>
             </div>
             <div className="relative h-2 rounded-full bg-muted">

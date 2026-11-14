@@ -234,3 +234,6 @@ npm-debug.log*
 # Certificates (e.g. Aiven CA): keep out of git
 /certs/
 *.pem
+
+# Playwright MCP plugin output (screenshots, page snapshots, logs)
+.playwright-mcp/

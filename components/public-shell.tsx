@@ -8,20 +8,20 @@ import { EVENT, formatDateRange } from "@/lib/matchready/event";
 export function PublicShell({ right, children }: { right?: ReactNode; children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-border bg-card">
+      <header className="bg-sidebar text-sidebar-foreground">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
           <span className="flex items-center gap-2.5">
-            <Link href="/" aria-label={`${BRAND.name} home`} className="shrink-0 border-r border-border pr-3">
-              <Image src={BRAND.logoOnLight.src} width={BRAND.logoOnLight.width} height={BRAND.logoOnLight.height} alt="" loading="eager" className="h-8 w-auto" />
+            <Link href="/" aria-label={`${BRAND.name} home`} className="shrink-0 border-r border-sidebar-border pr-3">
+              <Image src={BRAND.logoOnDark.src} width={BRAND.logoOnDark.width} height={BRAND.logoOnDark.height} alt="" loading="eager" className="h-8 w-auto" />
             </Link>
             <span>
-            <span className="font-semibold">{EVENT.name}</span>
-            <span className="text-muted-foreground">
+              <span className="font-semibold">{EVENT.name}</span>
+            <span className="text-sidebar-muted">
               , {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })}, {EVENT.place}
             </span>
             </span>
           </span>
-          {right && <span className="text-muted-foreground">{right}</span>}
+          {right && <span className="text-sidebar-muted">{right}</span>}
         </div>
       </header>
       <main className="flex-1">{children}</main>

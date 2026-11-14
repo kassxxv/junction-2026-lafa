@@ -22,7 +22,7 @@ export default function KuuraPhotonicsCareers() {
       </p>
 
       <h2 className="mt-10 font-sans text-2xl font-semibold">Test Engineer, Photonics</h2>
-      <p className="mt-1 font-sans text-sm text-muted-foreground">Full-time · Espoo · Start in early 2027</p>
+      <p className="mt-1 font-sans text-sm text-muted-foreground">Full-time, Espoo. Start in early 2027.</p>
       <p className="mt-4">
         You will test optical components in our lab, build and improve measurement setups, and automate repetitive
         measurements.

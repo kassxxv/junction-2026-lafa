@@ -40,7 +40,7 @@ export default async function FeedbackDashboardPage() {
                 <div className="mb-1.5 flex justify-between gap-3 text-sm">
                   <span className="font-medium">{c.company}</span>
                   <span className="tabular-nums text-muted-foreground">
-                    {pct(c.bothYes, c.meetings)}% · {c.bothYes} of {c.meetings}
+                    {pct(c.bothYes, c.meetings)}% ({c.bothYes} of {c.meetings})
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-muted">

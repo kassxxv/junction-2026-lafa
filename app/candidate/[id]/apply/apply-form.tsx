@@ -134,7 +134,7 @@ export function ApplyForm({
               hint="Required"
               done={cvParsed}
               busy={busy === "cv"}
-              busyText="Reading your CV on the event's EU server…"
+              busyText="Reading your CV on our EU server…"
               doneText="CV read. The table below is filled in."
               actions={
                 <>
@@ -210,6 +210,9 @@ export function ApplyForm({
               <h2 className="text-lg font-semibold">{c.name}</h2>
               <span className="text-sm text-muted-foreground">{c.role}</span>
             </div>
+            {c.requirements.length === 0 ? (
+              <p className="px-5 py-4 text-sm text-muted-foreground">This company listed no specific requirements. Answer the question below.</p>
+            ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead className="text-muted-foreground">
@@ -278,6 +281,7 @@ export function ApplyForm({
                 </tbody>
               </table>
             </div>
+            )}
             <div className="border-t border-border px-5 py-4">
               <label className="block text-sm font-medium" htmlFor={`starter-${c.id}`}>
                 Conversation starter: {c.starter}
@@ -333,7 +337,7 @@ export function ApplyForm({
         </div>
         <p className="mt-6 flex gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
-          An AI model on the event&apos;s EU server reads your documents to fill in the table. It never scores or ranks you.
+          An open AI model on our own EU server reads your documents to fill in the table. It never scores or ranks you.
           Organisers decide without seeing your name.
         </p>
       </div>

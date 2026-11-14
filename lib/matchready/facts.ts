@@ -118,8 +118,11 @@ function monthsCovered(jobs: Pick<Experience, "start" | "end">[], asOf: string):
 export function formatDuration(totalMonths: number): string {
   const y = Math.floor(totalMonths / 12);
   const m = totalMonths % 12;
-  if (y === 0) return `${m} mo`;
-  return m ? `${y} y ${m} m` : `${y} y`;
+  // LinkedIn's format ("3 yrs 5 mos"): what recruiters and candidates already read every day.
+  const yrs = `${y} ${y === 1 ? "yr" : "yrs"}`;
+  const mos = `${m} ${m === 1 ? "mo" : "mos"}`;
+  if (y === 0) return mos;
+  return m ? `${yrs} ${mos}` : yrs;
 }
 
 function yearSpan(e: Pick<Experience, "start" | "end">): string {
@@ -324,7 +327,7 @@ export function evidenceFor(req: Requirement, cv: CvFacts, li: LinkedinFacts | n
       const total = monthsCovered(hits, asOf);
       // Show which jobs were counted, each with its own time, so the organiser can see what the total is made of.
       const employers = hits.map((e) => e.employer).filter((name, i, all) => all.findIndex((x) => sameEmployer(x, name)) === i);
-      // "3 y 5 m at Valo Optics" or "5 y 2 m in total: Valo Optics 3 y 5 m + University lab 1 y 9 m".
+      // "3 yrs 5 mos at Valo Optics" or "5 yrs 2 mos in total: Valo Optics 3 yrs 5 mos + University lab 1 yr 9 mos".
       const where =
         employers.length === 1
           ? employers[0]

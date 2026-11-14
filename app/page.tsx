@@ -55,9 +55,9 @@ const steps = (EVENT: LandingEvent) => [
 ];
 
 const PRINCIPLES = [
-  { icon: Scale, title: "People decide", body: "AI structures, pre-fills and points out differences. It never scores, ranks or rejects anyone." },
-  { icon: FileCheck2, title: "Facts, not polished text", body: "Organisers select on employers, dates, degrees and proof. What you write in your own words goes to the meeting, not to selection." },
-  { icon: Lock, title: "Data stays in the EU", body: "Candidate documents are read by an open model on the event's own EU server. Names stay hidden during review." },
+  { icon: Scale, title: "People decide", body: "AI structures and pre-fills; plain code points out differences. Nothing scores, ranks or rejects anyone." },
+  { icon: FileCheck2, title: "Facts, not polished text", body: "Organisers select on employers, dates, degrees and proof. Your own words open the meeting and are never scored." },
+  { icon: Lock, title: "Candidate data stays in the EU", body: "CVs are read by an open model on our own server in the EU. Names stay hidden during review." },
 ];
 
 function LandingView({ event: EVENT }: { event: LandingEvent }) {
@@ -138,8 +138,7 @@ function LandingView({ event: EVENT }: { event: LandingEvent }) {
       </section>
 
       <footer className="border-t border-border px-5 py-6 text-center text-xs text-muted-foreground">
-        {BRAND.name} prototype built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment”. The event is real; every
-        company and person in this prototype is fictional.
+        {BRAND.name} prototype built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment”.
       </footer>
     </div>
   );

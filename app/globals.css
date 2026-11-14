@@ -1,26 +1,142 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+/*
+ * Design tokens. Change colours here, never in components.
+ * Brand values are placeholders until we have Espoo's graphic guidelines:
+ * navy is only used for the sidebar, the rest of the workspace stays light.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Work area */
+  --background: #f3f5f8;
+  --foreground: #0f1a2e;
+  --card: #ffffff;
+  --card-foreground: #0f1a2e;
+  --popover: #ffffff;
+  --popover-foreground: #0f1a2e;
+
+  /* Actions */
+  --primary: #0a5bd3;
+  --primary-foreground: #ffffff;
+  --secondary: #eaeef4;
+  --secondary-foreground: #0f1a2e;
+  --muted: #eaeef4;
+  --muted-foreground: #5b6577;
+  --accent: #e8effb;
+  --accent-foreground: #0f1a2e;
+  --destructive: #b42318;
+
+  --border: #dde2ea;
+  --input: #ccd3de;
+  --ring: #0a5bd3;
+  --radius: 0.5rem;
+
+  /* Sidebar: Espoo navy */
+  --sidebar: #011135;
+  --sidebar-foreground: #ffffff;
+  --sidebar-muted: rgb(255 255 255 / 0.6);
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #011135;
+  --sidebar-accent: rgb(255 255 255 / 0.12);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.1);
+  --sidebar-ring: #8fb4ff;
+
+  /* Evidence: highlighted quotes in the company's source text */
+  --evidence: #dfeafc;
+  --evidence-strong: #b9d1f6;
+  --evidence-edge: #0a5bd3;
+
+  /* Field status — separate from the action blue, always paired with an icon */
+  --status-source: #1d4ed8;
+  --status-source-bg: #e6eefc;
+  --status-ai: #a15c07;
+  --status-ai-bg: #fdf1d8;
+  --status-missing: #5b6577;
+  --status-missing-bg: #eaeef4;
+  --status-confirmed: #047857;
+  --status-confirmed-bg: #dcf5ea;
+  --status-ask: #b8123a;
+  --status-ask-bg: #fde6ea;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-evidence: var(--evidence);
+  --color-evidence-strong: var(--evidence-strong);
+  --color-evidence-edge: var(--evidence-edge);
+
+  --color-status-source: var(--status-source);
+  --color-status-source-bg: var(--status-source-bg);
+  --color-status-ai: var(--status-ai);
+  --color-status-ai-bg: var(--status-ai-bg);
+  --color-status-missing: var(--status-missing);
+  --color-status-missing-bg: var(--status-missing-bg);
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-confirmed-bg: var(--status-confirmed-bg);
+  --color-status-ask: var(--status-ask);
+  --color-status-ask-bg: var(--status-ask-bg);
+
+  --font-sans: var(--font-ui);
+  --font-heading: var(--font-ui);
+  --font-serif: var(--font-document);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "cv11";
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

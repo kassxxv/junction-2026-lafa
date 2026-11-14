@@ -291,7 +291,7 @@ Resolve each before building the part that depends on it. Record the decision an
 | Component | Role in the product | Status | Notes |
 | --- | --- | --- | --- |
 | **Next.js** (TypeScript, App Router, Tailwind) | UI for company, candidate, HR + server routes that call every service | \[PROPOSED\] | One repo, one app. All API keys used only in server code. |
-| **Vercel** | Hosting with auto-deploy from `main` | Not set up | EU function region if offered. See D2. |
+| **Vercel** | Hosting with auto-deploy from `main` | \[FACT\] deployed 2026-11-14 at `junction-2026-lafa.vercel.app`; function region Frankfurt (`fra1`), same as Aiven | `DATABASE_CA_CERT` holds the PEM text on Vercel. `GEMMA_*` unset there until Verda has an authenticated HTTPS proxy (Gemma runs on stubs in production). See D2. |
 | **Aiven PostgreSQL + pgvector** | All data: cards, answers, decisions, log; vector search | \[FACT\] running: PostgreSQL 18.7, Developer tier, region Europe; pgvector 0.8.7 verified (2026-11-14) | Check "Allowed IP addresses" for the deployed app. TLS: current `pg` treats `sslmode=require` as verify-full and fails on Aiven's CA, so `lib/db.ts` strips sslmode from the URL and verifies with the CA file in `DATABASE_CA_CERT` (falls back to unverified TLS if unset). |
 | **Gemini API** | Company side: clarifying dialogue, card drafting (JSON), HR glossary | \[FACT\] key created | Only non-personal (company) data goes to Gemini. |
 | **Gemma on Verda (Ollama)** | Candidate side: translate, anonymise, extract skills with evidence | \[FACT\] A100 40GB on-demand, Ubuntu 26.04 + CUDA 13.4, Ollama 0.40.16, `gemma3:12b` | \~€1.5/h; delete after submission. Ollama on localhost; SSH tunnel (dev) or authenticated proxy (deploy). OpenAI-compatible `/v1`. |

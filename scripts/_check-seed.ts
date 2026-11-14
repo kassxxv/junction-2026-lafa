@@ -1,7 +1,8 @@
 /** Dev check (read-only): review status per blind code for one company. No names printed. */
 import { closeDb, query } from "../lib/db";
+import { DEMO_REVIEW_COMPANY_ID } from "../lib/matchready/demo";
 
-const company = process.argv[2] ?? "nordic-photonics";
+const company = process.argv[2] ?? DEMO_REVIEW_COMPANY_ID;
 
 query<{ code: string; must_missing: number; must_unknown: number; checks: { kind: string }[] | null; first: string | null }>(
   `SELECT c.code,

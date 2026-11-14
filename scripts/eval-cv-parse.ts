@@ -9,12 +9,13 @@ import { chatJSON } from "../lib/gemma";
 import { compareCvLinkedin, type CvFacts } from "../lib/matchready/facts";
 import { pdfToText, toFacts } from "../lib/matchready/candidate-service";
 import { CvParse } from "../lib/matchready/cv-schema";
+import { DEMO_CANDIDATE, SEED_REFERENCE_MONTH } from "../lib/matchready/demo";
 import { CV_PARSE_SYSTEM, cvParsePrompt } from "../lib/prompts/cv-parse";
 
 const TOPICS = ["optical testing", "photonic testing", "lab equipment", "measurement equipment", "automat python"];
 
 async function parse(file: string, kind: "cv" | "linkedin"): Promise<{ facts: CvFacts; ms: number; live: boolean }> {
-  const text = await pdfToText(new Uint8Array(readFileSync(join(process.cwd(), "public", "demo", file))));
+  const text = await pdfToText(new Uint8Array(readFileSync(join(process.cwd(), "public", file))));
   const t = Date.now();
   const r = await chatJSON({
     schema: CvParse,
@@ -34,8 +35,8 @@ function check(label: string, ok: boolean) {
 }
 
 async function main() {
-  const cv = await parse("aisha-rahman-cv.pdf", "cv");
-  const li = await parse("aisha-rahman-linkedin.pdf", "linkedin");
+  const cv = await parse(DEMO_CANDIDATE.cvFile, "cv");
+  const li = await parse(DEMO_CANDIDATE.linkedinFile, "linkedin");
   console.log(`CV parsed in ${cv.ms} ms (${cv.live ? "live Gemma" : "STUB"}), LinkedIn in ${li.ms} ms (${li.live ? "live Gemma" : "STUB"})`);
   console.log("CV facts:", JSON.stringify(cv.facts, null, 1).slice(0, 1500));
 
@@ -58,7 +59,7 @@ async function main() {
     experience: li.facts.experience,
     education: li.facts.education.filter((e) => !e.inProgress),
     skills: li.facts.skills,
-  });
+  }, SEED_REFERENCE_MONTH);
   console.log("\nCV ↔ LinkedIn (computed by code):");
   for (const c of checks) console.log(`  ${c.kind.toUpperCase().padEnd(10)} ${c.text}`);
   results.push(check("comparison flags Test Lead vs Test Engineer", checks.some((c) => c.kind === "differs" && /Test Lead/.test(c.text))));

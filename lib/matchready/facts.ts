@@ -6,6 +6,8 @@
  * never a ranking of people.
  */
 
+import { DATE_TOLERANCE_MONTHS } from "./config";
+
 export type Cefr = "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "Native";
 export type Degree = "Vocational" | "BSc" | "MSc" | "PhD";
 
@@ -73,8 +75,10 @@ export interface Evidence {
   linkedinMatch: boolean | null;
 }
 
-/** Fixed "today" for the demo so results are stable. */
-export const REFERENCE_DATE = "2026-11";
+/** "Today" as YYYY-MM: the end of jobs that are still running. Seed data and evals pass a fixed month instead. */
+export function currentMonth(): string {
+  return new Date().toISOString().slice(0, 7);
+}
 
 const CEFR_RANK: Record<Cefr, number> = { A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6, Native: 7 };
 const DEGREE_RANK: Record<Degree, number> = { Vocational: 1, BSc: 2, MSc: 3, PhD: 4 };
@@ -84,8 +88,8 @@ function monthIndex(ym: string): number {
   return y * 12 + (m - 1);
 }
 
-export function months(e: Pick<Experience, "start" | "end">): number {
-  return Math.max(0, monthIndex(e.end ?? REFERENCE_DATE) - monthIndex(e.start) + 1);
+export function months(e: Pick<Experience, "start" | "end">, asOf: string = currentMonth()): number {
+  return Math.max(0, monthIndex(e.end ?? asOf) - monthIndex(e.start) + 1);
 }
 
 export function formatDuration(totalMonths: number): string {
@@ -111,7 +115,7 @@ function mentions(keywords: string[], texts: string[]): boolean {
 
 /* ---------------- CV ↔ LinkedIn: facts, not verdicts ---------------- */
 
-export function compareCvLinkedin(cv: CvFacts, li: LinkedinFacts | null): LinkedinCheck[] {
+export function compareCvLinkedin(cv: CvFacts, li: LinkedinFacts | null, asOf: string = currentMonth()): LinkedinCheck[] {
   if (!li) return [{ kind: "none", text: "No LinkedIn provided. This does not affect selection." }];
   const out: LinkedinCheck[] = [];
 
@@ -122,13 +126,13 @@ export function compareCvLinkedin(cv: CvFacts, li: LinkedinFacts | null): Linked
       continue;
     }
     const startGap = Math.abs(monthIndex(match.start) - monthIndex(e.start));
-    const endGap = Math.abs(monthIndex(match.end ?? REFERENCE_DATE) - monthIndex(e.end ?? REFERENCE_DATE));
+    const endGap = Math.abs(monthIndex(match.end ?? asOf) - monthIndex(e.end ?? asOf));
     if (!same(match.title, e.title)) {
       out.push({
         kind: "differs",
         text: `CV says “${e.title}”, LinkedIn says “${match.title}” at ${e.employer}. Ask in the meeting.`,
       });
-    } else if (Math.max(startGap, endGap) > 3) {
+    } else if (Math.max(startGap, endGap) > DATE_TOLERANCE_MONTHS) {
       out.push({
         kind: "differs",
         text: `Dates at ${e.employer} differ by ${Math.max(startGap, endGap)} months between CV and LinkedIn.`,
@@ -155,30 +159,30 @@ export function compareCvLinkedin(cv: CvFacts, li: LinkedinFacts | null): Linked
   return out;
 }
 
-/** Experience entries that the LinkedIn check confirmed (same employer and title, dates within 3 months). */
-function confirmedByLinkedin(e: Experience, li: LinkedinFacts | null): boolean | null {
+/** Experience entries that the LinkedIn check confirmed (same employer and title, dates within the tolerance). */
+function confirmedByLinkedin(e: Experience, li: LinkedinFacts | null, asOf: string): boolean | null {
   if (!li) return null;
   const m = li.experience.find((x) => same(x.employer, e.employer));
   if (!m || !same(m.title, e.title)) return false;
   const gap = Math.max(
     Math.abs(monthIndex(m.start) - monthIndex(e.start)),
-    Math.abs(monthIndex(m.end ?? REFERENCE_DATE) - monthIndex(e.end ?? REFERENCE_DATE)),
+    Math.abs(monthIndex(m.end ?? asOf) - monthIndex(e.end ?? asOf)),
   );
-  return gap <= 3;
+  return gap <= DATE_TOLERANCE_MONTHS;
 }
 
 /* ---------------- Requirement ↔ candidate facts ---------------- */
 
-export function evidenceFor(req: Requirement, cv: CvFacts, li: LinkedinFacts | null, poolLanguages?: LanguageSkill[]): Evidence {
+export function evidenceFor(req: Requirement, cv: CvFacts, li: LinkedinFacts | null, poolLanguages?: LanguageSkill[], asOf: string = currentMonth()): Evidence {
   const base = { requirementId: req.id, linkedinMatch: null as boolean | null };
 
   switch (req.type) {
     case "experience": {
       const hits = cv.experience.filter((e) => mentions(req.keywords, [e.title, ...e.areas, ...e.tasks]));
       if (!hits.length) return { ...base, value: null, meets: false, source: "none" };
-      const total = hits.reduce((n, e) => n + months(e), 0);
+      const total = hits.reduce((n, e) => n + months(e, asOf), 0);
       const where = [...new Set(hits.map((e) => e.employer))].join(", ");
-      const confirmations = hits.map((e) => confirmedByLinkedin(e, li));
+      const confirmations = hits.map((e) => confirmedByLinkedin(e, li, asOf));
       return {
         ...base,
         value: `${formatDuration(total)} · ${where}`,

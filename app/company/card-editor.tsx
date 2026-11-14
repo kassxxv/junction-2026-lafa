@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { confirmCompanyCard, previewPool, resetCompanyDemo } from "@/lib/matchready/card-actions";
+import { formatDay } from "@/lib/matchready/event";
 import {
   CEFR,
   GOAL_LABEL,
@@ -20,7 +21,7 @@ import {
 } from "@/lib/matchready/card-schema";
 import type { CompanyProps } from "./company-flow";
 
-const fmtDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+const fmtDate = (iso: string) => formatDay(iso);
 
 let keySeq = 0;
 const newKey = () => `new-${++keySeq}`;

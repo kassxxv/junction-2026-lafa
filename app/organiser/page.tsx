@@ -1,17 +1,10 @@
 import { ArrowRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
+import { formatDateRange, formatDay } from "@/lib/matchready/event";
 import { getOverview } from "@/lib/matchready/organiser";
 
-const fmt = (iso: string) =>
-  new Date(`${iso}T12:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-
-/** "26–27 November 2026" */
-function dateRange(a: string, b: string) {
-  const d = (iso: string) => new Date(`${iso}T12:00:00`);
-  const month = d(b).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-  return `${d(a).getDate()}–${d(b).getDate()} ${month}`;
-}
+const fmt = (iso: string) => formatDay(iso, "short");
 
 /** Organiser home: where the event is in the process, and what needs attention. */
 export default async function OrganiserOverview() {
@@ -38,7 +31,7 @@ export default async function OrganiserOverview() {
             <p className="text-sm text-muted-foreground">Overview</p>
             <h1 className="text-xl font-semibold tracking-tight">{o.event.name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {dateRange(o.event.startsOn, o.event.endsOn)} · {o.event.format} · {o.event.fields.join(", ")}
+              {formatDateRange(o.event.startsOn, o.event.endsOn, { year: true })} · {o.event.format} · {o.event.fields.join(", ")}
             </p>
           </div>
           {o.event.infoUrl && (

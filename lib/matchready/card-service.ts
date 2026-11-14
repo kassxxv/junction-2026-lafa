@@ -4,11 +4,10 @@ import { query, withTransaction } from "@/lib/db";
 import { generateJSON } from "@/lib/gemini";
 import { COMPANY_CARD_SYSTEM, companyCardPrompt } from "@/lib/prompts/company-card";
 import type { Sourced } from "@/lib/service";
+import { MAX_CARD_QUESTIONS, MAX_COMPANY_PAGE_CHARS } from "./config";
 import { ModelCard, type CardRequirement, type CompanyCardDraft, type PoolStats, type ReqType } from "./card-schema";
 import { evidenceFor, requirementText, type CvFacts, type LanguageSkill, type LinkedinFacts, type Requirement } from "./facts";
 
-const MAX_PAGE_CHARS = 15_000;
-const MAX_QUESTIONS = 3;
 
 export interface CompanyInfo {
   id: string;
@@ -97,7 +96,7 @@ export function toDraft(model: ModelCard, src: { text: string; page: string | nu
       seen.add(t);
       return true;
     })
-    .slice(0, MAX_QUESTIONS)
+    .slice(0, MAX_CARD_QUESTIONS)
     .map((q, i) => {
       const options = q.options.map((o) => o.trim()).filter(Boolean).slice(0, 4);
       return { id: `q${i}`, target: q.target.trim(), question: q.question.trim(), options, suggested: options.includes(q.suggested) ? q.suggested : undefined };
@@ -115,7 +114,7 @@ export function toDraft(model: ModelCard, src: { text: string; page: string | nu
       options: ["Yes, required", "No, nice to have"],
       suggested: "No, nice to have",
     };
-    if (questions.length >= MAX_QUESTIONS) questions.pop();
+    if (questions.length >= MAX_CARD_QUESTIONS) questions.pop();
     questions.unshift(q);
   }
 
@@ -141,7 +140,7 @@ export async function draftCard(companyId: string, text: string): Promise<Source
   let page: string | null = null;
   if (url) {
     const scraped = await scrapeCompanyPage(url);
-    if (scraped.source === "live" && scraped.data) page = scraped.data.markdown.slice(0, MAX_PAGE_CHARS);
+    if (scraped.source === "live" && scraped.data) page = scraped.data.markdown.slice(0, MAX_COMPANY_PAGE_CHARS);
   }
 
   const result = await generateJSON({

@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import type { CardRequirement, CompanyCardDraft, PoolStats } from "./card-schema";
+import { MAX_COMPANY_INPUT_CHARS } from "./config";
 import { draftCard, poolStats, resetDraft, saveConfirmedCard } from "./card-service";
 
 export type DraftResult =
@@ -9,8 +10,8 @@ export type DraftResult =
   | { ok: false; error: string };
 
 export async function draftCompanyCard(companyId: string, text: string): Promise<DraftResult> {
-  const input = z.object({ companyId: z.string().min(1).max(100), text: z.string().max(20_000) }).safeParse({ companyId, text });
-  if (!input.success) return { ok: false, error: "That text is too long. Paste up to 20 000 characters." };
+  const input = z.object({ companyId: z.string().min(1).max(100), text: z.string().max(MAX_COMPANY_INPUT_CHARS) }).safeParse({ companyId, text });
+  if (!input.success) return { ok: false, error: `That text is too long. Paste up to ${MAX_COMPANY_INPUT_CHARS} characters.` };
   const result = await draftCard(input.data.companyId, input.data.text.trim());
   if (!result) return { ok: false, error: "This invitation link is not valid." };
   return { ok: true, draft: result.data, sample: result.source === "stub" };

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveLinkedin, sendApplications, uploadDocument } from "@/lib/matchready/candidate-actions";
 import type { EvidenceRow } from "@/lib/matchready/candidate-service";
+import { DEMO_CANDIDATE } from "@/lib/matchready/demo";
 import type { LinkedinCheck, RequirementType } from "@/lib/matchready/facts";
 
 type ProofType = "diploma" | "certificate" | "link" | "reference";
@@ -84,9 +85,9 @@ export function ApplyForm({
   }
 
   async function sample(kind: "cv" | "linkedin") {
-    const name = kind === "cv" ? "aisha-rahman-cv.pdf" : "aisha-rahman-linkedin.pdf";
-    const blob = await (await fetch(`/demo/${name}`)).blob();
-    upload(kind, new File([blob], name, { type: "application/pdf" }));
+    const path = kind === "cv" ? DEMO_CANDIDATE.cvFile : DEMO_CANDIDATE.linkedinFile;
+    const blob = await (await fetch(path)).blob();
+    upload(kind, new File([blob], path.split("/").pop() ?? "sample.pdf", { type: "application/pdf" }));
   }
 
   function send() {
@@ -273,7 +274,7 @@ export function ApplyForm({
             onClick={() =>
               setStarters(
                 Object.fromEntries(
-                  companies.map((c) => [c.id, "At Valo Optics I built an automated insertion-loss test bench for fibre couplers. Python drives the spectrum analyser, and test time per batch went from 3 hours to 40 minutes."]),
+                  companies.map((c) => [c.id, DEMO_CANDIDATE.starter]),
                 ),
               )
             }

@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { withTransaction } from "@/lib/db";
+import { REVIEW_SESSION_GAP_MINUTES } from "./config";
 import { getReview, ORGANISER } from "./organiser";
 
 /**
@@ -18,13 +19,13 @@ const CLEAN_RULE = "must-haves met, nothing to check";
 
 type Q = Parameters<Parameters<typeof withTransaction>[0]>[0];
 
-/** Metric 1: one review session per company while the organiser keeps working (30-minute gap ends it). */
+/** Metric 1: one review session per company while the organiser keeps working (a gap of REVIEW_SESSION_GAP_MINUTES ends it). */
 async function touchSession(q: Q, companyId: string) {
   const open = await q<{ id: number }>(
     `SELECT id FROM review_sessions WHERE company_id = $1 AND organiser = $2
-       AND coalesce(last_action_at, started_at) > now() - interval '30 minutes'
+       AND coalesce(last_action_at, started_at) > now() - make_interval(mins => $3::int)
      ORDER BY id DESC LIMIT 1`,
-    [companyId, ORGANISER],
+    [companyId, ORGANISER, REVIEW_SESSION_GAP_MINUTES],
   );
   if (open[0]) await q(`UPDATE review_sessions SET last_action_at = now() WHERE id = $1`, [open[0].id]);
   else await q(`INSERT INTO review_sessions (company_id, organiser, started_at, last_action_at) VALUES ($1, $2, now(), now())`, [companyId, ORGANISER]);

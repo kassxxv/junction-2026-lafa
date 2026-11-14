@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { PublicShell } from "@/components/public-shell";
-import { confirmedCompanies, getCandidate, MAX_COMPANIES } from "@/lib/matchready/candidate-service";
+import { confirmedCompanies, getCandidate } from "@/lib/matchready/candidate-service";
+import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
+import { formatDateRange } from "@/lib/matchready/event";
 import { getEvent } from "@/lib/matchready/organiser";
 import { ChooseForm } from "./choose-form";
 
@@ -32,8 +34,8 @@ async function Content({ params }: PageProps<"/candidate/[id]/choose">) {
     <ChooseForm
       candidateId={c.id}
       fields={c.fields}
-      max={MAX_COMPANIES - c.applications.length}
-      eventDates="26–27 November"
+      max={MAX_COMPANIES_PER_CANDIDATE - c.applications.length}
+      eventDates={formatDateRange(event.startsOn, event.endsOn)}
       mine={mine.map((co) => ({ id: co.id, name: co.name, field: co.field, role: co.role?.title ?? "", details: co.role?.details ?? null, musts: co.requirements.filter((r) => r.mustHave).map((r) => r.text), others: co.requirements.filter((r) => !r.mustHave).length }))}
       others={others.map((co) => ({ id: co.id, name: co.name, field: co.field ?? "Other" }))}
       decisionDate={event.decisionDate}

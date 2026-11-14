@@ -11,6 +11,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { approveClean, decide, resetReview, startReview, type ActionResult } from "@/lib/matchready/organiser-actions";
+import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
+import { DEMO_REVIEW_FOCUS_CODE } from "@/lib/matchready/demo";
 import type { ApplicationRow, RequirementRow, Review, ReviewStatus } from "@/lib/matchready/organiser";
 
 type Filter = "all" | "meets" | "look";
@@ -28,7 +30,7 @@ export function ReviewScreen({ review }: { review: Review }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [openId, setOpenId] = useState<string>(
-    () => applications.find((a) => a.code === "A-07")?.id ?? applications[0]?.id ?? "",
+    () => applications.find((a) => a.code === DEMO_REVIEW_FOCUS_CODE)?.id ?? applications[0]?.id ?? "",
   );
   const [result, setResult] = useState<ActionResult | null>(null);
   const [pending, startTransition] = useTransition();
@@ -77,7 +79,7 @@ export function ReviewScreen({ review }: { review: Review }) {
             </h1>
             <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
               <EyeOff className="size-3.5" />
-              {applications.length} applied (each person can choose up to 3 companies). Blind review: names, photos and
+              {applications.length} applied (each person can choose up to {MAX_COMPANIES_PER_CANDIDATE} companies). Blind review: names, photos and
               nationality are hidden.
             </p>
           </div>
@@ -465,7 +467,7 @@ function BiasPanel({ bias }: { bias: Review["bias"] }) {
           ? "A group is under-represented among approved. Take a look."
           : bias.skew === "none"
             ? "No skew vs applicant pool"
-            : "Approve at least 3 people to compare"}
+            : `Approve at least ${bias.minApprovals} people to compare`}
       </p>
     </section>
   );

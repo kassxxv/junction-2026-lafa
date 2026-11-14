@@ -1,10 +1,15 @@
 import { ArrowRight, Building2, ExternalLink, FileCheck2, Lock, Scale, UserRound, Users } from "lucide-react";
 import Link from "next/link";
+import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
+import { EVENT, formatDateRange, formatDay } from "@/lib/matchready/event";
 
 /**
  * Landing page of the real event, with the three ways in. Static on purpose: the event facts are
- * public (espoo.fi) and do not change, so this page never depends on the database.
+ * public (espoo.fi) and come from lib/matchready/event.ts, so this page never depends on the database.
  */
+
+const NUMBER_WORD = ["zero", "one", "two", "three", "four", "five"];
+const maxCompanies = NUMBER_WORD[MAX_COMPANIES_PER_CANDIDATE] ?? String(MAX_COMPANIES_PER_CANDIDATE);
 
 const ENTRIES = [
   {
@@ -13,7 +18,7 @@ const ENTRIES = [
     who: "Companies",
     title: "Tell us who you want to meet",
     body: "Paste a job ad, a link or two lines. You get a standard card with clear must-haves in about three minutes.",
-    when: "Confirm by 18 November",
+    when: `Confirm by ${formatDay(EVENT.companyDeadline)}`,
     cta: "Create your card",
   },
   {
@@ -21,8 +26,8 @@ const ENTRIES = [
     icon: UserRound,
     who: "Professionals",
     title: "Join the talent pool",
-    body: "One minute now. When companies have confirmed, choose up to three and show where you meet what they ask for.",
-    when: "Apply by 20 November",
+    body: `One minute now. When companies have confirmed, choose up to ${maxCompanies} and show where you meet what they ask for.`,
+    when: `Apply by ${formatDay(EVENT.applicationDeadline)}`,
     cta: "Join the pool",
   },
   {
@@ -31,17 +36,17 @@ const ENTRIES = [
     who: "Organisers",
     title: "Decide who gets a meeting pass",
     body: "Blind review with facts next to each requirement. Clean cases in one click, every decision logged.",
-    when: "Decide on 21 November",
+    when: `Decide on ${formatDay(EVENT.decisionDate)}`,
     cta: "Open workspace",
   },
 ];
 
 const STEPS = [
   { date: "Now", label: "Companies confirm their cards; professionals join the pool" },
-  { date: "18 Nov", label: "Company deadline: invitations go out by field" },
-  { date: "20 Nov", label: "Applications close: CV and proof for up to three companies" },
-  { date: "21 Nov", label: "Organisers decide; approved people get their Tavata code" },
-  { date: "26–27 Nov", label: "1:1 meetings on Tavata, then one yes/no question each" },
+  { date: formatDay(EVENT.companyDeadline, "short"), label: "Company deadline: invitations go out by field" },
+  { date: formatDay(EVENT.applicationDeadline, "short"), label: `Applications close: CV and proof for up to ${maxCompanies} companies` },
+  { date: formatDay(EVENT.decisionDate, "short"), label: "Organisers decide; approved people get their Tavata code" },
+  { date: formatDateRange(EVENT.startsOn, EVENT.endsOn, { month: "short" }), label: "1:1 meetings on Tavata, then one yes/no question each" },
 ];
 
 const PRINCIPLES = [
@@ -62,22 +67,22 @@ export default function Landing() {
 
           <div className="mt-16 max-w-3xl">
             <p className="text-sidebar-muted">Registration and selection for the 1:1 meetings</p>
-            <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">Deep Tech Talent Forum</h1>
+            <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">{EVENT.name}</h1>
             <p className="mt-5 text-lg text-sidebar-muted">
-              26–27 November 2026 · online, in English · Semiconductors &amp; Microelectronics, Photonics, Quantum
-              technologies
+              {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })} · {EVENT.format.charAt(0).toLowerCase() + EVENT.format.slice(1)} ·{" "}
+              {EVENT.fields.join(", ")}
             </p>
             <p className="mt-6 max-w-[56ch] text-lg leading-relaxed">
               Meeting places are limited. Companies say what they really need, professionals show where they meet it, and
               organisers decide in minutes instead of reading piles of similar CVs.
             </p>
             <a
-              href="https://www.espoo.fi/en/DeepTechTalentForum"
+              href={EVENT.infoUrl}
               target="_blank"
               rel="noreferrer"
               className="mt-6 inline-flex items-center gap-1.5 text-sm text-sidebar-muted underline-offset-4 hover:text-sidebar-foreground hover:underline"
             >
-              Official event page on espoo.fi <ExternalLink className="size-3.5" />
+              Official event page on {EVENT.infoUrlLabel} <ExternalLink className="size-3.5" />
             </a>
           </div>
         </div>

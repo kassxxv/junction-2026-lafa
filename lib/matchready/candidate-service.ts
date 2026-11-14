@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { query, withTransaction } from "@/lib/db";
 import { chatJSON } from "@/lib/gemma";
 import { CV_PARSE_SYSTEM, cvParsePrompt } from "@/lib/prompts/cv-parse";
+import { MAX_COMPANIES_PER_CANDIDATE, MAX_DOCUMENT_CHARS } from "./config";
 import { CvParse } from "./cv-schema";
 import {
   compareCvLinkedin,
@@ -22,8 +23,6 @@ import { accessCode } from "./tavata";
  * EU server, never to Gemini or any other external API. Comparisons are done by code.
  */
 
-export const MAX_COMPANIES = 3;
-const MAX_TEXT = 30_000;
 
 export const WORK_TYPES = ["Testing and validation", "Engineering and design", "Research", "Production", "Business and sales"];
 export const CAREER_STAGES = [
@@ -178,7 +177,7 @@ export interface ParseResult {
 
 /** Reads a CV or LinkedIn export with Gemma, stores text + facts, and recomputes the CV ↔ LinkedIn checks. */
 export async function parseDocument(candidateId: string, kind: "cv" | "linkedin", rawText: string, topics: string[]): Promise<ParseResult> {
-  const text = rawText.replace(/\u0000/g, "").slice(0, MAX_TEXT);
+  const text = rawText.replace(/\u0000/g, "").slice(0, MAX_DOCUMENT_CHARS);
   const empty: CvParse = { experience: [], education: [], languages: [], skills: [] };
   const result = await chatJSON({
     schema: CvParse,
@@ -266,7 +265,7 @@ export async function submitApplications(input: SubmitInput): Promise<{ ok: true
   if (!doc) return { ok: false, error: "We could not find your registration." };
   if (!doc.cv_facts) return { ok: false, error: "Upload your CV first. It fills in the table for you." };
   const [{ n }] = await query<{ n: number }>(`SELECT count(*)::int AS n FROM applications WHERE candidate_id = $1`, [input.candidateId]);
-  if (n + input.applications.length > MAX_COMPANIES) return { ok: false, error: `You can apply to at most ${MAX_COMPANIES} companies.` };
+  if (n + input.applications.length > MAX_COMPANIES_PER_CANDIDATE) return { ok: false, error: `You can apply to at most ${MAX_COMPANIES_PER_CANDIDATE} companies.` };
 
   const companies = await confirmedCompanies();
   await withTransaction(async (q) => {

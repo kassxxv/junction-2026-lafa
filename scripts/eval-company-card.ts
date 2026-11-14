@@ -4,18 +4,19 @@
  */
 import { closeDb } from "../lib/db";
 import { draftCard } from "../lib/matchready/card-service";
+import { DEMO_COMPANY_ID, DEMO_REVIEW_COMPANY_ID } from "../lib/matchready/demo";
 
 const CASES: { id: string; company: string; text: string }[] = [
-  { id: "one-liner", company: "nordic-photonics", text: "Need a photonics test engineer. See our careers page: nordicphotonics.example/careers" },
+  { id: "one-liner", company: DEMO_REVIEW_COMPANY_ID, text: "Need a photonics test engineer. See our careers page: nordicphotonics.example/careers" },
   {
     id: "full-ad",
-    company: "nordic-photonics",
+    company: DEMO_REVIEW_COMPANY_ID,
     text: `Test Engineer, Photonics (full-time, Espoo)
 We build photonic components for telecom and sensing. You will test optical components in our lab and automate measurements.
 Requirements: at least 2 years of experience in optical or photonic component testing. Experience with lab measurement equipment. Python test automation is a plus. BSc or MSc in Photonics, Physics or Electrical Engineering. A PhD is an advantage. Fluent English required.`,
   },
   { id: "finnish", company: "finnsensor", text: "Haemme tuotantotestaajaa Ouluun. Vähintään vuoden kokemus testauksesta ja suomen kielen hyvä taito vaaditaan." },
-  { id: "nothing", company: "kuura-photonics", text: "" },
+  { id: "nothing", company: DEMO_COMPANY_ID, text: "" },
 ];
 
 async function main() {

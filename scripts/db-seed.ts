@@ -4,6 +4,7 @@
  */
 import { CANDIDATES as BASE_CANDIDATES, COMPANIES, cvText, EVENT, EXTRA_CANDIDATES, linkedinFrom } from "../db/seed/data";
 import { closeDb, withTransaction } from "../lib/db";
+import { DEMO_FEEDBACK_COMPANY_ID, DEMO_ORGANISER, DEMO_REVIEW_COMPANY_ID, SEED_REFERENCE_MONTH } from "../lib/matchready/demo";
 import { compareCvLinkedin, evidenceFor, type Requirement } from "../lib/matchready/facts";
 import { classifyError } from "../lib/service";
 
@@ -58,7 +59,7 @@ async function main() {
     for (const [n, p] of CANDIDATES.entries()) {
       const id = `cand.${String(n + 1).padStart(3, "0")}`;
       const li = linkedinFrom(p.cv, p.linkedin);
-      const checks = compareCvLinkedin(p.cv, li);
+      const checks = compareCvLinkedin(p.cv, li, SEED_REFERENCE_MONTH);
       const fi = p.cv.languages.find((l) => l.language === "Finnish");
 
       await q(`INSERT INTO candidates (id, event_id, code) VALUES ($1,$2,$3)`, [id, EVENT.id, p.code]);
@@ -87,7 +88,7 @@ async function main() {
           [appId, id, companyId, roleByCompany.get(companyId), starter, String(48 - n)],
         );
         for (const req of requirementsByCompany.get(companyId) ?? []) {
-          const ev = evidenceFor(req, p.cv, li, p.cv.languages);
+          const ev = evidenceFor(req, p.cv, li, p.cv.languages, SEED_REFERENCE_MONTH);
           const proof = p.proofs?.[req.type];
           await q(
             `INSERT INTO evidence (application_id, requirement_id, value, meets, source, proof_type, proof_ref, linkedin_match)
@@ -98,19 +99,20 @@ async function main() {
       }
     }
 
-    // Demo "after the event": meetings already held for companies OTHER than Nordic Photonics (which stays
-    // untouched for the live selection demo). Approvals are logged like real decisions; feedback is synthetic.
+    // Demo "after the event": meetings already held for every company EXCEPT the one kept untouched for the
+    // live selection demo. Approvals are logged like real decisions; feedback is synthetic.
     const held = await q<{ id: string; company_id: string }>(
       `SELECT a.id, a.company_id FROM applications a
-       WHERE a.company_id IN ('quantumlab', 'finnsensor', 'luxbeam', 'chipworks')
+       WHERE a.company_id <> $1
          AND NOT EXISTS (SELECT 1 FROM evidence e JOIN requirements r ON r.id = e.requirement_id
                          WHERE e.application_id = a.id AND r.must_have AND e.meets IS FALSE)
        ORDER BY a.company_id, a.id`,
+      [DEMO_REVIEW_COMPANY_ID],
     );
-    const pendingDemo = held.find((h) => h.company_id === "quantumlab")?.id; // left without answers for the live demo
+    const pendingDemo = held.find((h) => h.company_id === DEMO_FEEDBACK_COMPANY_ID)?.id; // left without answers for the live demo
     for (const [i, h] of held.entries()) {
       await q(`UPDATE applications SET status = 'approved' WHERE id = $1`, [h.id]);
-      await q(`INSERT INTO decisions (application_id, organiser, action, batch, rule, created_at) VALUES ($1, 'Laura (organiser, demo)', 'approve', true, 'must-haves met, nothing to check', now() - interval '2 days')`, [h.id]);
+      await q(`INSERT INTO decisions (application_id, organiser, action, batch, rule, created_at) VALUES ($1, $2, 'approve', true, 'must-haves met, nothing to check', now() - interval '2 days')`, [h.id, DEMO_ORGANISER.logName]);
       if (h.id === pendingDemo) continue;
       // Deterministic synthetic pattern: about 3 in 4 meetings end with both sides wanting to continue.
       const company = i % 5 !== 3;

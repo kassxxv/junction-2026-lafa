@@ -57,7 +57,7 @@ export const COMPANIES: SeedCompany[] = [
     eventGoal: "Hire one test engineer and meet more people for the growing test team.",
     role: {
       title: "Test Engineer, Photonics",
-      details: "Full-time · Espoo",
+      details: "Full-time, Espoo",
       starter: "Describe a test setup you built or improved. What did you measure?",
       requirements: [
         { type: "experience", label: "Optical / photonic component testing", minYears: 2, mustHave: true, keywords: ["optical testing", "photonic testing"] },
@@ -80,7 +80,7 @@ export const COMPANIES: SeedCompany[] = [
     eventGoal: "Hire a validation engineer; open to meeting junior lab people.",
     role: {
       title: "Validation Engineer",
-      details: "Full-time · Helsinki",
+      details: "Full-time, Helsinki",
       starter: "Which measurement were you most proud to automate, and why?",
       requirements: [
         { type: "experience", label: "Lab measurement equipment", minYears: 2, mustHave: true, keywords: ["lab equipment", "measurement equipment"] },
@@ -101,7 +101,7 @@ export const COMPANIES: SeedCompany[] = [
     eventGoal: "Hire an optical design engineer.",
     role: {
       title: "Optical Design Engineer",
-      details: "Full-time · Espoo",
+      details: "Full-time, Espoo",
       starter: "Which optical system have you designed end to end?",
       requirements: [
         { type: "experience", label: "Optical design software (e.g. Zemax)", minYears: 3, mustHave: true, keywords: ["optical design", "zemax"] },
@@ -121,7 +121,7 @@ export const COMPANIES: SeedCompany[] = [
     eventGoal: "Find two production test technicians.",
     role: {
       title: "Production Test Technician",
-      details: "Full-time · Oulu",
+      details: "Full-time, Oulu",
       starter: "How do you keep test results reliable on a busy production line?",
       requirements: [
         { type: "experience", label: "Production or lab testing", minYears: 1, mustHave: true, keywords: ["production testing", "optical testing", "lab testing"] },
@@ -141,7 +141,7 @@ export const COMPANIES: SeedCompany[] = [
     eventGoal: "Hire a verification engineer and present the new chip design team.",
     role: {
       title: "Chip Verification Engineer",
-      details: "Full-time · Espoo",
+      details: "Full-time, Espoo",
       starter: "Tell us about a bug you found late in verification. How did you track it down?",
       requirements: [
         { type: "experience", label: "Digital design verification", minYears: 2, mustHave: true, keywords: ["verification"] },
@@ -174,7 +174,7 @@ export const COMPANIES: SeedCompany[] = [
     eventGoal: "",
     role: {
       title: "Quantum Hardware Engineer",
-      details: "Full-time · Espoo",
+      details: "Full-time, Espoo",
       starter: "What is the coldest system you have worked with, and what did you measure?",
       requirements: [
         { type: "experience", label: "Cryogenic measurement", minYears: 2, mustHave: true, keywords: ["cryogenic"] },

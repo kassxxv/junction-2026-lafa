@@ -32,7 +32,7 @@ export const ModelCard = z.object({
     .array(
       z.object({
         title: Text,
-        details: z.string().describe("e.g. 'Full-time · Espoo', empty if unknown"),
+        details: z.string().describe("e.g. 'Full-time, Espoo', empty if unknown"),
         requirements: z.array(ModelRequirement).describe("The requirements the company states, most important first. Up to 6."),
         conversation_starter: z
           .string()

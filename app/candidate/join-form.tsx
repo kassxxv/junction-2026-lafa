@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { joinTalentPool, readCvForPool } from "@/lib/matchready/candidate-actions";
 import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
 import { DEMO_CANDIDATE } from "@/lib/matchready/demo";
@@ -69,10 +70,9 @@ export function JoinForm({
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="page-wide grid gap-6 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-medium text-primary">Step 1: talent pool</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Join the talent pool</h1>
+        <h1 className="title-page">Join the talent pool</h1>
         <p className="mt-2 max-w-[58ch] text-muted-foreground">
           About one minute. Nobody is selected here. You choose companies later, when you know who is coming.
         </p>
@@ -101,22 +101,22 @@ export function JoinForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-medium">
-              Type of work
-              <select value={workType} onChange={(e) => setWorkType(e.target.value)} className="mt-1.5 h-9 w-full rounded-lg border border-input bg-card px-3 font-normal">
+              <span className="mb-1.5 block">Type of work</span>
+              <NativeSelect value={workType} onChange={(e) => setWorkType(e.target.value)}>
                 {workTypes.map((w) => (
                   <option key={w}>{w}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label className="text-sm font-medium">
-              Career stage
-              <select value={stage} onChange={(e) => setStage(e.target.value)} className="mt-1.5 h-9 w-full rounded-lg border border-input bg-card px-3 font-normal">
+              <span className="mb-1.5 block">Career stage</span>
+              <NativeSelect value={stage} onChange={(e) => setStage(e.target.value)}>
                 {stages.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
           </div>
 
@@ -126,11 +126,11 @@ export function JoinForm({
               {langs.map((l, i) => (
                 <li key={i} className="flex items-center gap-2">
                   <Input value={l.language} onChange={(e) => setLangs(langs.map((x, j) => (j === i ? { ...x, language: e.target.value } : x)))} aria-label="Language" className="max-w-56 bg-card" />
-                  <select value={l.level} onChange={(e) => setLangs(langs.map((x, j) => (j === i ? { ...x, level: e.target.value as Level } : x)))} aria-label="Level" className="h-8 rounded-lg border border-input bg-card px-2 text-sm">
+                  <NativeSelect wrapperClassName="w-28" value={l.level} onChange={(e) => setLangs(langs.map((x, j) => (j === i ? { ...x, level: e.target.value as Level } : x)))} aria-label="Level">
                     {LEVELS.map((v) => (
                       <option key={v}>{v}</option>
                     ))}
-                  </select>
+                  </NativeSelect>
                   {langs.length > 1 && (
                     <Button size="icon-sm" variant="ghost" aria-label="Remove language" onClick={() => setLangs(langs.filter((_, j) => j !== i))}>
                       <X />
@@ -145,7 +145,7 @@ export function JoinForm({
           </div>
 
           <label className="block text-sm font-medium">
-            Email
+            <span className="block">Email</span>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1.5 max-w-80 bg-card font-normal" />
             <span className="mt-1 block text-xs font-normal text-muted-foreground">Only to tell you when companies are confirmed and what happens next.</span>
           </label>
@@ -154,7 +154,7 @@ export function JoinForm({
             <p className="text-sm font-medium">Your CV (optional now)</p>
             <p className="mb-2 text-xs text-muted-foreground">Needed when you apply. We reuse it so you don&apos;t type your history twice.</p>
             {cv ? (
-              <span className="inline-flex items-center gap-2 rounded-lg bg-status-confirmed-bg px-3 py-1.5 text-sm text-status-confirmed">
+              <span className="inline-flex items-center gap-2 rounded-full bg-status-confirmed-bg px-3 py-1.5 text-sm text-status-confirmed">
                 <Check className="size-4" /> {cv.name}
                 <button aria-label="Remove CV" onClick={() => setCv(null)} className="ml-1 opacity-70 hover:opacity-100">
                   <X className="size-3.5" />

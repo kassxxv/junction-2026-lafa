@@ -1,4 +1,4 @@
-import { ArrowRight, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { requireOrganiserPage } from "@/lib/auth";
@@ -15,8 +15,7 @@ export default async function FeedbackDashboardPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <header className="border-b border-border bg-card px-6 py-5">
-        <p className="text-sm text-muted-foreground">After the event</p>
-        <h1 className="text-xl font-semibold tracking-tight">Meeting feedback</h1>
+        <h1 className="title-panel">Meeting feedback</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Right after each 1:1 meeting both sides answer one question: “Want to continue the conversation?”
         </p>
@@ -40,7 +39,7 @@ export default async function FeedbackDashboardPage() {
                 <div className="mb-1.5 flex justify-between gap-3 text-sm">
                   <span className="font-medium">{c.company}</span>
                   <span className="tabular-nums text-muted-foreground">
-                    {pct(c.bothYes, c.meetings)}% · {c.bothYes} of {c.meetings}
+                    {pct(c.bothYes, c.meetings)}% ({c.bothYes} of {c.meetings})
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-muted">
@@ -64,10 +63,10 @@ export default async function FeedbackDashboardPage() {
               </p>
               <div className="mt-4 flex flex-col gap-2 text-sm">
                 <Link href={`/meeting/${encodeURIComponent(d.demoMeeting.applicationId)}?side=candidate`} className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
-                  Answer as the candidate <ArrowRight className="size-3.5" />
+                  Answer as the candidate
                 </Link>
                 <Link href={`/meeting/${encodeURIComponent(d.demoMeeting.applicationId)}?side=company`} className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
-                  Answer as the company <ArrowRight className="size-3.5" />
+                  Answer as the company
                 </Link>
               </div>
             </div>

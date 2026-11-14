@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { BackLink } from "@/components/back-link";
 import { Timeline } from "@/components/public-shell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,13 +55,13 @@ export function ChooseForm({
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10">
+    <div className="page-form px-5 py-10">
+      <BackLink href={`/candidate/${encodeURIComponent(candidateId)}`}>Back to your status</BackLink>
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-medium text-primary">Step 2: choose companies</p>
         <Timeline stage={2} />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h1 className="title-page">
               {mine.length} {mine.length === 1 ? "company" : "companies"} confirmed in {fields.join(" and ")}
             </h1>
             <p className="mt-1 text-muted-foreground">Choose up to {max} you really want to meet.</p>
@@ -88,23 +89,17 @@ export function ChooseForm({
                     <div className="font-semibold">{c.name}</div>
                     <div className="text-sm text-muted-foreground">
                       {c.role}
-                      {c.details && ` · ${c.details}`}
+                      {c.details && `, ${c.details}`}
                     </div>
                   </div>
-                  <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${on ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                    {on ? (
-                      <>
-                        <Check className="size-3" /> Selected
-                      </>
-                    ) : (
-                      "Select"
-                    )}
+                  <span aria-hidden className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${on ? "border-primary bg-primary text-primary-foreground" : "border-input bg-card"}`}>
+                    {on && <Check className="size-3.5" />}
                   </span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {c.musts.map((m) => (
                     <span key={m} className="rounded bg-status-ask-bg px-1.5 py-0.5 text-xs text-status-ask">
-                      <span className="font-semibold">MUST</span> · {m}
+                      <span className="font-semibold">MUST</span> {m}
                     </span>
                   ))}
                   {c.others > 0 && <span className="px-1 text-xs text-muted-foreground">+ {c.others} nice to have</span>}

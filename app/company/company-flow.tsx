@@ -35,7 +35,9 @@ function applyAnswer(draft: CompanyCardDraft, q: CardQuestion, answer: string | 
     const byLabel = Object.entries(GOAL_LABEL) as [GoalId, string][];
     d.goals = byLabel.filter(([, label]) => value.includes(label)).map(([id]) => id);
   } else if (q.target === "event_goal") {
-    d.eventGoal = value[0] ?? d.eventGoal;
+    const a = (value[0] ?? "").trim();
+    // A bare number or range ("5-10", "10+") answers "how many people?": turn it into a goal sentence.
+    d.eventGoal = /^\d+\s*(?:[-–]\s*\d+|\+)?$/.test(a) ? `Meet ${a.replace(/\s+/g, "")} people at the event` : a || d.eventGoal;
   } else if (q.target === "role_title") {
     if (!d.roles.length) d.roles.push({ key: "role-1", title: "", details: "", starter: "", requirements: [] });
     d.roles[0].title = value[0] ?? "";
@@ -91,16 +93,17 @@ export function CompanyFlow({ company, companyDeadline, demo }: { company: Compa
         sample={sample}
         companyDeadline={companyDeadline}
         demo={demo}
-        onBack={draft.questions.length ? () => { setQIndex(0); setStep("ask"); } : undefined}
+        onBack={draft.questions.length ? () => { setQIndex(0); setStep("ask"); } : () => setStep("describe")}
+        backLabel={draft.questions.length ? "Back to questions" : "Back to your text"}
       />
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-5 py-10 sm:py-16">
+    <div className="page-narrow px-5 py-10 sm:py-16">
       {step === "describe" && (
         <section>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Who do you want to meet at the event?</h1>
+          <h1 className="title-page">Who do you want to meet at the event?</h1>
           <p className="mt-3 max-w-[56ch] text-lg text-muted-foreground">
             Any format works: a long description, two lines, or a link to your website or job ad. We draft your card and
             ask only about what is unclear.
@@ -153,7 +156,8 @@ export function CompanyFlow({ company, companyDeadline, demo }: { company: Compa
           index={qIndex}
           total={draft.questions.length}
           multi={draft.questions[qIndex].target === "goals"}
-          onBack={qIndex > 0 ? () => setQIndex(qIndex - 1) : undefined}
+          onBack={qIndex > 0 ? () => setQIndex(qIndex - 1) : () => setStep("describe")}
+          backLabel={qIndex > 0 ? "Previous question" : "Back to your text"}
           onAnswer={(answer) => {
             const q = draft.questions[qIndex];
             const next = answer === null ? draft : applyAnswer(draft, q, answer);
@@ -173,13 +177,15 @@ function QuestionScreen({
   total,
   multi,
   onBack,
+  backLabel,
   onAnswer,
 }: {
   q: CardQuestion;
   index: number;
   total: number;
   multi: boolean;
-  onBack?: () => void;
+  onBack: () => void;
+  backLabel: string;
   onAnswer: (answer: string | string[] | null) => void;
 }) {
   const [picked, setPicked] = useState<string[]>(q.suggested ? [q.suggested] : []);
@@ -192,18 +198,14 @@ function QuestionScreen({
   return (
     <section>
       <div className="mb-8 flex items-center justify-between text-sm text-muted-foreground">
-        {onBack ? (
-          <button onClick={onBack} className="inline-flex items-center gap-1 hover:text-foreground">
-            <ArrowLeft className="size-4" /> Back
-          </button>
-        ) : (
-          <span />
-        )}
+        <button onClick={onBack} className="inline-flex items-center gap-1.5 hover:text-foreground hover:underline underline-offset-4">
+          <ArrowLeft className="size-4" /> {backLabel}
+        </button>
         <span className="tabular-nums">
           {total === 1 ? "One question" : `Question ${index + 1} of ${total}`}
         </span>
       </div>
-      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{q.question}</h1>
+      <h1 className="title-page">{q.question}</h1>
 
       <div className="mt-8">
         {freeText ? (

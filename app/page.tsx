@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, ExternalLink, FileCheck2, Lock, Scale, UserRound, Users } from "lucide-react";
+import { Building2, ExternalLink, FileCheck2, Lock, Scale, UserRound, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@/lib/brand";
@@ -61,7 +61,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <section className="bg-sidebar text-sidebar-foreground">
-        <div className="mx-auto max-w-6xl px-5 pt-6 pb-32">
+        <div className="page-wide px-5 pt-6 pb-32">
           <div className="flex items-center justify-between text-sm">
             <Image src={BRAND.logoOnDark.src} width={BRAND.logoOnDark.width} height={BRAND.logoOnDark.height} alt={BRAND.name} preload className="h-11 w-auto" />
             <span className="text-sidebar-muted">Prototype for the City of Espoo</span>
@@ -71,7 +71,8 @@ export default function Landing() {
             <p className="text-sidebar-muted">Registration and selection for the 1:1 meetings</p>
             <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">{EVENT.name}</h1>
             <p className="mt-5 text-lg text-sidebar-muted">
-              {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })} · {EVENT.format.charAt(0).toLowerCase() + EVENT.format.slice(1)} ·{" "}
+              {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })}, {EVENT.format.charAt(0).toLowerCase() + EVENT.format.slice(1)}
+              <br />
               {EVENT.fields.join(", ")}
             </p>
             <p className="mt-6 max-w-[56ch] text-lg leading-relaxed">
@@ -90,7 +91,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section aria-label="Ways in" className="mx-auto -mt-20 grid max-w-6xl gap-4 px-5 md:grid-cols-3">
+      <section aria-label="Ways in" className="page-wide -mt-20 grid gap-4 px-5 md:grid-cols-3">
         {ENTRIES.map(({ href, icon: Icon, who, title, body, when, cta }) => (
           <Link
             key={href}
@@ -105,14 +106,14 @@ export default function Landing() {
             <span className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
               <span className="text-muted-foreground">{when}</span>
               <span className="inline-flex items-center gap-1 font-medium text-primary">
-                {cta} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                {cta}
               </span>
             </span>
           </Link>
         ))}
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-16">
+      <section className="page-wide px-5 py-16">
         <h2 className="text-2xl font-semibold tracking-tight">How it works</h2>
         <ol className="mt-6 grid gap-6 md:grid-cols-5">
           {STEPS.map((s, i) => (

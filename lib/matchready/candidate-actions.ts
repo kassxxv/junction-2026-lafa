@@ -14,7 +14,9 @@ import {
   type EvidenceRow,
 } from "./candidate-service";
 import { MAX_COMPANIES_PER_CANDIDATE, MAX_DOCUMENT_CHARS, MAX_UPLOAD_BYTES } from "./config";
+import { EVENT } from "./event";
 import type { LinkedinCheck } from "./facts";
+import { getEvent } from "./organiser";
 
 const TOO_LARGE = `The file is larger than ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB.`;
 const CEFR = z.enum(["A1", "A2", "B1", "B2", "C1", "C2", "Native"]);
@@ -42,6 +44,10 @@ export async function joinTalentPool(input: z.input<typeof Join>): Promise<{ ok:
     };
     return { ok: false, error: msg[String(path)] ?? "Check the form and try again." };
   }
+  // Only the choices the organisers offer: the form shows lists, and the server enforces them.
+  const { fields } = await getEvent();
+  if (parsed.data.fields.some((f) => !fields.includes(f))) return { ok: false, error: "Choose fields from the list." };
+  if (!EVENT.workTypes.includes(parsed.data.workType)) return { ok: false, error: "Choose a type of work from the list." };
   if (!(await allow("joinPool"))) return { ok: false, error: TOO_MANY };
   const id = await joinPool(parsed.data);
   return { ok: true, id };
@@ -106,7 +112,9 @@ export async function saveLinkedin(candidateId: string, url: string): Promise<vo
 }
 
 export async function addCandidateField(candidateId: string, field: string): Promise<void> {
-  await addField(z.string().min(1).max(100).parse(candidateId), z.string().min(1).max(100).parse(field));
+  const f = z.string().min(1).max(100).parse(field);
+  if (!(await getEvent()).fields.includes(f)) return;
+  await addField(z.string().min(1).max(100).parse(candidateId), f);
 }
 
 const Submit = z.object({

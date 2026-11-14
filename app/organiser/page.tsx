@@ -1,4 +1,4 @@
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { requireOrganiserPage } from "@/lib/auth";
@@ -30,10 +30,10 @@ export default async function OrganiserOverview() {
       <header className="border-b border-border bg-card px-6 py-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-sm text-muted-foreground">Overview</p>
-            <h1 className="text-xl font-semibold tracking-tight">{o.event.name}</h1>
+            <h1 className="title-panel">{o.event.name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {formatDateRange(o.event.startsOn, o.event.endsOn, { year: true })} · {o.event.format} · {o.event.fields.join(", ")}
+              {formatDateRange(o.event.startsOn, o.event.endsOn, { year: true })}, {o.event.format.charAt(0).toLowerCase() + o.event.format.slice(1)}. Fields:{" "}
+              {o.event.fields.join(", ")}
             </p>
           </div>
           {o.event.infoUrl && (
@@ -54,7 +54,7 @@ export default async function OrganiserOverview() {
                 <span className={`text-sm ${state === "next" ? "text-muted-foreground" : "font-medium"}`}>{s.label}</span>
                 <span className="text-xs text-muted-foreground">
                   {s.date ? fmt(s.date) : `until ${fmt(s.until!)}`}
-                  {state === "now" && " · now"}
+                  {state === "now" && " (now)"}
                 </span>
               </li>
             );
@@ -99,7 +99,7 @@ export default async function OrganiserOverview() {
                       {c.cardStatus === "confirmed" ? (
                         <span className="rounded-full bg-status-confirmed-bg px-2.5 py-0.5 text-xs font-medium text-status-confirmed">Confirmed</span>
                       ) : (
-                        <span className="rounded-full bg-status-ai-bg px-2.5 py-0.5 text-xs font-medium text-status-ai">Draft, not confirmed</span>
+                        <span className="rounded-full bg-status-ai-bg px-2.5 py-0.5 text-xs font-medium text-status-ai whitespace-nowrap">Draft</span>
                       )}
                     </td>
                     <td className="px-5 py-3 tabular-nums">{c.applications}</td>
@@ -108,7 +108,7 @@ export default async function OrganiserOverview() {
                         <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
                           <div className="h-full rounded-full bg-status-confirmed" style={{ width: `${Math.min(100, (c.approved / c.places) * 100)}%` }} />
                         </div>
-                        <span className="tabular-nums text-muted-foreground">
+                        <span className="whitespace-nowrap tabular-nums text-muted-foreground">
                           {c.approved} / {c.places}
                         </span>
                       </div>
@@ -116,10 +116,10 @@ export default async function OrganiserOverview() {
                     <td className="px-5 py-3 text-right">
                       {c.applications > 0 ? (
                         <Link href={`/organiser/review/${c.id}`} className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
-                          Review <ArrowRight className="size-3.5" />
+                          Review
                         </Link>
                       ) : (
-                        <span className="text-xs text-muted-foreground">No applications yet</span>
+                        <span className="whitespace-nowrap text-xs text-muted-foreground">No applications</span>
                       )}
                     </td>
                   </tr>

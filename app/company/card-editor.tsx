@@ -4,6 +4,7 @@ import { AlertCircle, ArrowLeft, Check, Info, Plus, Quote, Sparkles, Trash2, Use
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { confirmCompanyCard, previewPool, resetCompanyDemo } from "@/lib/matchready/card-actions";
@@ -49,6 +50,7 @@ export function CardEditor({
   companyDeadline,
   demo,
   onBack,
+  backLabel = "Back to questions",
 }: {
   company: CompanyProps;
   initial: CompanyCardDraft;
@@ -56,6 +58,7 @@ export function CardEditor({
   companyDeadline: string;
   demo: boolean;
   onBack?: () => void;
+  backLabel?: string;
 }) {
   const [card, setCard] = useState<CompanyCardDraft>(() => ({
     ...initial,
@@ -133,7 +136,7 @@ export function CardEditor({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:py-12">
+    <div className="page-wide px-5 py-8 sm:py-12">
       {sample && (
         <p className="mb-6 flex gap-2 rounded-lg bg-status-ai-bg px-4 py-3 text-sm text-status-ai">
           <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -151,7 +154,7 @@ export function CardEditor({
         <section className="rounded-xl border border-border bg-card">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">Company card</h1>
+              <h1 className="title-panel">Company card</h1>
               <p className="text-sm text-muted-foreground">{company.name}</p>
             </div>
             {confirmed ? (
@@ -160,7 +163,7 @@ export function CardEditor({
               </span>
             ) : (
               <span className="rounded-full bg-status-ai-bg px-3 py-1 text-sm font-medium text-status-ai">
-                Draft from {card.readUrlOk ? "your website" : "your text"} · not confirmed
+                Draft from {card.readUrlOk ? "your website" : "your text"}, not confirmed yet
               </span>
             )}
           </div>
@@ -185,16 +188,12 @@ export function CardEditor({
             </Row>
 
             <Row label="Field">
-              <select
-                value={card.field}
-                onChange={(e) => update({ field: e.target.value })}
-                className="h-9 rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
+              <NativeSelect wrapperClassName="max-w-80" value={card.field} onChange={(e) => update({ field: e.target.value })} aria-label="Field">
                 <option value="">Choose a field</option>
                 {company.eventFields.map((f) => (
                   <option key={f}>{f}</option>
                 ))}
-              </select>
+              </NativeSelect>
             </Row>
 
             <Row label="What you want from the event">
@@ -206,7 +205,7 @@ export function CardEditor({
                 <Row label="Role">
                   <div className="grid gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                     <Input value={role.title} onChange={(e) => updateRole({ title: e.target.value })} placeholder="Job title" className="bg-card font-medium" />
-                    <Input value={role.details} onChange={(e) => updateRole({ details: e.target.value })} placeholder="Full-time · Espoo" className="bg-card" />
+                    <Input value={role.details} onChange={(e) => updateRole({ details: e.target.value })} placeholder="Full-time, Espoo" className="bg-card" />
                   </div>
                 </Row>
 
@@ -250,14 +249,14 @@ export function CardEditor({
             {onBack ? (
               <Button variant="ghost" onClick={onBack}>
                 <ArrowLeft data-icon="inline-start" />
-                Back to questions
+                {backLabel}
               </Button>
             ) : (
               <span />
             )}
             <div className="flex flex-wrap items-center gap-3">
               {error && <span className="text-sm text-destructive">{error}</span>}
-              <Button size="lg" disabled={pending} onClick={confirm} className="bg-status-confirmed hover:bg-status-confirmed/85">
+              <Button size="lg" disabled={pending} onClick={confirm}>
                 <Check data-icon="inline-start" />
                 {pending ? "Saving…" : company.status === "confirmed" ? "Save changes" : "Confirm card"}
               </Button>
@@ -276,8 +275,17 @@ export function CardEditor({
                 <p className="mt-4 flex gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm">
                   <Users className="mt-0.5 size-4 shrink-0 text-primary" />
                   <span>
-                    Right now <strong className="tabular-nums">{livePool.matchAll}</strong> of {livePool.inField} people
-                    in {livePool.field ?? "the pool"} meet your must-haves.
+                    {musts > 0 ? (
+                      <>
+                        Right now <strong className="tabular-nums">{livePool.matchAll}</strong> of {livePool.inField} people in{" "}
+                        {livePool.field ?? "the pool"} meet your must-haves.
+                      </>
+                    ) : (
+                      <>
+                        <strong className="tabular-nums">{livePool.inField}</strong> people in {livePool.field ?? "the pool"}. Mark a
+                        must-have to see how many meet it.
+                      </>
+                    )}
                   </span>
                 </p>
               )}
@@ -306,19 +314,20 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 
 function RequirementRow({ r, onChange, onRemove }: { r: CardRequirement; onChange: (p: Partial<CardRequirement>) => void; onRemove: () => void }) {
   return (
-    <li className="grid gap-3 px-4 py-3 md:grid-cols-[96px_minmax(0,1fr)_auto] md:items-center">
-      <select
+    <li className="grid gap-3 px-4 py-3 md:grid-cols-[8rem_minmax(0,1fr)_auto] md:items-center">
+      <NativeSelect
+        wrapperClassName="w-full md:w-32"
         value={r.type}
         onChange={(e) => onChange({ type: e.target.value as ReqType, origin: "text" })}
         aria-label="Requirement type"
-        className="h-8 w-fit rounded-md bg-muted px-2 text-xs font-medium text-muted-foreground outline-none"
+        className="bg-muted text-xs font-medium text-muted-foreground md:text-xs"
       >
         {(Object.keys(REQ_TYPE_LABEL) as ReqType[]).map((t) => (
           <option key={t} value={t}>
             {REQ_TYPE_LABEL[t]}
           </option>
         ))}
-      </select>
+      </NativeSelect>
 
       <div className="min-w-0 space-y-1.5">
         <input
@@ -344,11 +353,11 @@ function RequirementRow({ r, onChange, onRemove }: { r: CardRequirement; onChang
           </label>
         )}
         {r.type === "language" && (
-          <select value={r.level ?? "B2"} onChange={(e) => onChange({ level: e.target.value, origin: "text" })} className="rounded-md border border-input bg-card px-1.5 py-0.5 text-sm" aria-label="Level">
+          <NativeSelect wrapperClassName="w-20" value={r.level ?? "B2"} onChange={(e) => onChange({ level: e.target.value, origin: "text" })} aria-label="Level">
             {CEFR.map((l) => (
               <option key={l}>{l}</option>
             ))}
-          </select>
+          </NativeSelect>
         )}
         {r.type === "education" && (
           <input
@@ -422,13 +431,13 @@ function ConfirmedView({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:py-12">
+    <div className="page-wide px-5 py-8 sm:py-12">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-status-confirmed-bg px-3 py-1 text-sm font-medium text-status-confirmed">
             <Check className="size-4" /> Card confirmed
           </span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+          <h1 className="title-page mt-4">
             {hiring && role?.title ? `${companyName} is looking for: ${role.title}` : `${companyName} is on the list`}
           </h1>
           <p className="mt-2 max-w-[60ch] text-muted-foreground">
@@ -484,11 +493,19 @@ function PoolPanel({ pool, deadline }: { pool: PoolStats; deadline: string }) {
   return (
     <div className="rounded-xl border border-status-confirmed/30 bg-card p-5">
       <p className="text-sm font-medium text-status-confirmed">Already in the talent pool</p>
-      <p className="mt-1 text-5xl font-semibold tabular-nums">{pool.matchAll}</p>
-      <p className="font-medium">{pool.matchAll === 1 ? "person meets" : "people meet"} your must-haves</p>
-      <p className="text-sm text-muted-foreground">
-        of {pool.inField} in {pool.field ?? "the pool"}
-      </p>
+      <p className="mt-1 text-5xl font-semibold tabular-nums">{pool.perMustHave.length ? pool.matchAll : pool.inField}</p>
+      {pool.perMustHave.length ? (
+        <>
+          <p className="font-medium">{pool.matchAll === 1 ? "person meets" : "people meet"} your must-haves</p>
+          <p className="text-sm text-muted-foreground">
+            of {pool.inField} in {pool.field ?? "the pool"}
+          </p>
+        </>
+      ) : (
+        <p className="font-medium">
+          {pool.inField === 1 ? "person" : "people"} in {pool.field ?? "the pool"}. You marked no must-haves, so all of them can apply.
+        </p>
+      )}
       {pool.perMustHave.length > 0 && (
         <ul className="mt-4 space-y-3">
           {pool.perMustHave.map((m) => (

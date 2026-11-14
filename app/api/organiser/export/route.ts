@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
 import { query } from "@/lib/db";
+import { accessCode } from "@/lib/matchready/tavata";
 
 /**
  * GET /api/organiser/export?company=<id> — CSV of APPROVED candidates for Tavata.
@@ -23,10 +23,6 @@ export async function GET(request: Request) {
     [companyId],
   );
 
-  const accessCode = (id: string) => {
-    const h = createHash("sha256").update(`dttf-2026:${id}`).digest("hex").toUpperCase();
-    return `DTTF-${h.slice(0, 4)}-${h.slice(4, 8)}`;
-  };
   const cell = (v: string | null) => `"${(v ?? "").replace(/"/g, '""')}"`;
   const csv = [
     "access_code,email,candidate_code,company,role",

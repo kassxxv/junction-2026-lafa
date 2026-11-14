@@ -1,0 +1,38 @@
+import type { ReactNode } from "react";
+
+/** Header + footer for public pages (companies and candidates). */
+export function PublicShell({ right, children }: { right?: ReactNode; children: ReactNode }) {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
+          <span>
+            <span className="font-semibold">Deep Tech Talent Forum</span>
+            <span className="text-muted-foreground">, 26–27 November 2026, online</span>
+          </span>
+          {right && <span className="text-muted-foreground">{right}</span>}
+        </div>
+      </header>
+      <main className="flex-1">{children}</main>
+      <footer className="px-5 py-6 text-center text-xs text-muted-foreground">
+        MatchReady prototype for the City of Espoo. The event is real; companies and people are fictional.
+      </footer>
+    </div>
+  );
+}
+
+const STEPS = ["Talent pool", "Company deadline", "Choose companies", "Organiser review", "Meetings on Tavata"];
+
+/** Where the candidate is in the process. `stage` = index of the current step. */
+export function Timeline({ stage }: { stage: number }) {
+  return (
+    <ol className="my-6 grid grid-cols-5 gap-2" aria-label="Your progress">
+      {STEPS.map((s, i) => (
+        <li key={s} className="flex flex-col gap-1.5">
+          <span className={`h-1.5 rounded-full ${i < stage ? "bg-status-confirmed" : i === stage ? "bg-primary" : "bg-muted"}`} />
+          <span className={`text-xs sm:text-sm ${i <= stage ? "font-medium" : "text-muted-foreground"}`}>{s}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}

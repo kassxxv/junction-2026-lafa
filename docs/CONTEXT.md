@@ -13,6 +13,30 @@ Single source of context for the team and for AI coding agents (Cursor, Claude C
 
 Nothing marked \[PROPOSED\] or \[OPEN\] is final. When a better option appears, change it here first, then in code.
 
+## ★ Current concept: MatchReady \[MENTORS — confirmed direction, 2026-11-14\]
+
+This section supersedes sections 5, 7 and the data model in section 10 where they disagree.
+
+**Users.** Event **organisers** (City of Espoo event team) decide who gets a Tavata meeting pass. Never say "HR".
+
+**Real event, synthetic people.** The event is real: *Deep Tech Talent Forum*, 26–27 Nov 2026, online, English; fields Semiconductors & Microelectronics, Photonics (optics, imaging), Quantum technologies; jointly organised by Espoo, Helsinki, Vantaa, Tampere, Turku, Oulu and partners ([espoo.fi](https://www.espoo.fi/en/DeepTechTalentForum)). All companies, candidates, CVs and LinkedIn profiles in the app are fictional and labelled synthetic.
+
+**Two metrics** (features that don't move them are out of scope): (1) organiser minutes per filled meeting place; (2) share of meetings where both sides answer "yes, continue".
+
+**Flows.**
+1. **Company** (`/company`): any input (text, link, nothing) → card with goal, role(s) and **typed requirements** (experience: area + min years · has done · education: level + fields · language: CEFR), each with a **must-have** toggle (aim for the 3–5 that matter) → at most 2–3 click-to-answer questions → *Confirm* → anonymised pool stats ("12 people match your must-haves"). One conversation starter per company.
+2. **Candidate stage 1 — talent pool** (~1 min, no selection): event fields, type of work, career stage, languages, email, optional CV, two consents (event: required; pool 12 months: optional). Status timeline.
+3. **Invitation** after the company deadline: confirmed companies in the candidate's own fields; choose up to 3; "still available" checkbox.
+4. **Candidate stage 2 — application**: CV required (reused), LinkedIn optional. Per company a table *requirement | MUST | where you have it (prefilled from CV) | proof (optional)*; conversation starter (not used for selection).
+5. **Organiser review** (core): per company, blind IDs, places counter, filters (all / must-haves met / needs a look), batch "approve clean cases", detail with requirement ↔ evidence (source tags), CV ↔ LinkedIn facts (MATCH / DIFFERS / NOT FOUND / NO LINKEDIN), approve-with-note when something differs or a must-have is missing, decision log, aggregate bias check, export for Tavata.
+6. **After the event**: one yes/no question per meeting; dashboard of both-yes rate.
+
+**AI split.** Gemini: company input → card + questions (company data). Gemma (Verda, EU): CV and LinkedIn text → structured facts (candidate data). **Code, not AI, compares** facts (CV ↔ LinkedIn, candidate ↔ requirement), so every result is a traceable fact, never a score.
+
+**Out of scope:** company take-home tasks, any ranking / match % / auto-reject, AI-text detection, replacing Tavata.
+
+**Build status (2026-11-14):** DB schema + seed ✔ · organiser overview `/organiser` ✔ · organiser review `/organiser/review/[company]` ✔ (blind, batch approve clean cases, approve-with-note, decline → Program Pass, undo, decision log, bias check, review-time metric, CSV export for Tavata at `/api/organiser/export`) · company flow: needs the new requirement structure + DB save · candidate flow: not started · landing page, feedback: not started. Bias check counts current university students as "university education", so it flags bias against vocational paths rather than against students filtered out by an experience must-have.
+
 ## 0. Event logistics
 
 - **Hackathon:** Junction 2026, Helsinki. \[FACT\]

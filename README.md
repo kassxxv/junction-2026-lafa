@@ -9,74 +9,108 @@
 Built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment”.</p>
 
 <p align="center">
-  <!-- TODO: add the deployed demo URL -->
-  <b>Live demo:</b> TODO ·
-  <a href="#run-it-locally">Run it locally</a> ·
-  <a href="#architecture">Architecture</a> ·
-  <a href="#responsible-ai">Responsible AI</a>
+  <img alt="Challenge: City of Espoo, Rethinking Recruitment" src="https://img.shields.io/badge/challenge-City%20of%20Espoo%20%C2%B7%20Rethinking%20Recruitment-011135">
+  <img alt="Junction 2026" src="https://img.shields.io/badge/Junction-2026-0a5bd3">
 </p>
 
-> **Real event, synthetic people.** The event in the demo is real: the *Deep Tech Talent Forum*, 26–27 November 2026, organised by Espoo and partner cities. Every company, candidate, CV and LinkedIn profile in this repository is fictional.
+<p align="center">
+  <b>Tech challenges</b><br>
+  <img alt="Gemini API" src="https://img.shields.io/badge/Gemini%20API-company%20cards-1a73e8?logo=googlegemini&logoColor=white">
+  <img alt="Gemma" src="https://img.shields.io/badge/Gemma%203%2012B-CV%20facts-4285f4?logo=google&logoColor=white">
+  <img alt="Verda" src="https://img.shields.io/badge/Verda-A100%20%C2%B7%20Ollama-111827">
+  <img alt="Aiven" src="https://img.shields.io/badge/Aiven-PostgreSQL-ff3554">
+  <img alt="Context.dev" src="https://img.shields.io/badge/Context.dev-company%20pages-6d28d9">
+  <img alt="Entire" src="https://img.shields.io/badge/Entire-agent%20sessions-0f766e">
+</p>
+
+<p align="center">
+  <b>Stack</b><br>
+  <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white">
+  <img alt="Tailwind CSS 4" src="https://img.shields.io/badge/Tailwind%20CSS-4-06b6d4?logo=tailwindcss&logoColor=white">
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-Aiven-4169e1?logo=postgresql&logoColor=white">
+  <img alt="Vercel" src="https://img.shields.io/badge/deployed%20on-Vercel-000000?logo=vercel&logoColor=white">
+  <img alt="Synthetic data only" src="https://img.shields.io/badge/data-synthetic%20only-16a34a">
+</p>
+
+<p align="center">
+  <!-- TODO: add the deployed demo URL -->
+  <b>Live demo:</b> TODO ·
+  <a href="#try-the-demo">Try the demo</a> ·
+  <a href="#tech-challenges-and-stack">Tech challenges and stack</a> ·
+  <a href="#responsible-ai">Responsible AI</a> ·
+  <a href="#run-it-locally">Run it locally</a>
+</p>
+
+> **Real event, synthetic people.** The event in the demo is real: the *Deep Tech Talent Forum*, 26–27 November 2026, organised by Espoo and partner cities. Every company, candidate, CV and LinkedIn profile here is fictional.
 
 ---
 
 ## The problem
 
-Espoo runs recruitment events where companies meet professionals in short 1:1 meetings, booked on the Tavata platform. Meeting places are limited, so the organisers have to choose who gets one. Today that choice is slow and weak:
+Espoo runs recruitment events where companies meet professionals in short 1:1 meetings, booked on the Tavata platform. Places are limited, so organisers must choose who gets one, and today that choice is slow:
 
-- **Companies describe their needs late and vaguely.** Organisers cannot tell who is relevant.
-- **Organisers read piles of similar, often AI-polished CVs** and still cannot see who actually did the work.
-- **Meetings are often not relevant for either side**, and nobody measures whether they were.
+- Companies describe what they need late and vaguely.
+- Organisers read piles of similar, often AI-polished CVs and still can't see who actually did the work.
+- Many meetings turn out irrelevant for one side, and nobody measures it.
 
 ## What bridgy does
 
 bridgy adds one step before Tavata: a short, structured registration and a transparent selection.
 
-| Who | What they do in bridgy | What they get |
+| Who | Does | Gets |
 |---|---|---|
-| **Company** | Pastes anything (a job ad, two lines, a link). Answers up to 3 questions. Optionally adds a short task. | A clear card with typed requirements and must-haves, and a live count of matching people already in the talent pool. |
-| **Professional** | Joins the talent pool in about a minute. After the company deadline, picks up to 3 companies, uploads a CV (and optionally a LinkedIn export). | A table that shows, requirement by requirement, where they meet it. Fill-in from the CV, proof optional, the same view the organiser will see. |
-| **Organiser** (City of Espoo) | Reviews applications **blind**: facts next to each requirement, CV ↔ LinkedIn checks, batch-approves clean cases, approves the rest with a note. | A decision log, a bias check, and a CSV of approved people with their Tavata codes. |
-| **Both sides, after the meeting** | Answer one question: “Want to continue the conversation?” | The organisers see how many meetings both sides wanted to continue, per company. |
+| **Company** | Pastes anything: a job ad, two lines, a link. Answers up to 3 questions, optionally adds a short task. | A card with typed requirements and must-haves, and a live count of matching people already in the talent pool. |
+| **Professional** | Joins the talent pool in about a minute. Later picks up to 3 companies and uploads a CV (LinkedIn export optional). | A table showing, requirement by requirement, where they meet it. Pre-filled from the CV, the same view the organiser gets. |
+| **Organiser** (City of Espoo) | Reviews blind: facts next to each requirement, CV ↔ LinkedIn checks. Approves clean cases in one batch, the rest with a note. | A decision log, a bias check and a CSV with Tavata codes. |
+| **Both, after the meeting** | Answer one question: “Want to continue the conversation?” | The share of meetings where both said yes, per company. |
 
-**AI never decides.** Gemini drafts the company card from company data. Gemma, an open model on our own EU server, turns a CV into facts. **Code, not AI, compares** those facts with the requirements, so every flag an organiser sees can be traced back to a line in a document.
+**AI never decides.** Gemini drafts the company card from company data. Gemma, an open model on our own EU server, turns a CV into facts. **Plain code compares** those facts with the requirements, so every flag an organiser sees traces back to a line in a document.
 
-## How it answers the judging criteria
+## How it meets the judging criteria
 
-Each point is marked ✅ **working now** or ➡️ **next step**. Nothing below is a mock-up unless it says so.
+✅ working now · ➡️ next step
 
-### Impact and relevance (45%)
-- ✅ **Organiser time per filled place.** Clean cases (all must-haves met, nothing to check) are approved in one batch. Only the cases that need a human look get one. The overview tracks *organiser minutes per filled meeting place*.
-- ✅ **Better meetings, measured.** After each meeting both sides answer one yes/no question. The dashboard shows the share of meetings where **both** want to continue, per company.
-- ✅ **Companies engage early.** A company gets a usable card in minutes from whatever text it has, and sees how many people in the pool already meet its must-haves. That is a reason to confirm before the deadline.
-- ✅ **Built on the real process.** The real event, its fields and deadlines; output is a CSV with access codes for Tavata. bridgy does not replace Tavata.
+**Impact and relevance (45%)**
+- ✅ Clean cases are approved in one batch, so organisers spend their time only where a human look is needed. We track *organiser minutes per filled place*.
+- ✅ After each meeting both sides answer one yes/no question; we track *the share of meetings both want to continue*.
+- ✅ Fits the real process: the real event, its fields and deadlines, and a CSV for Tavata. bridgy does not replace Tavata.
 
-### Innovation and user experience (35%)
-- ✅ **Any input → structured card.** Paste a job ad or a link; Gemini drafts typed requirements (experience + years, has done, education, language level), and every quote it claims is checked against the source text by code.
-- ✅ **Requirement-by-requirement application.** Candidates do not write cover letters. They see each requirement with the evidence found in their CV, fix what is missing and attach proof if they want.
-- ✅ **Optional company task, defended live.** A company can add a 20-minute task (its own, or one of three ideas Gemini drafts from the card). The candidate applies it to their own past work, says whether an AI tool helped, and walks the company through the answer at the start of the meeting. Reliability comes from the live walk-through, not from an AI detector.
-- ✅ **CV ↔ LinkedIn facts, not verdicts.** Same job, different title? Dates off by 8 months? A job only on LinkedIn? Shown as facts with the exact difference, never as a score.
-- ➡️ Company sign-in by invitation code, a company page with meetings and email reminders after the event.
-- ➡️ Several vacancies per company; event settings editable by organisers for any event.
+**Innovation and user experience (35%)**
+- ✅ Any text or link becomes a structured card in minutes; quotes the AI claims are checked against the source by code.
+- ✅ No cover letters: candidates confirm evidence per requirement and attach proof if they want.
+- ✅ Optional company task, answered from the candidate's own past work and walked through at the start of the meeting. Candidates say whether an AI tool helped.
+- ✅ CV ↔ LinkedIn differences shown as facts (“CV says Test Lead, LinkedIn says Test Engineer”), never as a score.
+- ➡️ Company sign-in by invitation code, a company page with meetings and email reminders; several vacancies per company.
 
-### Responsible and feasible execution (20%)
-- ✅ No score, rank or match percentage exists anywhere: not in the UI, not in the database.
-- ✅ Candidate documents go **only** to the self-hosted open model in the EU (Gemma on Verda). Gemini only ever sees company data.
-- ✅ Blind review: names and contact details live in a separate table that review screens never read. Identity is joined only in the export, after approval.
-- ✅ Every decision is logged (who, when, rule, note), and approving anything but a clean case requires a written note.
-- ✅ Bias check per company: share of non-Finnish speakers, people without a university degree and career changers among approved vs applicants.
-- ✅ Organiser area behind a password, rate limits on every AI call, no files stored, synthetic data only.
-- ✅ Runs on real services today: Next.js on Vercel, Aiven PostgreSQL, Gemini, Gemma on Verda, Context.dev.
+**Responsible and feasible execution (20%)**
+- ✅ No score, rank or match percentage exists anywhere, in the UI or the database.
+- ✅ Candidate documents go only to the self-hosted open model in the EU. Gemini only sees company data.
+- ✅ Blind review, a logged decision for every approval, a bias check per company.
+- ✅ Running on real services: Vercel, Aiven, Gemini, Gemma on Verda, Context.dev.
 
 ## Try the demo
 
-1. **Company** → *Companies* on the landing page → “Fill demo text” → *Create card* → answer the question → check must-haves (and the optional task) → *Confirm card*.
-2. **Professional** → *Join the pool* → “Fill demo answers” → *Join* → “Demo: jump to after the company deadline” → choose **Nordic Photonics** → *Use sample CV* → *Use sample export* → “Fill demo answers” → *Send application*.
-3. **Organiser** → `/organiser/review/nordic-photonics` → *Select clean cases* → *Approve* → open **A-07** (her CV says *Test Lead*, LinkedIn says *Test Engineer*) → write a note → *Approve with note* → see the decision log, the bias check and *Export for Tavata*.
-4. Back on the candidate's status page: the Tavata code appears.
-5. **After the event** → `/organiser/feedback` → answer as the candidate and as the company → the both-yes rate updates.
+1. **Company:** *Companies* on the landing page → “Fill demo text” → *Create card* → answer the question → set must-haves (and an optional task) → *Confirm card*.
+2. **Professional:** *Join the pool* → “Fill demo answers” → *Join talent pool* → “Demo: jump to after the company deadline” → choose **Nordic Photonics** → *Use sample CV* → *Use sample export* → “Fill demo answers” → *Send application*.
+3. **Organiser:** sign in at `/login` → `/organiser/review/nordic-photonics` → *Select clean cases* → *Approve selected* → open **A-07** (her CV says *Test Lead*, LinkedIn says *Test Engineer*; she also answered the company task) → write a note → *Approve with note* → decision log, bias check, *Export for Tavata*.
+4. Back on the candidate's status page, the Tavata code appears.
+5. **After the event:** `/organiser/feedback` → answer as the candidate and as the company → the both-yes rate updates.
 
-## Architecture
+## Tech challenges and stack
+
+| Challenge | How bridgy uses it | Where |
+|---|---|---|
+| **Gemini API** | Company text, or a page read by Context.dev, becomes a card: typed requirements, must-haves, up to 3 clarifying questions. Also drafts three ideas for the optional task. JSON-schema output validated with zod, retried on invalid output, quotes verified against the source. Company data only. | `lib/gemini.ts`, `lib/prompts/`, `npm run eval:company` |
+| **Gemma** | Gemma 3 12B reads CVs and LinkedIn exports and returns facts only: jobs, dates, degrees, languages, skills. Running an open model ourselves is what keeps candidate data in the EU and out of third-party APIs. | `lib/gemma.ts`, `lib/prompts/cv-parse.ts`, `npm run eval:cv` (11/11 on the demo PDFs) |
+| **Verda** | Gemma runs on a Verda A100 with Ollama, behind a Caddy proxy that requires a token. | `infra/verda/` |
+| **Aiven** | PostgreSQL holds the separated identity table, consents with expiry, the decision log, meeting feedback and rate-limit counters. pgvector is installed; semantic evidence search is a next step. | `db/migrations/`, `lib/db.ts` |
+| **Context.dev** | Reads the careers page a company links to, so its card can quote it. Company websites only. | `lib/contextdev.ts` |
+| **Entire** | Configured for this repository: session hooks for commits, and Graph and Brain for the coding agents working in it. | `.entire/` |
+
+**Stack:** Next.js 16 (App Router, Server Actions), TypeScript strict, Tailwind CSS 4, PostgreSQL on Aiven, deployed on Vercel. Every external call runs in server code, and every AI call has a fallback so the app keeps working when a service is down.
+
+### Architecture
 
 ```mermaid
 flowchart LR
@@ -86,20 +120,20 @@ flowchart LR
     O[Organiser<br/>City of Espoo]
   end
 
-  subgraph Vercel["Next.js 16 on Vercel (server code only talks to services)"]
+  subgraph App["Next.js on Vercel"]
     UI[Pages and Server Actions]
-    GATE[Organiser gate<br/>password + signed cookie]
+    GATE[Organiser gate<br/>password and signed cookie]
     RL[Rate limits]
-    FACTS[Fact comparison<br/>pure code, no AI]
+    FACTS[Fact comparison<br/>plain code, no AI]
   end
 
   subgraph EU["EU only: candidate data"]
-    GEMMA[Gemma 3 12B<br/>Ollama on Verda A100<br/>behind authenticated Caddy proxy]
+    GEMMA[Gemma 3 12B<br/>Ollama on Verda A100<br/>token-protected proxy]
   end
 
   GEMINI[Gemini API<br/>company data only]
   CTX[Context.dev<br/>company web pages]
-  DB[(Aiven PostgreSQL<br/>identity stored separately)]
+  DB[(Aiven PostgreSQL<br/>identity kept apart)]
   TAVATA[Tavata<br/>meeting booking]
 
   C --> UI
@@ -115,26 +149,26 @@ flowchart LR
   UI -->|CSV with access codes| TAVATA
 ```
 
-### What happens to a candidate's CV
+### What happens to a CV
 
 ```mermaid
 sequenceDiagram
   autonumber
   participant P as Professional
-  participant App as bridgy (server)
+  participant App as bridgy server
   participant G as Gemma on Verda (EU)
   participant DB as PostgreSQL
   participant O as Organiser
 
-  P->>App: Upload CV PDF (and optional LinkedIn export)
-  App->>App: Extract text (unpdf). The file itself is not stored
-  App->>G: Text + topic names from the chosen companies
+  P->>App: Upload CV PDF, optional LinkedIn export
+  App->>App: Extract text. The file is not stored
+  App->>G: Text and the chosen companies' topic names
   G-->>App: Facts only: jobs, dates, degrees, languages, skills
-  App->>App: Validate with a schema, compare facts with requirements and with LinkedIn (code)
+  App->>App: Validate, then compare facts with requirements and LinkedIn (code)
   App->>DB: Facts, checks, evidence per requirement. Identity in its own table
-  P->>App: Fix or add values, attach proof, answer the optional task
-  O->>App: Review blind: requirement ↔ evidence, CV ↔ LinkedIn, task answer
-  O->>DB: Approve / decline with rule and note (logged)
+  P->>App: Fix values, attach proof, answer the optional task
+  O->>App: Blind review: evidence, CV vs LinkedIn, task answer
+  O->>DB: Approve or decline, with rule and note (logged)
 ```
 
 ### Data model (simplified)
@@ -142,46 +176,35 @@ sequenceDiagram
 ```mermaid
 erDiagram
   EVENTS ||--o{ COMPANIES : has
-  COMPANIES ||--|| COMPANY_CARDS : "card (+ optional task)"
+  COMPANIES ||--|| COMPANY_CARDS : "card and optional task"
   COMPANIES ||--o{ ROLES : offers
   ROLES ||--o{ REQUIREMENTS : "typed, must-have or not"
   CANDIDATES ||--|| CANDIDATE_IDENTITY : "email, kept apart"
   CANDIDATES ||--|| POOL_PROFILES : "fields, languages"
   CANDIDATES ||--o| CANDIDATE_DOCUMENTS : "CV text, facts, checks"
-  CANDIDATES ||--o{ CONSENTS : "event, talent pool 12 mo"
-  CANDIDATES ||--o{ APPLICATIONS : "max 3"
+  CANDIDATES ||--o{ CONSENTS : "event, talent pool"
+  CANDIDATES ||--o{ APPLICATIONS : "up to 3"
   APPLICATIONS ||--o{ EVIDENCE : "one row per requirement"
   APPLICATIONS ||--o{ DECISIONS : "who, when, rule, note"
-  APPLICATIONS ||--o{ MEETING_FEEDBACK : "one yes/no per side"
+  APPLICATIONS ||--o{ MEETING_FEEDBACK : "one yes or no per side"
 ```
-
-## Tech tracks
-
-| Track | How bridgy uses it | Evidence in this repo |
-|---|---|---|
-| **Gemini API** | Company input (text, or a page read by Context.dev) → company card with typed requirements, must-haves and up to 3 clarifying questions; three ideas for the optional task. JSON schema output, validated with zod, retried on invalid output, every quote verified against the source. Company data only. | `lib/gemini.ts`, `lib/prompts/company-card.ts`, `lib/prompts/task-suggest.ts`, `npm run eval:company` |
-| **Gemma** | Open model (Gemma 3 12B) reads CVs and LinkedIn exports and returns facts only, never judgements. An open model on our own server is what lets candidate data stay in the EU and out of third-party APIs. | `lib/gemma.ts`, `lib/prompts/cv-parse.ts`, `npm run eval:cv` (11/11 checks on the demo PDFs) |
-| **Verda** | Gemma runs on a Verda A100 with Ollama, behind a Caddy reverse proxy that requires a token. | `infra/verda/` |
-| **Aiven** | PostgreSQL with separated identity, consents with expiry, the decision log, meeting feedback and rate-limit counters. pgvector is installed; semantic evidence search is the next step. | `db/migrations/`, `lib/db.ts`, `lib/rate-limit.ts` |
-| **Context.dev** | Reads the company's careers page when the company pastes a link, so the card can quote it. Company websites only. | `lib/contextdev.ts` |
-| **Entire** | Agent sessions and checkpoints for the commits in this repository. Graph and Brain are configured for agents working in the repo. | `.entire/` |
 
 ## Responsible AI
 
-The challenge asks for no automated decisions about people and for compliance with the EU AI Act. These rules are enforced in code and listed in [`AGENTS.md`](AGENTS.md):
+The challenge rules out automated decisions about people and asks for compliance with the EU AI Act. These rules are enforced in code and written down in [`AGENTS.md`](AGENTS.md):
 
-- **AI never scores, ranks, accepts or rejects a person.** Humans decide; AI drafts, extracts and explains.
-- **Candidate data goes only to Gemma on our EU server.** Gemini receives company data only.
-- **The candidate's own words are kept as written,** next to anything processed.
-- **Identity is stored separately from answers;** review screens are blind.
+- **AI never scores, ranks, accepts or rejects a person.** People decide; AI drafts, extracts and explains.
+- **Candidate data goes only to Gemma on our EU server.** Gemini gets company data only.
+- **Candidates' own words are kept as written**, next to anything processed.
+- **Identity is stored apart from answers**; review is blind until approval.
 - **Every selection decision is logged** with reviewer, time, rule and note.
-- **Meeting feedback is shown only as aggregates** per company, never as a judgement of a person.
-- **AI use is disclosed, not detected.** Candidates say whether an AI tool helped with a task; organisers see that statement. AI-text detectors are unreliable and unfair to non-native writers.
+- **Meeting feedback is shown only as totals per company**, never as a judgement of a person.
+- **AI use is declared, not detected.** AI-text detectors are unreliable and unfair to non-native writers, so candidates say whether a tool helped and organisers see that.
 - **Synthetic data only.**
 
 ## Run it locally
 
-Requirements: Node 20+, a PostgreSQL database (we use Aiven), and optionally keys for Gemini, Context.dev and a Gemma endpoint. Every AI service has a fallback, so the app also runs with only a database.
+You need Node 20+ and a PostgreSQL database (we use Aiven). Keys for Gemini, Context.dev and a Gemma endpoint are optional: every AI service has a fallback.
 
 ```bash
 npm install
@@ -191,29 +214,29 @@ npm run db:seed             # the real event + synthetic companies and people
 npm run dev                 # http://localhost:3000
 ```
 
-| Variable | What it is for |
+| Variable | Used for |
 |---|---|
 | `DATABASE_URL`, `DATABASE_CA_CERT` | PostgreSQL connection and CA certificate |
-| `GEMINI_API_KEY`, `GEMINI_MODEL` | Company card drafting and task ideas |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | Company cards and task ideas |
 | `GEMMA_BASE_URL`, `GEMMA_MODEL`, `GEMMA_API_KEY` | OpenAI-compatible Gemma endpoint (Ollama on Verda) |
 | `CONTEXT_DEV_API_KEY` | Reading company web pages |
 | `ORGANISER_PASSWORD` | Organiser sign-in. Unset: open in development, locked in production |
 | `DEMO_MODE` | `1` enables the demo reset buttons |
 
-Checks before every commit: `npm run lint && npm run build && npx tsc --noEmit`. Service status: `GET /api/health`.
+Before every commit: `npm run lint && npm run build && npx tsc --noEmit`. Service status: `GET /api/health`.
 
 ## Repository map
 
 ```
-app/                 pages: landing, company, candidate, organiser, meeting, login
-components/          shells, back link, shared fact labels, UI primitives
-lib/                 one wrapper per service (gemini, gemma, contextdev, esco, db), auth, rate limits
-lib/matchready/      domain: event, config, facts (pure comparison code), card, candidate, organiser, feedback
-lib/prompts/         every AI prompt, as named constants
-db/                  migrations and synthetic seed data
-scripts/             migrate, seed, evals, dev checks
-infra/verda/         Gemma proxy setup
-docs/                CONTEXT.md (decisions), HANDOFF.md (state and open work)
+app/              pages: landing, company, candidate, organiser, meeting, login
+components/       shells, back link, shared fact labels, UI primitives
+lib/              one wrapper per service, auth, rate limits
+lib/matchready/   domain: event, config, facts (comparison code), card, candidate, organiser, feedback
+lib/prompts/      every AI prompt as a named constant
+db/               migrations and synthetic seed data
+scripts/          migrate, seed, evals, dev checks
+infra/verda/      Gemma proxy setup
+docs/             CONTEXT.md (decisions), HANDOFF.md (state and open work)
 ```
 
 ## Team

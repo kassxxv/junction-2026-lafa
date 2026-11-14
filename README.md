@@ -12,7 +12,7 @@ Built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment
   <img alt="Challenge: City of Espoo, Rethinking Recruitment" src="https://img.shields.io/badge/challenge-City%20of%20Espoo%20%C2%B7%20Rethinking%20Recruitment-011135">
   <img alt="Junction 2026" src="https://img.shields.io/badge/Junction-2026-0a5bd3">
   <!-- TODO: replace https://YOUR-PROJECT.vercel.app with the deployed URL -->
-  <a href="https://junction-2026-lafa.vercel.app"><img alt="Open the live demo" src="https://img.shields.io/badge/Live%20demo-open-0a5bd3?style=for-the-badge&logo=vercel&logoColor=white"></a>
+  <a href="https://junction-2026-lafa.vercel.app"><img alt="Open the live demo" src="https://img.shields.io/badge/Live%20demo-open-0a5bd3?logo=vercel&logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -69,25 +69,24 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 
 ## How it meets the judging criteria
 
-✅ working now · ➡️ next step
-
 **Impact and relevance (45%)**
-- ✅ Clean cases are approved in one batch, so organisers spend their time only where a human look is needed. We track *organiser minutes per filled place*.
-- ✅ After each meeting both sides answer one yes/no question; we track *the share of meetings both want to continue*.
-- ✅ Fits the real process: the real event, its fields and deadlines, and a CSV for Tavata. bridgy does not replace Tavata.
+- Clean cases are approved in one batch, so organisers spend their time only where a human look is needed. We track *organiser minutes per filled place*.
+- After each meeting both sides answer one yes/no question; we track *the share of meetings both want to continue*.
+- It fits the real process: the real event, its fields and deadlines, and a CSV for Tavata. bridgy does not replace Tavata.
 
 **Innovation and user experience (35%)**
-- ✅ Any text or link becomes a structured card in minutes; quotes the AI claims are checked against the source by code.
-- ✅ No cover letters: candidates confirm evidence per requirement and attach proof if they want.
-- ✅ Optional company task, answered from the candidate's own past work and walked through at the start of the meeting. Candidates say whether an AI tool helped.
-- ✅ CV ↔ LinkedIn differences shown as facts (“CV says Test Lead, LinkedIn says Test Engineer”), never as a score.
-- ➡️ Company sign-in by invitation code, a company page with meetings and email reminders; several vacancies per company.
+- Any text or link becomes a structured card in minutes; quotes the AI claims are checked against the source by code.
+- No cover letters: candidates confirm evidence per requirement and attach proof if they want.
+- An optional company task, answered from the candidate's own past work and walked through at the start of the meeting. Candidates say whether an AI tool helped.
+- CV ↔ LinkedIn differences are shown as facts (“CV says Test Lead, LinkedIn says Test Engineer”), never as a score.
 
 **Responsible and feasible execution (20%)**
-- ✅ No score, rank or match percentage exists anywhere, in the UI or the database.
-- ✅ Candidate documents go only to the self-hosted open model in the EU. Gemini only sees company data.
-- ✅ Blind review, a logged decision for every approval, a bias check per company.
-- ✅ Running on real services: Vercel, Aiven, Gemini, Gemma on Verda, Context.dev.
+- No score, rank or match percentage exists anywhere, in the UI or the database.
+- Candidate documents go only to the self-hosted open model in the EU. Gemini only sees company data.
+- Blind review, a logged decision for every approval, a bias check per company.
+- Running on real services: Vercel, Aiven, Gemini, Gemma on Verda, Context.dev.
+
+**Next steps:** company sign-in by invitation code with a company page and email reminders after meetings; several vacancies per company; event settings that organisers can change for any event.
 
 ## Try the demo
 
@@ -114,61 +113,48 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 
 ```mermaid
 flowchart LR
-  subgraph Users
-    C[Company]
-    P[Professional]
-    O[Organiser<br/>City of Espoo]
+  C["Company"] --> UI
+  P["Professional"] --> UI
+  O["Organiser (City of Espoo)"] --> GATE
+
+  subgraph APP ["Next.js on Vercel"]
+    GATE["Organiser gate: password and signed cookie"] --> UI["Pages and Server Actions"]
+    UI --> RL["Rate limits"]
+    FACTS["Fact comparison: plain code, no AI"]
   end
 
-  subgraph App["Next.js on Vercel"]
-    UI[Pages and Server Actions]
-    GATE[Organiser gate<br/>password and signed cookie]
-    RL[Rate limits]
-    FACTS[Fact comparison<br/>plain code, no AI]
+  subgraph EU ["EU only: candidate data"]
+    GEMMA["Gemma 3 12B on Verda A100 (Ollama, token-protected proxy)"]
   end
 
-  subgraph EU["EU only: candidate data"]
-    GEMMA[Gemma 3 12B<br/>Ollama on Verda A100<br/>token-protected proxy]
-  end
-
-  GEMINI[Gemini API<br/>company data only]
-  CTX[Context.dev<br/>company web pages]
-  DB[(Aiven PostgreSQL<br/>identity kept apart)]
-  TAVATA[Tavata<br/>meeting booking]
-
-  C --> UI
-  P --> UI
-  O --> GATE --> UI
-  UI --> RL
-  RL -->|card draft, task ideas| GEMINI
-  RL -->|careers page| CTX
-  RL -->|CV and LinkedIn text| GEMMA
-  GEMMA -->|facts only| FACTS
-  FACTS --> DB
-  UI <--> DB
-  UI -->|CSV with access codes| TAVATA
+  RL -- "card draft, task ideas" --> GEMINI["Gemini API: company data only"]
+  RL -- "careers page" --> CTX["Context.dev: company web pages"]
+  RL -- "CV and LinkedIn text" --> GEMMA
+  GEMMA -- "facts only" --> FACTS
+  FACTS --> DB["Aiven PostgreSQL: identity kept apart"]
+  UI --> DB
+  UI -- "CSV with access codes" --> TAVATA["Tavata: meeting booking"]
 ```
 
 ### What happens to a CV
 
 ```mermaid
 sequenceDiagram
-  autonumber
   participant P as Professional
   participant App as bridgy server
   participant G as Gemma on Verda (EU)
   participant DB as PostgreSQL
   participant O as Organiser
 
-  P->>App: Upload CV PDF, optional LinkedIn export
-  App->>App: Extract text. The file is not stored
-  App->>G: Text and the chosen companies' topic names
-  G-->>App: Facts only: jobs, dates, degrees, languages, skills
-  App->>App: Validate, then compare facts with requirements and LinkedIn (code)
-  App->>DB: Facts, checks, evidence per requirement. Identity in its own table
+  P->>App: Upload CV PDF and optional LinkedIn export
+  App->>App: Extract text (the file is not stored)
+  App->>G: Text and the topic names of the chosen companies
+  G-->>App: Facts only (jobs, dates, degrees, languages, skills)
+  App->>App: Validate, compare facts with requirements and LinkedIn
+  App->>DB: Facts, checks, evidence per requirement (identity in its own table)
   P->>App: Fix values, attach proof, answer the optional task
-  O->>App: Blind review: evidence, CV vs LinkedIn, task answer
-  O->>DB: Approve or decline, with rule and note (logged)
+  O->>App: Blind review of evidence, CV vs LinkedIn, task answer
+  O->>DB: Approve or decline with rule and note (logged)
 ```
 
 ### Data model (simplified)
@@ -176,17 +162,17 @@ sequenceDiagram
 ```mermaid
 erDiagram
   EVENTS ||--o{ COMPANIES : has
-  COMPANIES ||--|| COMPANY_CARDS : "card and optional task"
+  COMPANIES ||--|| COMPANY_CARDS : describes
   COMPANIES ||--o{ ROLES : offers
-  ROLES ||--o{ REQUIREMENTS : "typed, must-have or not"
-  CANDIDATES ||--|| CANDIDATE_IDENTITY : "email, kept apart"
-  CANDIDATES ||--|| POOL_PROFILES : "fields, languages"
-  CANDIDATES ||--o| CANDIDATE_DOCUMENTS : "CV text, facts, checks"
-  CANDIDATES ||--o{ CONSENTS : "event, talent pool"
+  ROLES ||--o{ REQUIREMENTS : lists
+  CANDIDATES ||--|| CANDIDATE_IDENTITY : "kept apart"
+  CANDIDATES ||--|| POOL_PROFILES : has
+  CANDIDATES ||--o| CANDIDATE_DOCUMENTS : uploads
+  CANDIDATES ||--o{ CONSENTS : gives
   CANDIDATES ||--o{ APPLICATIONS : "up to 3"
-  APPLICATIONS ||--o{ EVIDENCE : "one row per requirement"
-  APPLICATIONS ||--o{ DECISIONS : "who, when, rule, note"
-  APPLICATIONS ||--o{ MEETING_FEEDBACK : "one yes or no per side"
+  APPLICATIONS ||--o{ EVIDENCE : "one per requirement"
+  APPLICATIONS ||--o{ DECISIONS : logged
+  APPLICATIONS ||--o{ MEETING_FEEDBACK : "yes or no per side"
 ```
 
 ## Responsible AI

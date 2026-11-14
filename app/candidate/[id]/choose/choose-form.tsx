@@ -99,7 +99,7 @@ export function ChooseForm({
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {c.musts.map((m) => (
                     <span key={m} className="rounded bg-status-ask-bg px-1.5 py-0.5 text-xs text-status-ask">
-                      <span className="font-semibold">MUST</span> {m}
+                      <span className="font-semibold">Must-have:</span> {m}
                     </span>
                   ))}
                   {c.others > 0 && <span className="px-1 text-xs text-muted-foreground">+ {c.others} nice to have</span>}

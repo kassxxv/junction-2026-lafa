@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Source_Serif_4 } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
 /** Interface typeface: structured, calm. */
@@ -10,7 +11,7 @@ const ui = Instrument_Sans({ variable: "--font-ui", subsets: ["latin", "latin-ex
 const doc = Source_Serif_4({ variable: "--font-document", subsets: ["latin", "latin-ext"] });
 
 export const metadata: Metadata = {
-  title: "Bridgy",
+  title: BRAND.name,
   description: "Registration and selection for the 1:1 meetings at City of Espoo recruitment events (prototype, synthetic data)",
 };
 

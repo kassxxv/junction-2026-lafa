@@ -4,12 +4,14 @@ import { Check, FileUp, Info, Loader2, Paperclip, Plus, ShieldCheck } from "luci
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { BackLink } from "@/components/back-link";
+import { CHECK_STYLE, MustHaveBadge } from "@/components/fact-labels";
 import { Timeline } from "@/components/public-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveLinkedin, sendApplications, uploadDocument } from "@/lib/matchready/candidate-actions";
 import type { EvidenceRow } from "@/lib/matchready/candidate-service";
+import { TASK_MINUTES } from "@/lib/matchready/config";
 import { DEMO_CANDIDATE } from "@/lib/matchready/demo";
 import { needsLook, type LinkedinCheck, type RequirementType } from "@/lib/matchready/facts";
 
@@ -21,20 +23,14 @@ const PROOF_FOR: Record<RequirementType, { type: ProofType; label: string; place
   experience: { type: "reference", label: "Reference", placeholder: "Reference letter (file name or link)" },
 };
 
-const CHECK_LABEL: Record<LinkedinCheck["kind"], { label: string; className: string }> = {
-  match: { label: "MATCH", className: "text-status-confirmed" },
-  differs: { label: "DIFFERS", className: "text-status-ai" },
-  not_found: { label: "NOT FOUND", className: "text-status-missing" },
-  linkedin_only: { label: "LINKEDIN ONLY", className: "text-muted-foreground" },
-  info: { label: "NOTE", className: "text-muted-foreground" },
-  none: { label: "NO LINKEDIN", className: "text-muted-foreground" },
-};
 
 interface Company {
   id: string;
   name: string;
   role: string;
   starter: string;
+  /** Optional task from the company. */
+  task: string | null;
   requirements: { id: string; text: string; type: RequirementType; mustHave: boolean }[];
 }
 
@@ -68,6 +64,7 @@ export function ApplyForm({
   const [proofs, setProofs] = useState<Record<string, Record<string, { type: ProofType; ref: string }>>>({});
   const [openProof, setOpenProof] = useState<string | null>(null);
   const [starters, setStarters] = useState<Record<string, string>>({});
+  const [taskAnswers, setTaskAnswers] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -106,7 +103,7 @@ export function ApplyForm({
       const r = await sendApplications({
         candidateId,
         available: true,
-        applications: companies.map((c) => ({ companyId: c.id, starter: starters[c.id] ?? "", stated: stated[c.id] ?? {}, proofs: proofs[c.id] ?? {} })),
+        applications: companies.map((c) => ({ companyId: c.id, starter: starters[c.id] ?? "", taskAnswer: taskAnswers[c.id] ?? "", stated: stated[c.id] ?? {}, proofs: proofs[c.id] ?? {} })),
       });
       if (r.ok) router.push(`/candidate/${encodeURIComponent(candidateId)}`);
       else setError(r.error);
@@ -189,7 +186,7 @@ export function ApplyForm({
             <ul className="divide-y divide-border">
               {checks.map((c, i) => (
                 <li key={i} className="flex gap-3 px-5 py-2.5 text-sm">
-                  <span className={`w-28 shrink-0 text-xs font-semibold ${CHECK_LABEL[c.kind].className}`}>{CHECK_LABEL[c.kind].label}</span>
+                  <span className={`w-28 shrink-0 text-xs font-semibold ${CHECK_STYLE[c.kind].text}`}>{CHECK_STYLE[c.kind].label}</span>
                   <span>{c.text}</span>
                 </li>
               ))}
@@ -216,7 +213,7 @@ export function ApplyForm({
                 <thead className="text-muted-foreground">
                   <tr className="border-b border-border">
                     <th className="px-5 py-2.5 font-medium">Company asks for</th>
-                    <th className="w-16 px-2 py-2.5" />
+                    <th className="w-24 px-2 py-2.5" />
                     <th className="px-3 py-2.5 font-medium">Where you have it</th>
                     <th className="w-56 px-5 py-2.5 font-medium">Proof (optional)</th>
                   </tr>
@@ -233,7 +230,7 @@ export function ApplyForm({
                       <tr key={r.id} className="align-top">
                         <td className="px-5 py-3">{r.text}</td>
                         <td className="px-2 py-3">
-                          {r.mustHave && <span className="rounded bg-status-ask-bg px-1.5 py-0.5 text-[0.7rem] font-semibold text-status-ask">MUST</span>}
+                          {r.mustHave && <MustHaveBadge />}
                         </td>
                         <td className="px-3 py-2">
                           <Textarea
@@ -291,6 +288,21 @@ export function ApplyForm({
                 className="mt-2 min-h-20 bg-card"
               />
             </div>
+            {c.task && (
+              <div className="border-t border-border px-5 py-4">
+                <label className="block text-sm font-medium" htmlFor={`task-${c.id}`}>
+                  Task from {c.name} <span className="font-normal text-muted-foreground">(optional, about {TASK_MINUTES} minutes)</span>
+                </label>
+                <p className="mt-2 border-l-2 border-border pl-3 text-sm leading-relaxed whitespace-pre-line">{c.task}</p>
+                <Textarea
+                  id={`task-${c.id}`}
+                  value={taskAnswers[c.id] ?? ""}
+                  onChange={(e) => setTaskAnswers((s) => ({ ...s, [c.id]: e.target.value }))}
+                  placeholder="Use a project from your own work. You will walk the company through your answer at the start of the meeting."
+                  className="mt-3 min-h-28 bg-card"
+                />
+              </div>
+            )}
           </section>
         ))}
 
@@ -301,13 +313,10 @@ export function ApplyForm({
           </Button>
           <button
             className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-            onClick={() =>
-              setStarters(
-                Object.fromEntries(
-                  companies.map((c) => [c.id, DEMO_CANDIDATE.starter]),
-                ),
-              )
-            }
+            onClick={() => {
+              setStarters(Object.fromEntries(companies.map((c) => [c.id, DEMO_CANDIDATE.starter])));
+              setTaskAnswers(Object.fromEntries(companies.filter((c) => c.task).map((c) => [c.id, DEMO_CANDIDATE.taskAnswer])));
+            }}
           >
             Fill demo answers
           </button>

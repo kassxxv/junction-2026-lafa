@@ -5,7 +5,7 @@
  * No server-only imports: safe in client components.
  */
 export const BRAND = {
-  name: "Bridgy",
+  name: "bridgy",
   logoOnDark: { src: "/brand/bridgy-logo-on-dark.png", width: 900, height: 350 },
   logoOnLight: { src: "/brand/bridgy-logo-on-light.png", width: 900, height: 350 },
   markOnDark: { src: "/brand/bridgy-mark-on-dark.png", width: 256, height: 256 },

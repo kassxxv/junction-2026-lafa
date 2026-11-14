@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { confirmCompanyCard, previewPool, resetCompanyDemo } from "@/lib/matchready/card-actions";
+import { confirmCompanyCard, previewPool, resetCompanyDemo, suggestCardTasks } from "@/lib/matchready/card-actions";
 import { EVENT, formatDateRange, formatDay } from "@/lib/matchready/event";
 import { requirementText } from "@/lib/matchready/facts";
-import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
+import { MAX_COMPANIES_PER_CANDIDATE, TASK_MINUTES } from "@/lib/matchready/config";
 import {
   CEFR,
   GOAL_LABEL,
@@ -51,6 +51,7 @@ export function CardEditor({
   demo,
   onBack,
   backLabel = "Back to questions",
+  initialPool = null,
 }: {
   company: CompanyProps;
   initial: CompanyCardDraft;
@@ -59,13 +60,15 @@ export function CardEditor({
   demo: boolean;
   onBack?: () => void;
   backLabel?: string;
+  /** Set when the card was already confirmed: the company lands on its card page, not the form. */
+  initialPool?: PoolStats | null;
 }) {
   const [card, setCard] = useState<CompanyCardDraft>(() => ({
     ...initial,
     roles: initial.roles.length ? initial.roles : [{ key: "role-1", title: "", details: "", starter: "", requirements: [] }],
   }));
-  const [confirmed, setConfirmed] = useState(false);
-  const [pool, setPool] = useState<PoolStats | null>(null);
+  const [confirmed, setConfirmed] = useState(Boolean(initialPool));
+  const [pool, setPool] = useState<PoolStats | null>(initialPool);
   const [livePool, setLivePool] = useState<PoolStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -108,6 +111,7 @@ export function CardEditor({
         goals: card.goals,
         roles: hiring ? card.roles.filter((x) => x.title.trim()).map(({ title, details, starter, requirements }) => ({ title, details, starter, requirements: requirements.filter((q) => q.label.trim()) })) : [],
         sourceText: card.sourceText,
+        task: hiring ? card.task : "",
       });
       if (!r.ok) {
         setError(r.error);
@@ -240,6 +244,18 @@ export function CardEditor({
 
                 <Row label="Conversation starter" hint="Candidates answer it in a few sentences. It goes to your meeting as the first topic and is never used for selection.">
                   <Textarea value={role.starter} onChange={(e) => updateRole({ starter: e.target.value })} className="min-h-16 bg-card" />
+                </Row>
+
+                <Row
+                  label="Task (optional)"
+                  hint={`Candidates apply it to their own past work in about ${TASK_MINUTES} minutes and walk you through the answer at the start of the meeting. Nobody scores it automatically.`}
+                >
+                  <TaskField
+                    companyId={company.id}
+                    request={{ summary: card.summary, field: card.field, roleTitle: role.title, requirements: role.requirements.filter((r) => r.label.trim()).map((r) => requirementText(r)) }}
+                    value={card.task}
+                    onChange={(task) => update({ task })}
+                  />
                 </Row>
               </>
             )}
@@ -457,6 +473,13 @@ function ConfirmedView({
             </div>
           )}
 
+          {hiring && card.task.trim() && (
+            <div className="mt-6">
+              <h2 className="text-sm font-medium text-muted-foreground">Task for candidates</h2>
+              <p className="mt-2 border-l-2 border-border pl-3 leading-relaxed whitespace-pre-line">{card.task}</p>
+            </div>
+          )}
+
           <h2 className="mt-8 font-semibold">What happens next</h2>
           <ol className="mt-3 space-y-3">
             {steps.map((s) => (
@@ -471,6 +494,10 @@ function ConfirmedView({
             <Button variant="outline" className="bg-card" onClick={onEdit} disabled={pending}>
               <ArrowLeft data-icon="inline-start" />
               Edit card
+            </Button>
+            <Button variant="ghost" disabled title="Next step: one card per vacancy">
+              <Plus data-icon="inline-start" />
+              Add another vacancy (next step)
             </Button>
             {onStartOver && (
               <button onClick={onStartOver} disabled={pending} className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
@@ -524,6 +551,74 @@ function PoolPanel({ pool, deadline }: { pool: PoolStats; deadline: string }) {
       <p className="mt-4 text-sm text-muted-foreground">
         Invitations go out after {fmtDate(deadline)}. Names stay hidden until the organisers approve.
       </p>
+    </div>
+  );
+}
+
+/** The optional task: write your own, or pick one of three ideas drafted from this card. */
+function TaskField({
+  companyId,
+  request,
+  value,
+  onChange,
+}: {
+  companyId: string;
+  request: { summary: string; field: string; roleTitle: string; requirements: string[] };
+  value: string;
+  onChange: (task: string) => void;
+}) {
+  const [ideas, setIdeas] = useState<{ title: string; prompt: string }[]>([]);
+  const [sample, setSample] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function suggest() {
+    setError(null);
+    startTransition(async () => {
+      const r = await suggestCardTasks({ companyId, ...request });
+      if (!r.ok) return setError(r.error);
+      setIdeas(r.tasks);
+      setSample(r.sample);
+    });
+  }
+
+  return (
+    <div className="space-y-2">
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Leave empty for no task, or write your own."
+        className="min-h-20 bg-card"
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="button" variant="outline" size="sm" className="bg-card" disabled={pending} onClick={suggest}>
+          <Sparkles data-icon="inline-start" />
+          {pending ? "Drafting ideas…" : ideas.length ? "Suggest other tasks" : "Suggest tasks"}
+        </Button>
+        {value.trim() && (
+          <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
+            No task
+          </Button>
+        )}
+      </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      {ideas.length > 0 && (
+        <ul className="space-y-2">
+          {sample && <li className="text-xs text-muted-foreground">Our assistant is not available, so these are general examples.</li>}
+          {ideas.map((t) => (
+            <li key={t.title}>
+              <button
+                type="button"
+                onClick={() => onChange(t.prompt)}
+                className={`w-full rounded-lg border p-3 text-left text-sm transition-colors ${value === t.prompt ? "border-primary bg-accent/60" : "border-border bg-card hover:border-input"}`}
+              >
+                <span className="font-medium">{t.title}</span>
+                <span className="mt-1 block text-muted-foreground">{t.prompt}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -77,6 +77,8 @@ export interface ApplicationRow {
   requirements: RequirementRow[];
   checks: LinkedinCheck[];
   starter: string | null;
+  /** Answer to the company task, as the candidate wrote it. Read by humans, never scored. */
+  taskAnswer: string | null;
 }
 
 export interface DecisionRow {
@@ -96,7 +98,7 @@ export interface BiasRow {
 }
 
 export interface Review {
-  company: { id: string; name: string; field: string | null; places: number; cardStatus: string };
+  company: { id: string; name: string; field: string | null; places: number; cardStatus: string; task: string | null };
   role: { title: string; details: string | null; starter: string | null } | null;
   applications: ApplicationRow[];
   decisions: DecisionRow[];
@@ -171,8 +173,8 @@ function statusOf(appStatus: string, mustMissing: number, toCheck: number): Revi
 }
 
 export async function getReview(companyId: string): Promise<Review | null> {
-  const [company] = await query<{ id: string; name: string; field: string | null; places: number; status: string }>(
-    `SELECT c.id, c.name, c.field, cc.places, cc.status FROM companies c JOIN company_cards cc ON cc.company_id = c.id WHERE c.id = $1`,
+  const [company] = await query<{ id: string; name: string; field: string | null; places: number; status: string; task: string | null }>(
+    `SELECT c.id, c.name, c.field, cc.places, cc.status, cc.task FROM companies c JOIN company_cards cc ON cc.company_id = c.id WHERE c.id = $1`,
     [companyId],
   );
   if (!company) return null;
@@ -182,8 +184,8 @@ export async function getReview(companyId: string): Promise<Review | null> {
       `SELECT title, details, conversation_starter FROM roles WHERE company_id = $1 ORDER BY position LIMIT 1`,
       [companyId],
     ),
-    query<{ id: string; code: string; status: string; starter_answer: string | null; checks: LinkedinCheck[] | null }>(
-      `SELECT a.id, c.code, a.status, a.starter_answer, d.linkedin_checks AS checks
+    query<{ id: string; code: string; status: string; starter_answer: string | null; task_answer: string | null; checks: LinkedinCheck[] | null }>(
+      `SELECT a.id, c.code, a.status, a.starter_answer, a.task_answer, d.linkedin_checks AS checks
        FROM applications a JOIN candidates c ON c.id = a.candidate_id
        LEFT JOIN candidate_documents d ON d.candidate_id = a.candidate_id
        WHERE a.company_id = $1 ORDER BY c.code`,
@@ -256,6 +258,7 @@ export async function getReview(companyId: string): Promise<Review | null> {
       requirements: reqs,
       checks,
       starter: a.starter_answer,
+      taskAnswer: a.task_answer,
     };
   });
 
@@ -282,7 +285,7 @@ export async function getReview(companyId: string): Promise<Review | null> {
         : "none";
 
   return {
-    company: { id: company.id, name: company.name, field: company.field, places: company.places, cardStatus: company.status },
+    company: { id: company.id, name: company.name, field: company.field, places: company.places, cardStatus: company.status, task: company.task },
     role: roles[0] ? { title: roles[0].title, details: roles[0].details, starter: roles[0].conversation_starter } : null,
     applications,
     decisions,

@@ -3,9 +3,10 @@ import { scrapeCompanyPage } from "@/lib/contextdev";
 import { query, withTransaction } from "@/lib/db";
 import { generateJSON } from "@/lib/gemini";
 import { COMPANY_CARD_SYSTEM, companyCardPrompt } from "@/lib/prompts/company-card";
+import { TASK_SUGGEST_SYSTEM, taskSuggestPrompt } from "@/lib/prompts/task-suggest";
 import type { Sourced } from "@/lib/service";
-import { MAX_CARD_QUESTIONS, MAX_COMPANY_PAGE_CHARS } from "./config";
-import { ModelCard, type CardRequirement, type CompanyCardDraft, type PoolStats, type ReqType } from "./card-schema";
+import { MAX_CARD_QUESTIONS, MAX_COMPANY_PAGE_CHARS, MAX_TASK_CHARS } from "./config";
+import { ModelCard, TaskSuggestions, type CardRequirement, type CompanyCardDraft, type PoolStats, type ReqType } from "./card-schema";
 import { evidenceFor, requirementText, toCefr, type CvFacts, type LanguageSkill, type LinkedinFacts, type Requirement } from "./facts";
 
 
@@ -159,6 +160,7 @@ export function toDraft(model: ModelCard, src: { text: string; page: string | nu
     sourceText: [src.text, src.page ? `\n\n--- Page read from ${src.url} ---\n${src.page}` : ""].join(""),
     readUrl: src.url,
     readUrlOk: src.urlOk,
+    task: "",
   };
 }
 
@@ -224,7 +226,7 @@ export async function resetDraft(companyId: string): Promise<boolean> {
   return withTransaction(async (q) => {
     const [n] = await q<{ n: number }>(`SELECT count(*)::int AS n FROM applications WHERE company_id = $1`, [companyId]);
     if (!n || n.n > 0) return false;
-    await q(`UPDATE company_cards SET status = 'draft', goals = '{}', summary = NULL, event_goal = NULL, draft_json = NULL, confirmed_at = NULL, updated_at = now() WHERE company_id = $1`, [companyId]);
+    await q(`UPDATE company_cards SET status = 'draft', goals = '{}', summary = NULL, event_goal = NULL, draft_json = NULL, task = NULL, confirmed_at = NULL, updated_at = now() WHERE company_id = $1`, [companyId]);
     await q(`DELETE FROM requirements WHERE role_id IN (SELECT id FROM roles WHERE company_id = $1)`, [companyId]);
     await q(`DELETE FROM roles WHERE company_id = $1 AND position > 0`, [companyId]);
     await q(`UPDATE roles SET title = 'Not filled in yet', details = NULL, conversation_starter = NULL WHERE company_id = $1`, [companyId]);
@@ -242,6 +244,7 @@ export interface SaveCardInput {
   goals: string[];
   roles: { title: string; details: string; starter: string; requirements: CardRequirement[] }[];
   sourceText: string;
+  task: string;
 }
 
 /**
@@ -251,9 +254,9 @@ export interface SaveCardInput {
 export async function saveConfirmedCard(input: SaveCardInput): Promise<void> {
   await withTransaction(async (q) => {
     await q(
-      `UPDATE company_cards SET goals = $2, summary = $3, event_goal = $4, status = 'confirmed', source_text = $5,
+      `UPDATE company_cards SET goals = $2, summary = $3, event_goal = $4, status = 'confirmed', source_text = $5, task = $6,
               confirmed_at = coalesce(confirmed_at, now()), updated_at = now() WHERE company_id = $1`,
-      [input.companyId, input.goals, input.summary || null, input.eventGoal || null, input.sourceText || null],
+      [input.companyId, input.goals, input.summary || null, input.eventGoal || null, input.sourceText || null, input.task.trim() || null],
     );
     await q(`UPDATE companies SET field = $2 WHERE id = $1`, [input.companyId, input.field || null]);
 
@@ -315,4 +318,93 @@ export async function saveConfirmedCard(input: SaveCardInput): Promise<void> {
       }
     }
   });
+}
+
+/* ---------------- Company page: the confirmed card as saved ---------------- */
+
+/**
+ * The confirmed card as the company last saved it, plus the pool numbers for its must-haves.
+ * Returns null while the card is a draft (the company starts from the input step).
+ */
+export async function getSavedCard(companyId: string): Promise<{ draft: CompanyCardDraft; pool: PoolStats } | null> {
+  const [card] = await query<{ status: string; summary: string | null; event_goal: string | null; goals: string[]; source_text: string | null; task: string | null; field: string | null }>(
+    `SELECT cc.status, cc.summary, cc.event_goal, cc.goals, cc.source_text, cc.task, c.field
+     FROM company_cards cc JOIN companies c ON c.id = cc.company_id WHERE cc.company_id = $1`,
+    [companyId],
+  );
+  if (!card || card.status !== "confirmed") return null;
+  const roles = await query<{ id: string; title: string; details: string | null; starter: string | null }>(
+    `SELECT id, title, details, conversation_starter AS starter FROM roles WHERE company_id = $1 ORDER BY position`,
+    [companyId],
+  );
+  const reqs = await query<{ role_id: string; type: ReqType; label: string; min_years: string | null; level: string | null; detail: string | null; must_have: boolean; keywords: string[] }>(
+    `SELECT role_id, type, label, min_years::text, level, detail, must_have, keywords FROM requirements
+     WHERE role_id IN (SELECT id FROM roles WHERE company_id = $1) ORDER BY position`,
+    [companyId],
+  );
+  const draft: CompanyCardDraft = {
+    summary: card.summary ?? "",
+    eventGoal: card.event_goal ?? "",
+    field: card.field ?? "",
+    goals: card.goals.filter((g): g is CompanyCardDraft["goals"][number] => ["fill", "explore", "brand"].includes(g)),
+    roles: roles.map((r, ri) => ({
+      key: `role-${ri + 1}`,
+      title: r.title,
+      details: r.details ?? "",
+      starter: r.starter ?? "",
+      requirements: reqs
+        .filter((q) => q.role_id === r.id)
+        .map((q, qi): CardRequirement => ({
+          key: `r${ri + 1}-${qi + 1}`,
+          type: q.type,
+          label: q.label,
+          minYears: q.min_years ? Number(q.min_years) : null,
+          level: q.level,
+          detail: q.detail,
+          mustHave: q.must_have,
+          keywords: q.keywords,
+          origin: "text",
+        })),
+    })),
+    questions: [],
+    sourceText: card.source_text ?? "",
+    readUrl: null,
+    readUrlOk: false,
+    task: card.task ?? "",
+  };
+  const pool = await poolStats(draft.field || null, draft.roles[0]?.requirements ?? []);
+  return { draft, pool };
+}
+
+/* ---------------- Optional task: three suggestions from the card (company data only) ---------------- */
+
+function stubTasks(roleTitle: string, requirements: string[]): TaskSuggestions {
+  const area = requirements[0] ?? roleTitle ?? "the work in this role";
+  return {
+    tasks: [
+      { title: "Walk us through a past setup", prompt: `Pick one project from your own work that is closest to ${area}. Describe what you set up, what you measured or built, one thing that went wrong and how you found it.` },
+      { title: "Plan the first week", prompt: `Imagine you start next week as ${roleTitle || "a member of this team"}. Based on your own experience, list what you would check or learn first, and why in that order.` },
+      { title: "Find the likely cause", prompt: `Think of a result from your own past work that looked wrong. Explain how you decided whether the problem was in the setup, the data or the thing being tested.` },
+    ],
+  };
+}
+
+/** Three task ideas for this card. Sends only the company's own card text to Gemini. */
+export async function suggestTasks(companyId: string, card: { summary: string; field: string; roleTitle: string; requirements: string[] }): Promise<Sourced<TaskSuggestions> | null> {
+  const company = await getCompany(companyId);
+  if (!company) return null;
+  const stub = stubTasks(card.roleTitle, card.requirements);
+  const result = await generateJSON({
+    schema: TaskSuggestions,
+    system: TASK_SUGGEST_SYSTEM,
+    prompt: taskSuggestPrompt({ companyName: company.name, ...card }),
+    stub,
+    temperature: 0.6,
+  });
+  const tasks = result.data.tasks
+    .map((t) => ({ title: t.title.trim().slice(0, 80), prompt: t.prompt.trim().slice(0, MAX_TASK_CHARS) }))
+    .filter((t) => t.title && t.prompt)
+    .slice(0, 3);
+  const data = { tasks: tasks.length ? tasks : stub.tasks };
+  return result.source === "live" ? { source: "live", data } : { source: "stub", data, reason: result.reason };
 }

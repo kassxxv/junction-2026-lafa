@@ -18,6 +18,11 @@ export const MAX_CARD_QUESTIONS = 3;
 export const MAX_COMPANY_INPUT_CHARS = 20_000;
 /** How much of a linked web page goes into the Gemini prompt. */
 export const MAX_COMPANY_PAGE_CHARS = 15_000;
+/** Optional company task: length of the task and of a candidate's answer. */
+export const MAX_TASK_CHARS = 1500;
+export const MAX_TASK_ANSWER_CHARS = 4000;
+/** What the candidate is told the task should take. */
+export const TASK_MINUTES = 20;
 
 /* ---------------- Facts compared by code ---------------- */
 
@@ -50,6 +55,8 @@ export interface RateRule {
 export const RATE_LIMITS = {
   /** Gemini + Context.dev: one company card draft. */
   companyDraft: { perClient: 6, windowSeconds: 10 * 60, perDay: 300 },
+  /** Gemini: three task suggestions for a card. */
+  taskSuggest: { perClient: 6, windowSeconds: 10 * 60, perDay: 300 },
   /** Gemma: one CV or LinkedIn document. */
   documentParse: { perClient: 10, windowSeconds: 10 * 60, perDay: 500 },
   /** PDF text extraction at stage 1 (CPU only, no AI). */

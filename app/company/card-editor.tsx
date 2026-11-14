@@ -295,6 +295,12 @@ export function CardEditor({
             )}
             <div className="flex flex-wrap items-center gap-3">
               {error && <span className="text-sm text-destructive">{error}</span>}
+              {!error && hiring && musts === 0 && (
+                <span className="flex max-w-[34ch] items-start gap-1.5 text-sm text-status-ai">
+                  <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                  {role.requirements.length ? "No must-have marked: everyone in your field can apply." : "No requirements yet: everyone in your field can apply."}
+                </span>
+              )}
               <Button size="lg" disabled={pending} onClick={confirm}>
                 <Check data-icon="inline-start" />
                 {pending ? "Saving…" : company.status === "confirmed" ? "Save changes" : "Confirm card"}
@@ -425,9 +431,9 @@ function RequirementRow({ r, onChange, onRemove }: { r: CardRequirement; onChang
           role="switch"
           aria-checked={r.mustHave}
           onClick={() => onChange({ mustHave: !r.mustHave, origin: "text" })}
-          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm transition-colors ${r.mustHave ? "border-status-ask/40 bg-status-ask-bg font-medium text-status-ask" : "border-border text-muted-foreground hover:text-foreground"}`}
+          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm transition-colors ${r.mustHave ? "border-primary bg-accent font-medium text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
         >
-          <span className={`size-3.5 rounded-sm border ${r.mustHave ? "border-status-ask bg-status-ask" : "border-input"}`} />
+          <span className={`flex size-3.5 items-center justify-center rounded-sm border ${r.mustHave ? "border-primary bg-primary text-primary-foreground" : "border-input"}`}>{r.mustHave && <Check className="size-3" />}</span>
           must-have
         </button>
         <Button size="icon-sm" variant="ghost" aria-label="Remove requirement" onClick={onRemove}>
@@ -489,7 +495,7 @@ function ConfirmedView({
               <h2 className="text-sm font-medium text-muted-foreground">Your must-haves</h2>
               <ul className="mt-2 flex flex-wrap gap-1.5">
                 {musts.map((r) => (
-                  <li key={r.key} className="rounded bg-status-ask-bg px-2 py-1 text-sm text-status-ask">
+                  <li key={r.key} className="rounded-md bg-muted px-2 py-1 text-sm">
                     {requirementText(r)}
                   </li>
                 ))}

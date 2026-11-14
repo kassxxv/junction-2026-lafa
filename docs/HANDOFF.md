@@ -67,7 +67,7 @@ public/demo/         synthetic CV + LinkedIn-export PDFs (Aisha)
 
 1. `/` → **Companies** → code `KUURA-2026` → "Fill demo text" → Create card (on the deploy it reads `/demo/kuura-photonics/careers`) → PhD question → card with must-haves and live pool count → Confirm → "N people meet your must-haves". "Start over (demo)" resets.
 2. `/candidate` → "Fill demo answers" → Join → "Demo: jump" → choose Nordic Photonics (+ one more) → available → Use sample CV → Use sample export → Fill demo answers → Send.
-3. `/organiser/review/nordic-photonics` (sign in with `ORGANISER_PASSWORD` if set) → "Select clean cases" → Approve (7/8) → open A-07 (or the new candidate) → note → Approve with note (8/8) → decision log, bias check, Export CSV. "Reset demo" resets.
+3. `/organiser/review/nordic-photonics` (sign in with `ORGANISER_PASSWORD` if set) → "Select clean" → Approve (7/8) → open A-07 (or the new candidate) → note → Approve with note (8/8) → header: Bias check, Decision log, Export for Tavata. "Reset demo" resets.
 4. Back at the candidate status page: Tavata code shown.
 5. After the event: `/company` with `QUANTUMLAB-2026` → answer Yes for A-01; `/candidate/cand.001` → Yes → both see "You both want to continue"; `/organiser/feedback` shows the both-yes rate and sends reminders.
 6. `/organiser/settings`: rename the event or add a type of work → landing, headers and pool form follow.

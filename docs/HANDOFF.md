@@ -112,6 +112,8 @@ Re-seed before the pitch: `npm run db:seed`. On the deploy set `ORGANISER_PASSWO
 
 **Source check:** review shows the de-identified CV text (lib/matchready/redact.ts, written at upload) with the lines behind each requirement (lib/matchready/sources.ts) and the facts not found in the text. Seed candidate A-07 has one simulated model error (aiExtraSkills) so the check is visible in the demo. Migration 008.
 
+**Organiser Companies page:** /organiser/companies (lib/matchready/companies-admin.ts, companies-actions.ts). Careful in the demo: "New code" on a seeded company replaces its demo code (KUURA-2026 etc.) until the next db:seed.
+
 **Still open after the 2026-11-14 pass**
 - Several vacancies per company (one card per vacancy) is shown as "next step" only.
 - Gemma still tags the demo CV's research job "optical testing" (its lines say "optical measurements"), so it is counted. The value now shows the split ("Valo Optics 3 y 5 m + University photonics lab 1 y 9 m") so the organiser sees it; a stricter fix (area tags must be backed by the job's own lines) would change seed results and needs a decision.

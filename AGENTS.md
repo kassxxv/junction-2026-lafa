@@ -25,6 +25,8 @@ These come from the sponsor's requirements and the EU AI Act. Never break them, 
 - **Every selection decision is logged**: reviewer, timestamp, rule, decision.
 - **Meeting feedback is aggregated per card/rule**, never stored or shown as a judgement of a person.
 - **Synthetic data only.** Label seed data as synthetic. Never add real personal data.
+- **Organiser data stays behind the organiser gate.** Every organiser Server Action, route handler and page calls `isOrganiser()` / `requireOrganiserPage()` from `lib/auth.ts` itself; `proxy.ts` alone is not enough (Server Actions are POSTs to whatever page calls them). Demo resets also require `demoMode()`.
+- **Every AI call reachable from a public page is rate-limited** with `allow(<bucket>)` from `lib/rate-limit.ts` (rules in `lib/matchready/config.ts`).
 - **Context.dev:** company websites only. Never use People Search.
 
 ## Stack
@@ -43,6 +45,7 @@ The Next.js app lives at the repo root (`app/`, `lib/`). The Python prototype in
 - Install: `npm install`
 - Dev server: `npm run dev` (Gemma needs the SSH tunnel to Verda)
 - Service status: `GET /api/health`
+- Organiser access: set `ORGANISER_PASSWORD` (unset = open in development, locked in production). `DEMO_MODE=1` enables the demo reset buttons (default: on outside production).
 - Database: `npm run db:migrate` applies `db/migrations/*.sql`; `npm run db:seed` wipes app data and loads the seed (real event, synthetic companies and people). Read-only status check: `npx tsx --conditions=react-server --env-file=.env scripts/_check-seed.ts [company-id]`.
 - AI quality checks (synthetic inputs only): `npm run eval:company [case-id]` (Gemini + Context.dev; run after every change to `lib/prompts/company-card.ts`) and `npm run eval:cv` (Gemma; run after every change to `lib/prompts/cv-parse.ts`).
 - Before every commit: `npm run lint && npm run build && npx tsc --noEmit` (build first: it generates the route types tsc needs)
@@ -54,6 +57,7 @@ The Next.js app lives at the repo root (`app/`, `lib/`). The Python prototype in
 - Wrap each external service in one module under `lib/` (e.g. `lib/gemini.ts`, `lib/gemma.ts`, `lib/contextdev.ts`, `lib/esco.ts`, `lib/db.ts`) so it can be swapped or stubbed.
 - Every AI call has a stub/fallback so the UI works when a service is down.
 - Keep prompts in `lib/prompts/` as named constants, not inline strings.
+- No hardcoded event facts, limits or demo values in screens or services: event name/dates/fields → `lib/matchready/event.ts` (`EVENT`, `formatDay`, `formatDateRange`); thresholds and limits → `lib/matchready/config.ts`; demo ids, demo organiser and fill-ins → `lib/matchready/demo.ts`.
 - Don't add dependencies without a reason stated in the commit message.
 - Small, focused changes. One task per session.
 

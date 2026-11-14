@@ -15,13 +15,13 @@ A working end-to-end prototype on real services (Next.js 16 on Vercel, Aiven Pos
 | `/candidate/[id]` | professional | Status timeline; shows the **Tavata code** after approval |
 | `/candidate/[id]/choose` | professional | Invitation: confirmed companies in own fields, max 3, availability |
 | `/candidate/[id]/apply?companies=a,b` | professional | Stage 2: CV + LinkedIn PDF → Gemma → code fills the requirement table + CV↔LinkedIn checks, proofs, conversation starter → application |
+| `/login` | organiser | Shared-password sign-in (`ORGANISER_PASSWORD`); everything under `/organiser` and `/api/organiser` requires it |
 | `/organiser` | organiser | Event overview: timeline, numbers, companies, both metrics, pool by field |
 | `/organiser/review/[companyId]` | organiser | Blind review: filters, batch approve clean cases, detail with evidence + CV↔LinkedIn facts, approve-with-note, decline (Program Pass), undo, decision log, bias check, CSV export, reset demo |
 | `/organiser/feedback` | organiser | Both-yes rate overall and per company |
 | `/meeting/[applicationId]?side=company\|candidate` | both | One yes/no question after a meeting |
 | `GET /api/organiser/export?company=` | organiser | CSV for Tavata (access code, email, blind code, company, role) — the only place identity is joined |
 | `GET /api/health` | ops | Per-service status, no secrets |
-| `POST /api/cards/draft`, `/cards/*`, `app/company`-era `lib/card/*` | — | **Legacy** from the first concept (see §5) |
 
 ## 2. Architecture
 
@@ -30,19 +30,24 @@ app/                 routes (server components fetch; "use client" files hold UI
 components/          app-shell (organiser sidebar), organiser-nav, public-shell (+ Timeline), ui/ (shadcn)
 lib/
   env.ts service.ts  env parsing (all optional), error codes, Sourced<T> = live | stub
+  auth.ts organiser-session.ts   organiser gate (shared password, signed cookie), demoMode()
+  rate-limit.ts      allow(bucket): per hashed IP + daily cap, counters in Postgres
   db.ts              pg pool (TLS via DATABASE_CA_CERT path or PEM), query(), withTransaction()
   gemini.ts gemma.ts contextdev.ts esco.ts   one wrapper per service, each with a stub fallback
   ai.ts              JSON-schema + parse + retry helpers for model output
-  prompts/           company-card.ts (Gemini), cv-parse.ts (Gemma), card-draft.ts (legacy)
+  prompts/           company-card.ts (Gemini), cv-parse.ts (Gemma)
   matchready/
+    event.ts config.ts demo.ts   single sources: event facts + date formatting, thresholds/limits, demo values
     facts.ts         PURE: CV/LinkedIn facts, compareCvLinkedin(), evidenceFor(), requirementText()
     card-schema.ts card-service.ts card-actions.ts         company card
     candidate-service.ts candidate-actions.ts cv-schema.ts  candidate side
     organiser.ts organiser-actions.ts                        review read model + decisions
     feedback.ts feedback-actions.ts                          metric 2
     tavata.ts                                                access codes
+    auth-actions.ts                                          sign in / sign out
 db/migrations/*.sql  schema (npm run db:migrate)       db/seed/data.ts  seed (npm run db:seed)
-scripts/             db-migrate, db-seed, eval-company-card, eval-cv-parse, eval-card-draft (legacy), _check-seed, _db-activity
+scripts/             db-migrate, db-seed, eval-company-card, eval-cv-parse, _check-seed, _db-activity (closes this app user's stuck "idle in transaction" sessions, e.g. after a seed lost its connection)
+proxy.ts             first-line organiser gate (Next 16 proxy); the real check is in each action/route/page
 infra/verda/         Caddy proxy setup for Gemma
 public/demo/         synthetic CV + LinkedIn-export PDFs (Aisha)
 ```
@@ -59,13 +64,13 @@ public/demo/         synthetic CV + LinkedIn-export PDFs (Aisha)
 
 1. `/` → **Companies** → "Fill demo text" → Create card (on the deploy it reads `/demo/kuura-photonics/careers`) → PhD question → card with must-haves and live pool count → Confirm → "N people meet your must-haves". "Start over (demo)" resets.
 2. `/candidate` → "Fill demo answers" → Join → "Demo: jump" → choose Nordic Photonics (+ one more) → available → Use sample CV → Use sample export → Fill demo answers → Send.
-3. `/organiser/review/nordic-photonics` → "Select clean cases" → Approve (7/8) → open A-07 (or the new candidate) → note → Approve with note (8/8) → decision log, bias check, Export CSV. "Reset demo" resets.
+3. `/organiser/review/nordic-photonics` (sign in with `ORGANISER_PASSWORD` if set) → "Select clean cases" → Approve (7/8) → open A-07 (or the new candidate) → note → Approve with note (8/8) → decision log, bias check, Export CSV. "Reset demo" resets.
 4. Back at the candidate status page: Tavata code shown.
 5. `/organiser/feedback` → "Answer as the candidate/company" → both-yes rate updates.
 
-Re-seed before the pitch: `npm run db:seed`.
+Re-seed before the pitch: `npm run db:seed`. On the deploy set `ORGANISER_PASSWORD` and, for the reset buttons, `DEMO_MODE=1`. Run `npm run db:migrate` once (migration 004 adds the rate-limit table). If a seed fails with ECONNRESET, run `npx tsx --conditions=react-server --env-file=.env scripts/_db-activity.ts`, then seed again.
 
-## 4. Hardcoded — what to move out
+## 4. Hardcoded — what to move out (DONE 2026-11-14: `lib/matchready/event.ts`, `config.ts`, `demo.ts`; kept for reference)
 
 | Where | What | Suggested fix |
 |---|---|---|
@@ -79,6 +84,8 @@ Re-seed before the pitch: `npm run db:seed`.
 | Various | Thresholds: dates differ > 3 months, bias gap 15 pp / min 3 approvals, review session gap 30 min, max 3 companies, max 3 questions | Named constants in one config module |
 
 ## 5. Known issues and risks (fix in priority order)
+
+**Status 2026-11-14 evening:** done — password gate, demo-only resets, rate limits, CSV formula escaping, legacy cleanup, findUrl, CV ↔ LinkedIn (all five points), evidence breakdown + no double counting, unverified must-haves no longer "clean", typed values kept on card re-confirm, place limit under a lock, stub parses never stored. Still open — see the end of this section.
 
 **Security / privacy (before sharing the public URL widely)**
 - **No auth anywhere** (by design for the demo). Organiser pages, Server Actions (approve/decline/reset) and `GET /api/organiser/export` (returns emails of approved people — synthetic, but still) are open to anyone with the URL. Minimum: a shared-password gate for `/organiser/*` and `/api/organiser/*` (env `ORGANISER_PASSWORD`, checked in Next 16 `proxy.ts`/middleware or per route/action). Reset actions should be demo-only.
@@ -97,6 +104,12 @@ Re-seed before the pitch: `npm run db:seed`.
 - Remove legacy first-concept code: `lib/card/*`, `lib/prompts/card-draft.ts`, `app/api/cards/draft`, `app/cards/*` (redirect only now), `scripts/eval-card-draft.ts`, `evals/card-draft`. Check nothing imports them first (`app/company` used to).
 - `scripts/_db-activity.ts` terminates stuck transactions of the app user; keep as a documented dev tool or remove.
 - `ESCO` wrapper exists but is unused (skill names are not normalised).
+
+**Still open after the 2026-11-14 pass**
+- Gemma still tags the demo CV's research job "optical testing" (its lines say "optical measurements"), so it is counted. The value now shows the split ("Valo Optics 3 y 5 m + University photonics lab 1 y 9 m") so the organiser sees it; a stricter fix (area tags must be backed by the job's own lines) would change seed results and needs a decision.
+- Meeting feedback links (`/meeting/[id]?side=`) are unauthenticated: anyone with an application id can answer for either side. Per-side tokens are needed before real use.
+- One shared organiser password, not accounts: decisions are still logged as the demo organiser.
+- `proofRef` is free text and shown as text only (never as a link); keep it that way or validate URLs first.
 
 ## 6. Tool-by-tool review
 

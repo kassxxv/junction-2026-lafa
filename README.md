@@ -90,6 +90,7 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 
 - Companies sign in with an invitation code and get their own page: card, selection status and their meetings. After the event both sides get an e-mail reminder and answer “want to continue?”; if both say yes, the organisers connect them.
 - Organisers add companies and hand out invitation codes on their own Companies page, so the platform is not tied to the demo data. A code is shown once and only its fingerprint is stored.
+- Organisers set the event itself in Event settings: name, dates, fields and types of work. Every page reads these values, so the same platform runs the next event.
 
 **Next steps:** several vacancies per company; several events side by side; organiser accounts instead of one shared password.
 
@@ -98,8 +99,11 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 1. **Company:** *Companies* on the landing page → sign in with the demo code `KUURA-2026` → “Fill demo text” → *Create card* → answer the question → set must-haves (and an optional task) → *Confirm card*.
 2. **Professional:** *Join the pool* → “Fill demo answers” → *Join talent pool* → “Demo: jump to after the company deadline” → choose **Nordic Photonics** → *Use sample CV* → *Use sample export* → “Fill demo answers” → *Send application*.
 3. **Organiser:** sign in at `/login` → `/organiser/review/nordic-photonics` → *Select clean cases* → *Approve selected* → open **A-07** (her CV says *Test Lead*, LinkedIn says *Test Engineer*; she also answered the company task) → write a note → *Approve with note* → decision log, bias check, *Export for Tavata*.
-4. Back on the candidate's status page, the Tavata code appears.
+4. Back on the candidate's status page: once the organiser approves them, the Tavata code appears.
 5. **After the event:** sign in as a company with `QUANTUMLAB-2026` → *Your meetings* → answer Yes. Then open `/candidate/cand.001` (candidate A-01) → answer Yes → both see “You both want to continue”. Organisers can send the reminder e-mails from `/organiser/feedback` → *Remind both sides*.
+6. **Event settings:** `/organiser/settings` → change the event name or add a type of work → *Save settings* → the landing page, headers and talent-pool form show it.
+
+Running locally? The company step reads its careers page through Context.dev, which cannot reach `localhost`: paste the job ad text instead, or use the live demo. `npm run db:seed` resets everything, including the settings.
 
 ## Tech challenges and stack
 

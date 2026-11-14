@@ -1,4 +1,4 @@
-# Handoff — bridgy, formerly MatchReady (state on 2026-11-14 evening)
+# Handoff — bridgy, formerly MatchReady (state on 2026-11-15 night)
 
 Read this, then `AGENTS.md` and the **★ Current concept** section at the top of `docs/CONTEXT.md`. Together they replace the chat history. Submission: **Sunday 15 Nov 2026, 10:00**.
 
@@ -9,7 +9,7 @@ A working end-to-end prototype on real services (Next.js 16 on Vercel, Aiven Pos
 | Route | Who | What it does |
 |---|---|---|
 | `/` | everyone | Landing page of the event (live values from Event settings, built-in values as fallback), three ways in |
-| `/company?company=<id>` | company | Any input → Context.dev (links) + Gemini → card with typed requirements + must-have → ≤3 questions → editor with live pool count → confirm (DB) → pool stats. Default demo company: `kuura-photonics` (draft, no applications) |
+| `/company` | company | Sign-in with the invitation code (demo: `KUURA-2026`, `NORDIC-2026`, `QUANTUMLAB-2026`), then: any input → Context.dev (links) + Gemini → card with typed requirements + must-have → ≤3 questions → editor with live pool count → confirm (DB) → pool stats. Default demo company: `kuura-photonics` (draft, no applications) |
 | `/demo/kuura-photonics/careers` | Context.dev | Synthetic careers page so the demo reads a real URL (only works on the public deploy) |
 | `/candidate` | professional | Stage 1 talent pool (fields, work type, career stage, languages, email, optional CV, 2 consents) |
 | `/candidate/[id]` | professional | Status timeline; shows the **Tavata code** after approval |
@@ -18,7 +18,9 @@ A working end-to-end prototype on real services (Next.js 16 on Vercel, Aiven Pos
 | `/login` | organiser | Shared-password sign-in (`ORGANISER_PASSWORD`); everything under `/organiser` and `/api/organiser` requires it |
 | `/organiser` | organiser | Event overview: timeline, numbers, companies, both metrics, pool by field |
 | `/organiser/review/[companyId]` | organiser | Blind review: filters, batch approve clean cases, detail with evidence + CV↔LinkedIn facts, approve-with-note, decline (Program Pass), undo, decision log, bias check, CSV export, reset demo |
-| `/organiser/feedback` | organiser | Both-yes rate overall and per company |
+| `/organiser/companies` | organiser | Add companies, create or replace invitation codes (shown once; invitation e-mail or preview) |
+| `/organiser/feedback` | organiser | Both-yes rate overall and per company; reminder e-mails to both sides |
+| `/organiser/settings` | organiser | Event settings: name, format, event page, dates, fields, types of work |
 | `/meeting/[applicationId]?side=company\|candidate` | both | One yes/no question after a meeting |
 | `GET /api/organiser/export?company=` | organiser | CSV for Tavata (access code, email, blind code, company, role) — the only place identity is joined |
 | `GET /api/health` | ops | Per-service status, no secrets |
@@ -27,7 +29,7 @@ A working end-to-end prototype on real services (Next.js 16 on Vercel, Aiven Pos
 
 ```
 app/                 routes (server components fetch; "use client" files hold UI state)
-components/          app-shell (organiser sidebar), organiser-nav, public-shell (+ Timeline), ui/ (shadcn)
+components/          app-shell (organiser sidebar), organiser-nav, public-shell, timeline, event-label (live event name), ui/ (shadcn)
 lib/
   env.ts service.ts  env parsing (all optional), error codes, Sourced<T> = live | stub
   brand.ts           product name + logo paths (public/brand/*, favicon app/icon.png, source docs/brand/)
@@ -63,13 +65,16 @@ public/demo/         synthetic CV + LinkedIn-export PDFs (Aisha)
 
 ## 3. Demo path (pitch)
 
-1. `/` → **Companies** → "Fill demo text" → Create card (on the deploy it reads `/demo/kuura-photonics/careers`) → PhD question → card with must-haves and live pool count → Confirm → "N people meet your must-haves". "Start over (demo)" resets.
+1. `/` → **Companies** → code `KUURA-2026` → "Fill demo text" → Create card (on the deploy it reads `/demo/kuura-photonics/careers`) → PhD question → card with must-haves and live pool count → Confirm → "N people meet your must-haves". "Start over (demo)" resets.
 2. `/candidate` → "Fill demo answers" → Join → "Demo: jump" → choose Nordic Photonics (+ one more) → available → Use sample CV → Use sample export → Fill demo answers → Send.
 3. `/organiser/review/nordic-photonics` (sign in with `ORGANISER_PASSWORD` if set) → "Select clean cases" → Approve (7/8) → open A-07 (or the new candidate) → note → Approve with note (8/8) → decision log, bias check, Export CSV. "Reset demo" resets.
 4. Back at the candidate status page: Tavata code shown.
-5. `/organiser/feedback` → "Answer as the candidate/company" → both-yes rate updates.
+5. After the event: `/company` with `QUANTUMLAB-2026` → answer Yes for A-01; `/candidate/cand.001` → Yes → both see "You both want to continue"; `/organiser/feedback` shows the both-yes rate and sends reminders.
+6. `/organiser/settings`: rename the event or add a type of work → landing, headers and pool form follow.
 
-Re-seed before the pitch: `npm run db:seed`. On the deploy set `ORGANISER_PASSWORD` and, for the reset buttons, `DEMO_MODE=1`. Run `npm run db:migrate` once (migration 004 adds the rate-limit table). If a seed fails with ECONNRESET, run `npx tsx --conditions=react-server --env-file=.env scripts/_db-activity.ts`, then seed again.
+Verified end to end on 2026-11-15 (production build, live Gemini + Gemma). Every approved application counts as a meeting (the prototype has no clock), so a freshly approved person already sees the after-meeting question.
+
+Re-seed before the pitch: `npm run db:seed`. On the deploy set `ORGANISER_PASSWORD` and, for the reset buttons, `DEMO_MODE=1`. Run `npm run db:migrate` once (migrations up to 009). If a seed fails with ECONNRESET, run `npx tsx --conditions=react-server --env-file=.env scripts/_db-activity.ts`, then seed again.
 
 ## 4. Hardcoded — what to move out (DONE 2026-11-14: `lib/matchready/event.ts`, `config.ts`, `demo.ts`; kept for reference)
 

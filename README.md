@@ -11,6 +11,8 @@ Built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment
 <p align="center">
   <img alt="Challenge: City of Espoo, Rethinking Recruitment" src="https://img.shields.io/badge/challenge-City%20of%20Espoo%20%C2%B7%20Rethinking%20Recruitment-011135">
   <img alt="Junction 2026" src="https://img.shields.io/badge/Junction-2026-0a5bd3">
+  <!-- TODO: replace https://YOUR-PROJECT.vercel.app with the deployed URL -->
+  <a href="https://junction-2026-lafa.vercel.app"><img alt="Open the live demo" src="https://img.shields.io/badge/Live%20demo-open-0a5bd3?style=for-the-badge&logo=vercel&logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -34,8 +36,6 @@ Built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment
 </p>
 
 <p align="center">
-  <!-- TODO: add the deployed demo URL -->
-  <b>Live demo:</b> TODO ·
   <a href="#try-the-demo">Try the demo</a> ·
   <a href="#tech-challenges-and-stack">Tech challenges and stack</a> ·
   <a href="#responsible-ai">Responsible AI</a> ·

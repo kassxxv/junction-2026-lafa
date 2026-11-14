@@ -168,10 +168,17 @@ export function phraseIn(phrase: string, text: string): boolean {
 
 /**
  * A keyword phrase counts when ALL its words appear in ONE of the texts (one area tag, the title
- * or one task). Words spread over different lines of a job do not add up to a match.
+ * or one task), or when a text of two or more words lies entirely inside the phrase (the tag
+ * "lab equipment" shows "lab measurement equipment"). Words spread over different lines of a
+ * job never add up to a match, and a one-word tag ("testing") never matches a longer phrase.
  */
 export function mentions(keywords: string[], texts: string[]): boolean {
-  return keywords.some((k) => texts.some((t) => phraseIn(k, t)));
+  return keywords.some((k) => texts.some((t) => phraseIn(k, t) || (tokens(t).length >= 2 && phraseIn(t, k))));
+}
+
+/** Keywords used to find a requirement: the given ones plus the requirement's own label, never empty. */
+export function searchPhrases(r: Pick<Requirement, "label" | "keywords">): string[] {
+  return [...new Set([...r.keywords, r.label].map((k) => k.trim()).filter(Boolean))];
 }
 
 /** The same thing named two ways: one name contains all words of the other ("Photonics" ~ "Photonics and Optics"). */
@@ -311,7 +318,7 @@ export function evidenceFor(req: Requirement, cv: CvFacts, li: LinkedinFacts | n
 
   switch (req.type) {
     case "experience": {
-      const counted = cv.experience.map((e, i) => ({ e, i })).filter(({ e }) => mentions(req.keywords, [e.title, ...e.areas, ...e.tasks]));
+      const counted = cv.experience.map((e, i) => ({ e, i })).filter(({ e }) => mentions(searchPhrases(req), [e.title, ...e.areas, ...e.tasks]));
       if (!counted.length) return { ...base, value: null, meets: false, source: "none" };
       const hits = counted.map(({ e }) => e);
       const total = monthsCovered(hits, asOf);
@@ -332,9 +339,9 @@ export function evidenceFor(req: Requirement, cv: CvFacts, li: LinkedinFacts | n
       return { ...base, value: `${formatDuration(total)} · ${where}`, meets: total >= (req.minYears ?? 0) * 12, source: "cv", linkedinMatch };
     }
     case "has_done": {
-      const task = cv.experience.find((e) => mentions(req.keywords, [...e.tasks, ...e.areas]));
+      const task = cv.experience.find((e) => mentions(searchPhrases(req), [...e.tasks, ...e.areas]));
       if (task) return { ...base, value: `${task.employer} · described in tasks`, meets: true, source: "cv" };
-      const skill = cv.skills.find((s) => mentions(req.keywords, [s]));
+      const skill = cv.skills.find((s) => mentions(searchPhrases(req), [s]));
       if (skill) return { ...base, value: `${skill} · listed in skills`, meets: true, source: "cv" };
       return { ...base, value: null, meets: null, source: "none" };
     }

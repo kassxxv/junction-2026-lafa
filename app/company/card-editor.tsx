@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { confirmCompanyCard, previewPool, resetCompanyDemo } from "@/lib/matchready/card-actions";
-import { formatDay } from "@/lib/matchready/event";
+import { EVENT, formatDateRange, formatDay } from "@/lib/matchready/event";
+import { requirementText } from "@/lib/matchready/facts";
+import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
 import {
   CEFR,
   GOAL_LABEL,
@@ -110,7 +112,24 @@ export function CardEditor({
       }
       setPool(r.pool);
       setConfirmed(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
+  }
+
+  // After confirming, the company sees the result and what happens next, not the same form with a grey button.
+  if (confirmed && pool) {
+    return (
+      <ConfirmedView
+        companyName={company.name}
+        card={card}
+        pool={pool}
+        hiring={hiring}
+        companyDeadline={companyDeadline}
+        onEdit={() => setConfirmed(false)}
+        onStartOver={demo ? () => startTransition(async () => { await resetCompanyDemo(company.id); window.location.reload(); }) : undefined}
+        pending={pending}
+      />
+    );
   }
 
   return (
@@ -238,28 +257,15 @@ export function CardEditor({
             )}
             <div className="flex flex-wrap items-center gap-3">
               {error && <span className="text-sm text-destructive">{error}</span>}
-              <Button size="lg" disabled={pending || confirmed} onClick={confirm} className="bg-status-confirmed hover:bg-status-confirmed/85">
+              <Button size="lg" disabled={pending} onClick={confirm} className="bg-status-confirmed hover:bg-status-confirmed/85">
                 <Check data-icon="inline-start" />
-                {confirmed ? "Confirmed" : pending ? "Saving…" : "Confirm card"}
+                {pending ? "Saving…" : company.status === "confirmed" ? "Save changes" : "Confirm card"}
               </Button>
             </div>
           </div>
         </section>
 
         <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-          {confirmed && pool ? (
-            <>
-              <PoolPanel pool={pool} deadline={companyDeadline} />
-              {demo && (
-                <button
-                  onClick={() => startTransition(async () => { await resetCompanyDemo(company.id); window.location.reload(); })}
-                  className="px-1 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-                >
-                  Start over (demo)
-                </button>
-              )}
-            </>
-          ) : (
             <div className="rounded-xl border border-border bg-card p-5">
               <h2 className="font-semibold">Why confirm early?</h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -276,7 +282,6 @@ export function CardEditor({
                 </p>
               )}
             </div>
-          )}
           <p className="flex gap-2 px-1 text-xs text-muted-foreground">
             <Sparkles className="mt-0.5 size-3.5 shrink-0" />
             Drafted by an AI assistant from what you sent. Marked “suggested” where it guessed. Nothing is shared until you
@@ -386,6 +391,92 @@ function RequirementRow({ r, onChange, onRemove }: { r: CardRequirement; onChang
         </Button>
       </div>
     </li>
+  );
+}
+
+function ConfirmedView({
+  companyName,
+  card,
+  pool,
+  hiring,
+  companyDeadline,
+  onEdit,
+  onStartOver,
+  pending,
+}: {
+  companyName: string;
+  card: CompanyCardDraft;
+  pool: PoolStats;
+  hiring: boolean;
+  companyDeadline: string;
+  onEdit: () => void;
+  onStartOver?: () => void;
+  pending: boolean;
+}) {
+  const role = card.roles[0];
+  const musts = role?.requirements.filter((r) => r.mustHave && r.label.trim()) ?? [];
+  const steps = [
+    { date: formatDay(companyDeadline), text: `Company deadline. Professionals in your field are invited and choose up to ${MAX_COMPANIES_PER_CANDIDATE} companies.` },
+    { date: formatDay(EVENT.applicationDeadline), text: "Applications close. Each applicant shows where they meet your requirements." },
+    { date: formatDay(EVENT.decisionDate), text: "The organisers decide who gets a meeting with you. You get the list with meeting times on Tavata." },
+    { date: formatDateRange(EVENT.startsOn, EVENT.endsOn), text: `1:1 meetings at ${EVENT.name}. After each one, you answer one question: continue or not.` },
+  ];
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:py-12">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-status-confirmed-bg px-3 py-1 text-sm font-medium text-status-confirmed">
+            <Check className="size-4" /> Card confirmed
+          </span>
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+            {hiring && role?.title ? `${companyName} is looking for: ${role.title}` : `${companyName} is on the list`}
+          </h1>
+          <p className="mt-2 max-w-[60ch] text-muted-foreground">
+            Nothing else to do now. You can still change the card until {formatDay(companyDeadline)}.
+          </p>
+
+          {hiring && musts.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-sm font-medium text-muted-foreground">Your must-haves</h2>
+              <ul className="mt-2 flex flex-wrap gap-1.5">
+                {musts.map((r) => (
+                  <li key={r.key} className="rounded bg-status-ask-bg px-2 py-1 text-sm text-status-ask">
+                    {requirementText(r)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <h2 className="mt-8 font-semibold">What happens next</h2>
+          <ol className="mt-3 space-y-3">
+            {steps.map((s) => (
+              <li key={s.date} className="grid gap-1 sm:grid-cols-[140px_minmax(0,1fr)]">
+                <span className="text-sm font-semibold tabular-nums">{s.date}</span>
+                <span className="text-sm text-muted-foreground">{s.text}</span>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-5">
+            <Button variant="outline" className="bg-card" onClick={onEdit} disabled={pending}>
+              <ArrowLeft data-icon="inline-start" />
+              Edit card
+            </Button>
+            {onStartOver && (
+              <button onClick={onStartOver} disabled={pending} className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+                Start over (demo)
+              </button>
+            )}
+          </div>
+        </section>
+
+        <aside className="lg:sticky lg:top-6 lg:self-start">
+          <PoolPanel pool={pool} deadline={companyDeadline} />
+        </aside>
+      </div>
+    </div>
   );
 }
 

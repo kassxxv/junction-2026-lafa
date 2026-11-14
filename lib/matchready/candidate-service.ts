@@ -261,6 +261,8 @@ export interface SubmitInput {
     starter: string;
     /** Answer to the company's optional task, in the candidate's own words. */
     taskAnswer: string;
+    /** The candidate says an AI tool helped write the task answer. Shown as stated, never scored. */
+    taskAiUsed: boolean;
     /** Values the candidate typed for a requirement (overrides the CV prefill). */
     stated: Record<string, string>;
     proofs: Record<string, { type: "diploma" | "certificate" | "link" | "reference"; ref: string }>;
@@ -290,8 +292,8 @@ export async function submitApplications(input: SubmitInput): Promise<{ ok: true
       if (!company) continue;
       const appId = `${input.candidateId}.${company.id}`;
       await q(
-        `INSERT INTO applications (id, candidate_id, company_id, role_id, available, starter_answer, task_answer) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-        [appId, input.candidateId, company.id, company.role?.id ?? null, input.available, a.starter.trim() || null, (company.task && a.taskAnswer.trim()) || null],
+        `INSERT INTO applications (id, candidate_id, company_id, role_id, available, starter_answer, task_answer, task_ai_used) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        [appId, input.candidateId, company.id, company.role?.id ?? null, input.available, a.starter.trim() || null, (company.task && a.taskAnswer.trim()) || null, Boolean(company.task && a.taskAnswer.trim() && a.taskAiUsed)],
       );
       for (const r of company.requirements) {
         const ev = evidenceFor(r, doc.cv_facts!, doc.linkedin_facts, doc.languages);

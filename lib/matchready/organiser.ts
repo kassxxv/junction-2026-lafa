@@ -79,6 +79,8 @@ export interface ApplicationRow {
   starter: string | null;
   /** Answer to the company task, as the candidate wrote it. Read by humans, never scored. */
   taskAnswer: string | null;
+  /** The candidate's own statement that an AI tool helped with the task answer. */
+  taskAiUsed: boolean;
 }
 
 export interface DecisionRow {
@@ -184,8 +186,8 @@ export async function getReview(companyId: string): Promise<Review | null> {
       `SELECT title, details, conversation_starter FROM roles WHERE company_id = $1 ORDER BY position LIMIT 1`,
       [companyId],
     ),
-    query<{ id: string; code: string; status: string; starter_answer: string | null; task_answer: string | null; checks: LinkedinCheck[] | null }>(
-      `SELECT a.id, c.code, a.status, a.starter_answer, a.task_answer, d.linkedin_checks AS checks
+    query<{ id: string; code: string; status: string; starter_answer: string | null; task_answer: string | null; task_ai_used: boolean; checks: LinkedinCheck[] | null }>(
+      `SELECT a.id, c.code, a.status, a.starter_answer, a.task_answer, a.task_ai_used, d.linkedin_checks AS checks
        FROM applications a JOIN candidates c ON c.id = a.candidate_id
        LEFT JOIN candidate_documents d ON d.candidate_id = a.candidate_id
        WHERE a.company_id = $1 ORDER BY c.code`,
@@ -259,6 +261,7 @@ export async function getReview(companyId: string): Promise<Review | null> {
       checks,
       starter: a.starter_answer,
       taskAnswer: a.task_answer,
+      taskAiUsed: a.task_ai_used,
     };
   });
 

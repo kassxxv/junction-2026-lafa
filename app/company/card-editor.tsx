@@ -227,7 +227,7 @@ export function CardEditor({
                   <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
                     <h2 className="font-semibold">Requirements</h2>
                     <span className="text-sm text-muted-foreground">
-                      Tick what is a must-have. The 3–5 that really matter work best.
+                      Mark the 3–5 must-haves that really matter.
                     </span>
                   </div>
                   <ul className="divide-y divide-border rounded-lg border border-border">
@@ -252,7 +252,7 @@ export function CardEditor({
                   )}
                 </div>
 
-                <Row label="Conversation starter" hint="Candidates answer it in a few sentences. It goes to your meeting as the first topic and is never used for selection.">
+                <Row label="Conversation starter" hint="Candidates answer in a few sentences. It opens your meeting and is never used for selection.">
                   <Textarea value={role.starter} onChange={(e) => updateRole({ starter: e.target.value })} className="min-h-16 bg-card" />
                 </Row>
 
@@ -292,11 +292,8 @@ export function CardEditor({
 
         <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
             <div className="rounded-xl border border-border bg-card p-5">
-              <h2 className="font-semibold">Why confirm early?</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                After you confirm, you see how many people in the talent pool match, and candidates can choose you after{" "}
-                {fmtDate(companyDeadline)}.
-              </p>
+              <h2 className="font-semibold">Talent pool</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Candidates can choose you after {fmtDate(companyDeadline)}.</p>
               {livePool && hiring && (
                 <p className="mt-4 flex gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm">
                   <Users className="mt-0.5 size-4 shrink-0 text-primary" />

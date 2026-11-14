@@ -7,6 +7,7 @@ import { BackLink } from "@/components/back-link";
 import { CHECK_STYLE, MustHaveBadge } from "@/components/fact-labels";
 import { Timeline } from "@/components/public-shell";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveLinkedin, sendApplications, uploadDocument } from "@/lib/matchready/candidate-actions";
@@ -65,6 +66,7 @@ export function ApplyForm({
   const [openProof, setOpenProof] = useState<string | null>(null);
   const [starters, setStarters] = useState<Record<string, string>>({});
   const [taskAnswers, setTaskAnswers] = useState<Record<string, string>>({});
+  const [taskAi, setTaskAi] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -103,7 +105,7 @@ export function ApplyForm({
       const r = await sendApplications({
         candidateId,
         available: true,
-        applications: companies.map((c) => ({ companyId: c.id, starter: starters[c.id] ?? "", taskAnswer: taskAnswers[c.id] ?? "", stated: stated[c.id] ?? {}, proofs: proofs[c.id] ?? {} })),
+        applications: companies.map((c) => ({ companyId: c.id, starter: starters[c.id] ?? "", taskAnswer: taskAnswers[c.id] ?? "", taskAiUsed: taskAi[c.id] ?? false, stated: stated[c.id] ?? {}, proofs: proofs[c.id] ?? {} })),
       });
       if (r.ok) router.push(`/candidate/${encodeURIComponent(candidateId)}`);
       else setError(r.error);
@@ -120,7 +122,7 @@ export function ApplyForm({
         <Timeline stage={2} />
         <h1 className="title-page">Show where you meet each requirement</h1>
         <p className="mt-1 max-w-[62ch] text-muted-foreground">
-          Only what your chosen companies ask for. Proof is optional: without it, the organiser sees “stated by candidate”.
+          Proof is optional.
         </p>
 
         {/* Documents */}
@@ -138,7 +140,7 @@ export function ApplyForm({
                 <>
                   {stage1Cv && (
                     <Button size="sm" onClick={() => upload("cv", null, true)} disabled={!!busy}>
-                      Use the CV from Stage 1
+                      Use the CV you uploaded earlier
                     </Button>
                   )}
                   <FilePick label={cvParsed ? "Replace CV" : "Upload CV to prefill everything below"} disabled={!!busy} onFile={(f) => upload("cv", f)} primary={!stage1Cv && !cvParsed} />
@@ -175,8 +177,8 @@ export function ApplyForm({
           </div>
           <p className="flex gap-2 border-t border-border px-5 py-3 text-xs text-muted-foreground">
             <Info className="mt-0.5 size-3.5 shrink-0" />
-            On LinkedIn: More → Save to PDF. We only use it to show differences from your CV. No LinkedIn does not lower
-            your chances.
+            On LinkedIn: More → Save to PDF. We use it only to compare with your CV. Not having LinkedIn never counts against
+            you.
           </p>
         </section>
 
@@ -301,6 +303,13 @@ export function ApplyForm({
                   placeholder="Use a project from your own work. You will walk the company through your answer at the start of the meeting."
                   className="mt-3 min-h-28 bg-card"
                 />
+                <label className="mt-3 flex items-start gap-2.5 text-sm">
+                  <Checkbox checked={taskAi[c.id] ?? false} onCheckedChange={(v) => setTaskAi((s) => ({ ...s, [c.id]: v === true }))} className="mt-0.5" />
+                  <span>
+                    I used an AI tool to help write this answer{" "}
+                    <span className="text-muted-foreground">(allowed: the company sees that you said so)</span>
+                  </span>
+                </label>
               </div>
             )}
           </section>

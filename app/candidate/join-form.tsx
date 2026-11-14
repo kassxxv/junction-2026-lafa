@@ -96,7 +96,6 @@ export function JoinForm({
                 );
               })}
             </div>
-            <p className="mt-1.5 text-xs text-muted-foreground">Set by the organisers for this event.</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -147,12 +146,12 @@ export function JoinForm({
           <label className="block text-sm font-medium">
             <span className="block">Email</span>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1.5 max-w-80 bg-card font-normal" />
-            <span className="mt-1 block text-xs font-normal text-muted-foreground">Only to tell you when companies are confirmed and what happens next.</span>
+            <span className="mt-1 block text-xs font-normal text-muted-foreground">Only for updates about this event.</span>
           </label>
 
           <div>
             <p className="text-sm font-medium">Your CV (optional now)</p>
-            <p className="mb-2 text-xs text-muted-foreground">Needed when you apply. We reuse it so you don&apos;t type your history twice.</p>
+            <p className="mb-2 text-xs text-muted-foreground">Needed when you apply. We reuse it.</p>
             {cv ? (
               <span className="inline-flex items-center gap-2 rounded-full bg-status-confirmed-bg px-3 py-1.5 text-sm text-status-confirmed">
                 <Check className="size-4" /> {cv.name}

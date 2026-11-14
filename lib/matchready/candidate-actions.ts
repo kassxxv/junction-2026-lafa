@@ -126,6 +126,7 @@ const Submit = z.object({
         companyId: z.string().max(100),
         starter: z.string().max(1500),
         taskAnswer: z.string().max(MAX_TASK_ANSWER_CHARS).default(""),
+        taskAiUsed: z.boolean().default(false),
         stated: z.record(z.string(), z.string().max(300)),
         proofs: z.record(z.string(), z.object({ type: z.enum(["diploma", "certificate", "link", "reference"]), ref: z.string().max(300) })),
       }),

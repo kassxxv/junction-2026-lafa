@@ -31,6 +31,7 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
   const applied = c.applications.length > 0;
   const decided = c.applications.some((a) => a.status !== "submitted");
   const approved = c.applications.filter((a) => a.status === "approved");
+  const pendingCount = c.applications.filter((a) => a.status === "submitted").length;
 
   return (
     <div className="page-narrow px-5 py-10">
@@ -39,7 +40,7 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
           <Check className="size-4" /> {applied ? "Application sent" : "You are in the talent pool"}
         </span>
 
-        <Timeline stage={approved.length ? 4 : applied ? 3 : 1} />
+        <Timeline stage={applied && !pendingCount && approved.length ? 4 : applied ? 3 : 1} />
 
         {!applied && (
           <>
@@ -59,7 +60,11 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
 
         {applied && (
           <>
-            <h1 className="title-page">{approved.length ? "You have a meeting pass" : "Waiting for organiser review"}</h1>
+            <h1 className="title-page">{!approved.length
+                ? "Waiting for organiser review"
+                : approved.length === c.applications.length
+                  ? "You have a meeting pass"
+                  : `Meeting pass for ${approved.length} of ${c.applications.length} companies`}</h1>
             <ul className="mt-4 divide-y divide-border rounded-lg border border-border">
               {c.applications.map((a) => (
                 <li key={a.companyId} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">

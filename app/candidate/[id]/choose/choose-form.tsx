@@ -58,7 +58,6 @@ export function ChooseForm({
     <div className="page-form px-5 py-10">
       <BackLink href={`/candidate/${encodeURIComponent(candidateId)}`}>Back to your status</BackLink>
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-medium text-primary">Step 2: choose companies</p>
         <Timeline stage={2} />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -93,14 +92,8 @@ export function ChooseForm({
                       {c.details && `, ${c.details}`}
                     </div>
                   </div>
-                  <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${on ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                    {on ? (
-                      <>
-                        <Check className="size-3" /> Selected
-                      </>
-                    ) : (
-                      "Select"
-                    )}
+                  <span aria-hidden className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${on ? "border-primary bg-primary text-primary-foreground" : "border-input bg-card"}`}>
+                    {on && <Check className="size-3.5" />}
                   </span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">

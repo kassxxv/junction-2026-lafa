@@ -120,7 +120,6 @@ export function ApplyForm({
     <div className="page-form px-5 py-10">
       <BackLink href={`/candidate/${encodeURIComponent(candidateId)}/choose`}>Back to choose companies</BackLink>
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-medium text-primary">Step 3: your application</p>
         <Timeline stage={2} />
         <h1 className="title-page">Show where you meet each requirement</h1>
         <p className="mt-1 max-w-[62ch] text-muted-foreground">
@@ -237,12 +236,13 @@ export function ApplyForm({
                           {r.mustHave && <span className="rounded bg-status-ask-bg px-1.5 py-0.5 text-[0.7rem] font-semibold text-status-ask">MUST</span>}
                         </td>
                         <td className="px-3 py-2">
-                          <Input
+                          <Textarea
+                            rows={1}
                             value={value}
                             disabled={!cvParsed}
                             onChange={(e) => setStated((s) => ({ ...s, [c.id]: { ...(s[c.id] ?? {}), [r.id]: e.target.value } }))}
                             placeholder={!cvParsed ? "Upload your CV to prefill, or type here" : missing ? "Not found in your CV. Add it if you have it." : ""}
-                            className={`h-8 bg-card ${missing && !value ? "border-status-ai/60 placeholder:text-status-ai" : ""}`}
+                            className={`min-h-8 resize-none bg-card py-1.5 ${missing && !value ? "border-status-ai/60 placeholder:text-status-ai" : ""}`}
                           />
                         </td>
                         <td className="px-5 py-2.5">

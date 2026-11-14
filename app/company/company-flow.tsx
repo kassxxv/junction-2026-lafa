@@ -35,7 +35,9 @@ function applyAnswer(draft: CompanyCardDraft, q: CardQuestion, answer: string | 
     const byLabel = Object.entries(GOAL_LABEL) as [GoalId, string][];
     d.goals = byLabel.filter(([, label]) => value.includes(label)).map(([id]) => id);
   } else if (q.target === "event_goal") {
-    d.eventGoal = value[0] ?? d.eventGoal;
+    const a = (value[0] ?? "").trim();
+    // A bare number or range ("5-10", "10+") answers "how many people?": turn it into a goal sentence.
+    d.eventGoal = /^\d+\s*(?:[-–]\s*\d+|\+)?$/.test(a) ? `Meet ${a.replace(/\s+/g, "")} people at the event` : a || d.eventGoal;
   } else if (q.target === "role_title") {
     if (!d.roles.length) d.roles.push({ key: "role-1", title: "", details: "", starter: "", requirements: [] });
     d.roles[0].title = value[0] ?? "";

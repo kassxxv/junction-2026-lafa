@@ -278,8 +278,17 @@ export function CardEditor({
                 <p className="mt-4 flex gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm">
                   <Users className="mt-0.5 size-4 shrink-0 text-primary" />
                   <span>
-                    Right now <strong className="tabular-nums">{livePool.matchAll}</strong> of {livePool.inField} people
-                    in {livePool.field ?? "the pool"} meet your must-haves.
+                    {musts > 0 ? (
+                      <>
+                        Right now <strong className="tabular-nums">{livePool.matchAll}</strong> of {livePool.inField} people in{" "}
+                        {livePool.field ?? "the pool"} meet your must-haves.
+                      </>
+                    ) : (
+                      <>
+                        <strong className="tabular-nums">{livePool.inField}</strong> people in {livePool.field ?? "the pool"}. Mark a
+                        must-have to see how many meet it.
+                      </>
+                    )}
                   </span>
                 </p>
               )}
@@ -486,11 +495,19 @@ function PoolPanel({ pool, deadline }: { pool: PoolStats; deadline: string }) {
   return (
     <div className="rounded-xl border border-status-confirmed/30 bg-card p-5">
       <p className="text-sm font-medium text-status-confirmed">Already in the talent pool</p>
-      <p className="mt-1 text-5xl font-semibold tabular-nums">{pool.matchAll}</p>
-      <p className="font-medium">{pool.matchAll === 1 ? "person meets" : "people meet"} your must-haves</p>
-      <p className="text-sm text-muted-foreground">
-        of {pool.inField} in {pool.field ?? "the pool"}
-      </p>
+      <p className="mt-1 text-5xl font-semibold tabular-nums">{pool.perMustHave.length ? pool.matchAll : pool.inField}</p>
+      {pool.perMustHave.length ? (
+        <>
+          <p className="font-medium">{pool.matchAll === 1 ? "person meets" : "people meet"} your must-haves</p>
+          <p className="text-sm text-muted-foreground">
+            of {pool.inField} in {pool.field ?? "the pool"}
+          </p>
+        </>
+      ) : (
+        <p className="font-medium">
+          {pool.inField === 1 ? "person" : "people"} in {pool.field ?? "the pool"}. You marked no must-haves, so all of them can apply.
+        </p>
+      )}
       {pool.perMustHave.length > 0 && (
         <ul className="mt-4 space-y-3">
           {pool.perMustHave.map((m) => (

@@ -243,7 +243,7 @@ export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }
                     <li className="text-muted-foreground">No decisions yet.</li>
                   )}
                 </ul>
-                <Button asChild variant="outline" className="mt-4 w-full bg-card" disabled={!filled}>
+                <Button asChild variant="outline" className="mt-4 h-auto w-full bg-card py-2 whitespace-normal" disabled={!filled}>
                   <a href={filled ? `/api/organiser/export?company=${company.id}` : undefined} aria-disabled={!filled}>
                     <Download data-icon="inline-start" />
                     Export {filled} approved for Tavata (CSV)
@@ -291,11 +291,11 @@ function Detail({
         <div>
           <h3 className="mb-2 font-medium">Company needs and where the candidate has it</h3>
           <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full min-w-[560px] text-left text-sm">
+            <table className="w-full table-fixed text-left text-sm">
               <thead className="bg-muted/50 text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2 font-medium">Company requirement</th>
-                  <th className="w-16 px-3 py-2" />
+                  <th className="w-[38%] px-3 py-2 font-medium">Company requirement</th>
+                  <th className="w-[4.5rem] px-2 py-2" />
                   <th className="px-3 py-2 font-medium">Where the candidate has it</th>
                   <th className="w-10 px-3 py-2" />
                 </tr>
@@ -436,7 +436,7 @@ function EvidenceTag({ r }: { r: RequirementRow }) {
   const strong = r.proofType || r.linkedinMatch;
   return (
     <span
-      className={`ml-2 rounded-full px-2 py-0.5 text-xs ${strong ? "bg-status-confirmed-bg text-status-confirmed" : "bg-muted text-muted-foreground"}`}
+      className={`ml-2 inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs ${strong ? "bg-status-confirmed-bg text-status-confirmed" : "bg-muted text-muted-foreground"}`}
     >
       {tag}
     </span>
@@ -453,11 +453,11 @@ function BiasPanel({ bias }: { bias: Review["bias"] }) {
       <ul className="mt-4 space-y-3">
         {rows.map((r) => (
           <li key={r.label} className="text-sm">
-            <div className="mb-1 flex justify-between">
-              <span>{r.label}</span>
-              <span className="tabular-nums text-muted-foreground">
-                approved {r.approved === null ? "–" : pct(r.approved)}, applicants {pct(r.applicants)}
-              </span>
+            <div className="mb-1">
+              <div className="font-medium">{r.label}</div>
+              <div className="text-xs tabular-nums text-muted-foreground">
+                {r.approved === null ? "No approvals yet" : `${pct(r.approved)} of approved`}, {pct(r.applicants)} of applicants
+              </div>
             </div>
             <div className="relative h-2 rounded-full bg-muted">
               <div className="absolute inset-y-0 left-0 rounded-full bg-primary/30" style={{ width: pct(r.applicants) }} />

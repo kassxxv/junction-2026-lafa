@@ -32,7 +32,7 @@ export function PublicShell({ right, children }: { right?: ReactNode; children: 
   );
 }
 
-const STEPS = ["Talent pool", "Company deadline", "Choose companies", "Organiser review", "Meetings on Tavata"];
+const STEPS = ["Talent pool", "Company deadline", "Choose and apply", "Organiser review", "Meetings on Tavata"];
 
 /** Where the candidate is in the process. `stage` = index of the current step. */
 export function Timeline({ stage }: { stage: number }) {

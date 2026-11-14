@@ -100,7 +100,7 @@ export default async function OrganiserOverview() {
                       {c.cardStatus === "confirmed" ? (
                         <span className="rounded-full bg-status-confirmed-bg px-2.5 py-0.5 text-xs font-medium text-status-confirmed">Confirmed</span>
                       ) : (
-                        <span className="rounded-full bg-status-ai-bg px-2.5 py-0.5 text-xs font-medium text-status-ai">Draft, not confirmed</span>
+                        <span className="rounded-full bg-status-ai-bg px-2.5 py-0.5 text-xs font-medium text-status-ai whitespace-nowrap">Draft</span>
                       )}
                     </td>
                     <td className="px-5 py-3 tabular-nums">{c.applications}</td>
@@ -109,7 +109,7 @@ export default async function OrganiserOverview() {
                         <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
                           <div className="h-full rounded-full bg-status-confirmed" style={{ width: `${Math.min(100, (c.approved / c.places) * 100)}%` }} />
                         </div>
-                        <span className="tabular-nums text-muted-foreground">
+                        <span className="whitespace-nowrap tabular-nums text-muted-foreground">
                           {c.approved} / {c.places}
                         </span>
                       </div>
@@ -120,7 +120,7 @@ export default async function OrganiserOverview() {
                           Review <ArrowRight className="size-3.5" />
                         </Link>
                       ) : (
-                        <span className="text-xs text-muted-foreground">No applications yet</span>
+                        <span className="whitespace-nowrap text-xs text-muted-foreground">No applications</span>
                       )}
                     </td>
                   </tr>

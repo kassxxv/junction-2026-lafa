@@ -71,8 +71,7 @@ export function JoinForm({
   return (
     <div className="page-wide grid gap-6 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-medium text-primary">Step 1: talent pool</p>
-        <h1 className="title-page mt-1">Join the talent pool</h1>
+        <h1 className="title-page">Join the talent pool</h1>
         <p className="mt-2 max-w-[58ch] text-muted-foreground">
           About one minute. Nobody is selected here. You choose companies later, when you know who is coming.
         </p>
@@ -145,7 +144,7 @@ export function JoinForm({
           </div>
 
           <label className="block text-sm font-medium">
-            Email
+            <span className="block">Email</span>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1.5 max-w-80 bg-card font-normal" />
             <span className="mt-1 block text-xs font-normal text-muted-foreground">Only to tell you when companies are confirmed and what happens next.</span>
           </label>

@@ -4,7 +4,7 @@ import { Check, FileUp, Info, Loader2, Paperclip, Plus, ShieldCheck } from "luci
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { BackLink } from "@/components/back-link";
-import { CHECK_STYLE, MustHaveBadge } from "@/components/fact-labels";
+import { CheckList, MustHaveBadge, requirementState, StatusIcon } from "@/components/fact-labels";
 import { Timeline } from "@/components/timeline";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -118,230 +118,237 @@ export function ApplyForm({
   return (
     <div className="page-form px-5 py-10">
       <BackLink href={`/candidate/${encodeURIComponent(candidateId)}/choose`}>Back to choose companies</BackLink>
-      <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <Timeline stage={2} />
-        <h1 className="title-page">Show where you meet each requirement</h1>
-        <p className="mt-1 max-w-[62ch] text-muted-foreground">
-          Proof is optional.
-        </p>
+      <Timeline stage={2} />
+      <h1 className="title-page">Show where you meet each requirement</h1>
+      <p className="mt-2 max-w-[62ch] text-muted-foreground">
+        Upload your CV and we fill in the rest. Check it, fix anything wrong, then send. Proof is optional.
+      </p>
 
-        {/* Documents */}
-        <section className="mt-8 rounded-xl border border-border">
-          <h2 className="border-b border-border px-5 py-3 font-semibold">Your documents</h2>
-          <div className="divide-y divide-border">
-            <DocRow
-              label="CV"
-              hint="Required"
-              done={cvParsed}
-              busy={busy === "cv"}
-              busyText="Reading your CV on our EU server…"
-              doneText="CV read. The table below is filled in."
-              actions={
-                <>
-                  {stage1Cv && (
-                    <Button size="sm" onClick={() => upload("cv", null, true)} disabled={!!busy}>
-                      Use the CV you uploaded earlier
-                    </Button>
-                  )}
-                  <FilePick label={cvParsed ? "Replace CV" : "Upload CV to prefill everything below"} disabled={!!busy} onFile={(f) => upload("cv", f)} primary={!stage1Cv && !cvParsed} />
-                  <button className="text-sm text-muted-foreground hover:text-foreground hover:underline" disabled={!!busy} onClick={() => sample("cv")}>
-                    Use sample CV
-                  </button>
-                </>
-              }
-            />
-            <DocRow
-              label="LinkedIn"
-              hint="Optional"
-              done={liParsed}
-              busy={busy === "linkedin"}
-              busyText="Reading your LinkedIn export…"
-              doneText={toCheck ? `Compared with your CV: ${toCheck} ${toCheck === 1 ? "difference" : "differences"} the organiser may ask about` : "Compared with your CV: no differences"}
-              actions={
-                <>
-                  <Input
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    onBlur={() => void saveLinkedin(candidateId, url)}
-                    placeholder="linkedin.com/in/…"
-                    className="h-8 w-56 bg-card"
-                    aria-label="LinkedIn profile URL"
-                  />
-                  <FilePick label="Upload LinkedIn PDF" disabled={!!busy || !cvParsed} onFile={(f) => upload("linkedin", f)} />
-                  <button className="text-sm text-muted-foreground hover:text-foreground hover:underline disabled:opacity-50" disabled={!!busy || !cvParsed} onClick={() => sample("linkedin")}>
-                    Use sample export
-                  </button>
-                </>
-              }
-            />
-          </div>
-          <p className="flex gap-2 border-t border-border px-5 py-3 text-xs text-muted-foreground">
-            <Info className="mt-0.5 size-3.5 shrink-0" />
-            On LinkedIn: More → Save to PDF. We use it only to compare with your CV. Not having LinkedIn never counts against
-            you.
-          </p>
-        </section>
-
-        {liParsed && checks.length > 0 && (
-          <section className="mt-6 rounded-xl border border-border">
-            <h2 className="border-b border-border px-5 py-3 font-semibold">What the organiser will see about your CV and LinkedIn</h2>
-            <ul className="divide-y divide-border">
-              {checks.map((c, i) => (
-                <li key={i} className="flex gap-3 px-5 py-2.5 text-sm">
-                  <span className={`w-28 shrink-0 text-xs font-semibold ${CHECK_STYLE[c.kind].text}`}>{CHECK_STYLE[c.kind].label}</span>
-                  <span>{c.text}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
+      <Step n={1} title="Your documents" aside={cvParsed ? "CV read" : "CV required"}>
+        <div className="divide-y divide-border">
+          <DocRow
+            label="CV"
+            hint="Required"
+            done={cvParsed}
+            busy={busy === "cv"}
+            busyText="Reading your CV on our EU server…"
+            doneText="Read. The requirements below are filled in."
+            actions={
+              <>
+                {stage1Cv && (
+                  <Button size="sm" onClick={() => upload("cv", null, true)} disabled={!!busy}>
+                    Use the CV you uploaded earlier
+                  </Button>
+                )}
+                <FilePick label={cvParsed ? "Replace CV" : "Upload CV"} disabled={!!busy} onFile={(f) => upload("cv", f)} primary={!stage1Cv && !cvParsed} />
+                <button className="text-sm text-muted-foreground hover:text-foreground hover:underline" disabled={!!busy} onClick={() => sample("cv")}>
+                  Use sample CV
+                </button>
+              </>
+            }
+          />
+          <DocRow
+            label="LinkedIn"
+            hint="Optional"
+            done={liParsed}
+            busy={busy === "linkedin"}
+            busyText="Reading your LinkedIn export…"
+            doneText={toCheck ? `Compared: ${toCheck} ${toCheck === 1 ? "difference" : "differences"} to explain` : "Compared: no differences"}
+            actions={
+              <>
+                <Input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  onBlur={() => void saveLinkedin(candidateId, url)}
+                  placeholder="linkedin.com/in/…"
+                  className="h-8 w-52 bg-card"
+                  aria-label="LinkedIn profile URL"
+                />
+                <FilePick label="Upload PDF" disabled={!!busy || !cvParsed} onFile={(f) => upload("linkedin", f)} />
+                <button className="text-sm text-muted-foreground hover:text-foreground hover:underline disabled:opacity-50" disabled={!!busy || !cvParsed} onClick={() => sample("linkedin")}>
+                  Use sample export
+                </button>
+              </>
+            }
+          />
+        </div>
+        {liParsed && checks.length > 0 ? (
+          <div className="border-t border-border px-5 py-4">
+            <h3 className="text-sm font-medium">What the organiser will see about your CV and LinkedIn</h3>
+            <div className="mt-1">
+              <CheckList checks={checks} />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
               {toCheck
-                ? "A difference is not a rejection: the organiser asks about it or adds a note. You can also fix your CV or LinkedIn and upload it again."
+                ? "A difference is not a rejection: the organiser asks about it in the meeting. You can also fix your CV or LinkedIn and upload it again."
                 : "Nothing here needs an explanation."}
             </p>
-          </section>
+          </div>
+        ) : (
+          <p className="flex gap-2 border-t border-border px-5 py-3 text-xs text-muted-foreground">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
+            LinkedIn: More → Save to PDF. We only compare it with your CV. Not having LinkedIn never counts against you.
+          </p>
         )}
+      </Step>
 
-        {notice && <p className="mt-4 rounded-lg bg-status-ai-bg px-4 py-2.5 text-sm text-status-ai">{notice}</p>}
+      {notice && <p className="mt-4 rounded-lg bg-status-ai-bg px-4 py-2.5 text-sm text-status-ai">{notice}</p>}
 
-        {/* Per company */}
-        {companies.map((c) => (
-          <section key={c.id} className="mt-6 rounded-xl border border-border">
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border px-5 py-3">
-              <h2 className="text-lg font-semibold">{c.name}</h2>
-              <span className="text-sm text-muted-foreground">{c.role}</span>
-            </div>
-            {c.requirements.length === 0 ? (
-              <p className="px-5 py-4 text-sm text-muted-foreground">This company listed no specific requirements. Answer the question below.</p>
-            ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="text-muted-foreground">
-                  <tr className="border-b border-border">
-                    <th className="px-5 py-2.5 font-medium">Company asks for</th>
-                    <th className="w-24 px-2 py-2.5" />
-                    <th className="px-3 py-2.5 font-medium">Where you have it</th>
-                    <th className="w-56 px-5 py-2.5 font-medium">Proof (optional)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {c.requirements.map((r) => {
-                    const ev = rowsFor(c.id).find((x) => x.requirementId === r.id);
-                    const missing = cvParsed && !ev?.value;
-                    const value = stated[c.id]?.[r.id] ?? ev?.value ?? "";
-                    const proof = proofs[c.id]?.[r.id];
-                    const key = `${c.id}:${r.id}`;
-                    const pf = PROOF_FOR[r.type];
-                    return (
-                      <tr key={r.id} className="align-top">
-                        <td className="px-5 py-3">{r.text}</td>
-                        <td className="px-2 py-3">
-                          {r.mustHave && <MustHaveBadge />}
-                        </td>
-                        <td className="px-3 py-2">
-                          <Textarea
-                            rows={1}
-                            value={value}
-                            disabled={!cvParsed}
-                            onChange={(e) => setStated((s) => ({ ...s, [c.id]: { ...(s[c.id] ?? {}), [r.id]: e.target.value } }))}
-                            placeholder={!cvParsed ? "Upload your CV to prefill, or type here" : missing ? "Not found in your CV. Add it if you have it." : ""}
-                            className={`min-h-8 resize-none bg-card py-1.5 ${missing && !value ? "border-status-ai/60 placeholder:text-status-ai" : ""}`}
-                          />
-                        </td>
-                        <td className="px-5 py-2.5">
-                          {ev?.linkedinMatch && !stated[c.id]?.[r.id] ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-status-confirmed-bg px-2 py-0.5 text-xs text-status-confirmed">
-                              <Check className="size-3" /> matches LinkedIn
-                            </span>
-                          ) : proof ? (
-                            <span className="inline-flex max-w-full items-center gap-1 truncate rounded-full bg-status-confirmed-bg px-2 py-0.5 text-xs text-status-confirmed">
-                              <Paperclip className="size-3 shrink-0" /> {pf.label}: {proof.ref}
-                            </span>
-                          ) : openProof === key ? (
-                            <form
-                              className="flex gap-1"
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                const ref = String(new FormData(e.currentTarget).get("ref") ?? "").trim();
-                                if (ref) setProofs((p) => ({ ...p, [c.id]: { ...(p[c.id] ?? {}), [r.id]: { type: pf.type, ref } } }));
-                                setOpenProof(null);
-                              }}
-                            >
-                              <Input name="ref" autoFocus placeholder={pf.placeholder} className="h-8 bg-card text-xs" />
-                              <Button size="sm" type="submit">Add</Button>
-                            </form>
-                          ) : (
-                            <button onClick={() => setOpenProof(key)} className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                              <Plus className="size-3.5" /> Add proof
+      {companies.map((c, i) => (
+        <Step key={c.id} n={i + 2} title={c.name} aside={c.role}>
+          {c.requirements.length === 0 ? (
+            <p className="px-5 py-4 text-sm text-muted-foreground">This company listed no specific requirements. Answer the question below.</p>
+          ) : (
+            <ul>
+              <li className="hidden grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] gap-x-6 border-b border-border px-5 py-2 text-xs text-muted-foreground md:grid">
+                <span>Company asks for</span>
+                <span>Where you have it</span>
+              </li>
+              {c.requirements.map((r) => {
+                const ev = rowsFor(c.id).find((x) => x.requirementId === r.id);
+                const typed = stated[c.id]?.[r.id];
+                const value = typed ?? ev?.value ?? "";
+                const missing = cvParsed && !ev?.value;
+                const proof = proofs[c.id]?.[r.id];
+                const key = `${c.id}:${r.id}`;
+                const pf = PROOF_FOR[r.type];
+                const state = !cvParsed ? "neutral" : value.trim() ? (typed ? "neutral" : requirementState({ mustHave: r.mustHave, meets: ev?.meets ?? null })) : r.mustHave ? "check" : "neutral";
+                return (
+                  <li key={r.id} className="grid gap-x-6 gap-y-2 border-b border-border/70 px-5 py-3 last:border-0 md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
+                    <div className="flex gap-2.5 text-sm">
+                      <StatusIcon state={state} className="mt-0.5" />
+                      <span>
+                        {r.text}
+                        {r.mustHave && (
+                          <span className="ml-2">
+                            <MustHaveBadge />
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div>
+                      <Textarea
+                        rows={1}
+                        value={value}
+                        disabled={!cvParsed}
+                        aria-label={`Where you have it: ${r.text}`}
+                        onChange={(e) => setStated((s) => ({ ...s, [c.id]: { ...(s[c.id] ?? {}), [r.id]: e.target.value } }))}
+                        placeholder={!cvParsed ? "Upload your CV first" : missing ? "Not found in your CV. Add it if you have it." : ""}
+                        className={`min-h-9 resize-none bg-card py-1.5 text-sm ${missing && !value ? "border-status-ai/60 placeholder:text-status-ai" : ""}`}
+                      />
+                      <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span>{typed ? "typed by you" : ev?.value ? `from your CV${ev.linkedinMatch ? " · matches LinkedIn" : ""}` : ""}</span>
+                        {proof ? (
+                          <span className="inline-flex max-w-full items-center gap-1 truncate text-status-confirmed">
+                            <Paperclip className="size-3 shrink-0" /> {pf.label}: {proof.ref}
+                          </span>
+                        ) : openProof === key ? (
+                          <form
+                            className="flex w-full gap-1"
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              const ref = String(new FormData(e.currentTarget).get("ref") ?? "").trim();
+                              if (ref) setProofs((p) => ({ ...p, [c.id]: { ...(p[c.id] ?? {}), [r.id]: { type: pf.type, ref } } }));
+                              setOpenProof(null);
+                            }}
+                          >
+                            <Input name="ref" autoFocus placeholder={pf.placeholder} className="h-8 bg-card text-xs" />
+                            <Button size="sm" type="submit">
+                              Add
+                            </Button>
+                          </form>
+                        ) : (
+                          cvParsed && (
+                            <button onClick={() => setOpenProof(key)} className="inline-flex items-center gap-1 text-primary hover:underline">
+                              <Plus className="size-3" /> Add proof
                             </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            )}
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <div className="border-t border-border px-5 py-4">
+            <label className="block text-sm font-medium" htmlFor={`starter-${c.id}`}>
+              {c.starter}
+            </label>
+            <p className="mt-0.5 text-xs text-muted-foreground">Conversation starter: 2–3 sentences. It opens your meeting and is not used for selection.</p>
+            <Textarea
+              id={`starter-${c.id}`}
+              value={starters[c.id] ?? ""}
+              onChange={(e) => setStarters((s) => ({ ...s, [c.id]: e.target.value }))}
+              className="mt-2 min-h-20 bg-card"
+            />
+          </div>
+          {c.task && (
             <div className="border-t border-border px-5 py-4">
-              <label className="block text-sm font-medium" htmlFor={`starter-${c.id}`}>
-                Conversation starter: {c.starter}
+              <label className="block text-sm font-medium" htmlFor={`task-${c.id}`}>
+                Task from {c.name} <span className="font-normal text-muted-foreground">· optional, about {TASK_MINUTES} minutes</span>
               </label>
+              <p className="mt-2 border-l-2 border-border pl-3 text-sm leading-relaxed whitespace-pre-line text-muted-foreground">{c.task}</p>
               <Textarea
-                id={`starter-${c.id}`}
-                value={starters[c.id] ?? ""}
-                onChange={(e) => setStarters((s) => ({ ...s, [c.id]: e.target.value }))}
-                placeholder="2–3 sentences. Not used for selection: it goes to your meeting as the first topic."
-                className="mt-2 min-h-20 bg-card"
+                id={`task-${c.id}`}
+                value={taskAnswers[c.id] ?? ""}
+                onChange={(e) => setTaskAnswers((s) => ({ ...s, [c.id]: e.target.value }))}
+                placeholder="Use a project from your own work. You walk the company through it at the start of the meeting."
+                className="mt-3 min-h-28 bg-card"
               />
+              <label className="mt-3 flex items-start gap-2.5 text-sm">
+                <Checkbox checked={taskAi[c.id] ?? false} onCheckedChange={(v) => setTaskAi((s) => ({ ...s, [c.id]: v === true }))} className="mt-0.5" />
+                <span>
+                  I used an AI tool to help write this answer <span className="text-muted-foreground">(allowed: the company sees that you said so)</span>
+                </span>
+              </label>
             </div>
-            {c.task && (
-              <div className="border-t border-border px-5 py-4">
-                <label className="block text-sm font-medium" htmlFor={`task-${c.id}`}>
-                  Task from {c.name} <span className="font-normal text-muted-foreground">(optional, about {TASK_MINUTES} minutes)</span>
-                </label>
-                <p className="mt-2 border-l-2 border-border pl-3 text-sm leading-relaxed whitespace-pre-line">{c.task}</p>
-                <Textarea
-                  id={`task-${c.id}`}
-                  value={taskAnswers[c.id] ?? ""}
-                  onChange={(e) => setTaskAnswers((s) => ({ ...s, [c.id]: e.target.value }))}
-                  placeholder="Use a project from your own work. You will walk the company through your answer at the start of the meeting."
-                  className="mt-3 min-h-28 bg-card"
-                />
-                <label className="mt-3 flex items-start gap-2.5 text-sm">
-                  <Checkbox checked={taskAi[c.id] ?? false} onCheckedChange={(v) => setTaskAi((s) => ({ ...s, [c.id]: v === true }))} className="mt-0.5" />
-                  <span>
-                    I used an AI tool to help write this answer{" "}
-                    <span className="text-muted-foreground">(allowed: the company sees that you said so)</span>
-                  </span>
-                </label>
-              </div>
-            )}
-          </section>
-        ))}
+          )}
+        </Step>
+      ))}
 
-        {error && <p role="alert" className="mt-5 text-sm text-destructive">{error}</p>}
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button size="lg" disabled={!cvParsed || pending || !!busy} onClick={send}>
-            Send application
-          </Button>
-          <button
-            className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-            onClick={() => {
-              setStarters(Object.fromEntries(companies.map((c) => [c.id, DEMO_CANDIDATE.starter])));
-              setTaskAnswers(Object.fromEntries(companies.filter((c) => c.task).map((c) => [c.id, DEMO_CANDIDATE.taskAnswer])));
-            }}
-          >
-            Fill demo answers
-          </button>
-          {!cvParsed && <span className="text-sm text-muted-foreground">Upload your CV to send.</span>}
-        </div>
-        <p className="mt-6 flex gap-2 text-xs text-muted-foreground">
-          <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
-          An open AI model on our own EU server reads your documents to fill in the table. It never scores or ranks you.
-          Organisers decide without seeing your name.
+      {error && (
+        <p role="alert" className="mt-5 text-sm text-destructive">
+          {error}
         </p>
+      )}
+      <div className="mt-8 flex flex-wrap items-center gap-3">
+        <Button size="lg" disabled={!cvParsed || pending || !!busy} onClick={send}>
+          Send application{companies.length > 1 ? `s (${companies.length})` : ""}
+        </Button>
+        <button
+          className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+          onClick={() => {
+            setStarters(Object.fromEntries(companies.map((c) => [c.id, DEMO_CANDIDATE.starter])));
+            setTaskAnswers(Object.fromEntries(companies.filter((c) => c.task).map((c) => [c.id, DEMO_CANDIDATE.taskAnswer])));
+          }}
+        >
+          Fill demo answers
+        </button>
+        {!cvParsed && <span className="text-sm text-muted-foreground">Upload your CV to send.</span>}
       </div>
+      <p className="mt-6 flex gap-2 text-xs text-muted-foreground">
+        <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
+        An open AI model on our own EU server reads your documents to fill in the requirements. It never scores or ranks you. Organisers decide
+        without seeing your name.
+      </p>
     </div>
+  );
+}
+
+/** One numbered part of the application: one card, one header, nothing boxed inside it. */
+function Step({ n, title, aside, children }: { n: number; title: string; aside?: string; children: React.ReactNode }) {
+  return (
+    <section aria-labelledby={`step-${n}`} className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
+      <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border bg-muted/40 px-5 py-3">
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground tabular-nums">{n}</span>
+        <h2 id={`step-${n}`} className="font-semibold">
+          {title}
+        </h2>
+        {aside && <span className="ml-auto text-sm text-muted-foreground">{aside}</span>}
+      </header>
+      {children}
+    </section>
   );
 }
 

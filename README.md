@@ -11,7 +11,6 @@ Built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment
 <p align="center">
   <img alt="Challenge: City of Espoo, Rethinking Recruitment" src="https://img.shields.io/badge/challenge-City%20of%20Espoo%20%C2%B7%20Rethinking%20Recruitment-011135">
   <img alt="Junction 2026" src="https://img.shields.io/badge/Junction-2026-0a5bd3">
-  <!-- TODO: replace https://YOUR-PROJECT.vercel.app with the deployed URL -->
   <a href="https://junction-2026-lafa.vercel.app"><img alt="Open the live demo" src="https://img.shields.io/badge/Live%20demo-open-0a5bd3?logo=vercel&logoColor=white"></a>
 </p>
 
@@ -88,6 +87,7 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 - The AI is checked by code against the document: anything it extracted that the CV text does not contain is listed for the organiser. Personal details are cut out of the CV text on upload, before any organiser can see it.
 - Running on real services: Vercel, Aiven, Gemini, Gemma on Verda, Context.dev.
 
+**Also built**
 - Companies sign in with an invitation code and get their own page: card, selection status and their meetings. After the event both sides get an e-mail reminder and answer “want to continue?”; if both say yes, the organisers connect them.
 - Organisers add companies and hand out invitation codes on their own Companies page, so the platform is not tied to the demo data. A code is shown once and only its fingerprint is stored.
 - Organisers set the event itself in Event settings: name, dates, fields and types of work. Every page reads these values, so the same platform runs the next event.
@@ -96,9 +96,11 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 
 ## Try the demo
 
+About 5 minutes on the [live demo](https://junction-2026-lafa.vercel.app). Three roles, each with its own entry on the landing page; the demo buttons (“Fill demo text”, “Use sample CV”) fill in synthetic data so you never type.
+
 1. **Company:** *Companies* on the landing page → sign in with the demo code `KUURA-2026` → “Fill demo text” → *Create card* → answer the question → set must-haves (and an optional task) → *Confirm card*.
-2. **Professional:** *Join the pool* → “Fill demo answers” → *Join talent pool* → “Demo: jump to after the company deadline” → choose **Nordic Photonics** → *Use sample CV* → *Use sample export* → “Fill demo answers” → *Send application*.
-3. **Organiser:** sign in at `/login` → `/organiser/review/nordic-photonics` → *Select clean cases* → *Approve selected* → open **A-07** (her CV says *Test Lead*, LinkedIn says *Test Engineer*; she also answered the company task) → write a note → *Approve with note* → decision log, bias check, *Export for Tavata*.
+2. **Professional:** *Join the pool* → “Fill demo answers” → *Join talent pool* → “Demo: jump to after the company deadline” → choose **Nordic Photonics**, tick “still available” → *Use sample CV* → *Use sample export* → “Fill demo answers” → *Send application*.
+3. **Organiser:** *Open workspace* → sign in (the organiser password is in our Junction submission) → *Selection* (Nordic Photonics) → *Select clean* → *Approve*: seven people who meet every must-have, in one click. Then **A-07** opens with *Check before you decide*: her CV says *Test Lead*, LinkedIn says *Test Engineer*, and the AI extracted a skill the CV does not contain. Click a requirement to see its lines in the CV, write a note → *Approve with note*. *Bias check*, *Decision log* and *Export for Tavata* are in the header.
 4. Back on the candidate's status page: once the organiser approves them, the Tavata code appears.
 5. **After the event:** sign in as a company with `QUANTUMLAB-2026` → *Your meetings* → answer Yes. Then open `/candidate/cand.001` (candidate A-01) → answer Yes → both see “You both want to continue”. Organisers can send the reminder e-mails from `/organiser/feedback` → *Remind both sides*.
 6. **Event settings:** `/organiser/settings` → change the event name or add a type of work → *Save settings* → the landing page, headers and talent-pool form show it.
@@ -239,6 +241,6 @@ docs/             CONTEXT.md (decisions), HANDOFF.md (state and open work)
 ## Team
 
 
-Filip Fylyp, Oleksandr Lysytsia, Svitlana Meleshko, Atrem Lobodiuchenko.
+Filip Fylyp, Oleksandr Lysytsia, Svitlana Meleshko, Artem Lobodiuchenko.
 
 Made at Junction 2026, Helsinki. All companies and people in this project are fictional.

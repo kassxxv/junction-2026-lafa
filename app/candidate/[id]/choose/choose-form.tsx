@@ -57,7 +57,7 @@ export function ChooseForm({
   return (
     <div className="page-form px-5 py-10">
       <BackLink href={`/candidate/${encodeURIComponent(candidateId)}`}>Back to your status</BackLink>
-      <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+      <div>
         <Timeline stage={2} />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -82,7 +82,7 @@ export function ChooseForm({
                 key={c.id}
                 aria-pressed={on}
                 onClick={() => toggle(c.id)}
-                className={`rounded-xl border p-4 text-left transition-colors ${on ? "border-primary bg-accent/60 ring-1 ring-primary" : "border-border hover:border-input"}`}
+                className={`rounded-xl border p-4 text-left transition-colors ${on ? "border-primary bg-accent/60 ring-1 ring-primary" : "border-border bg-card hover:border-input"}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -96,14 +96,16 @@ export function ChooseForm({
                     {on && <Check className="size-3.5" />}
                   </span>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-1.5">
+                {c.musts.length > 0 && <p className="mt-3 text-xs font-semibold text-foreground/75">Must-have</p>}
+                <ul className="mt-1 space-y-0.5 text-sm">
                   {c.musts.map((m) => (
-                    <span key={m} className="rounded bg-status-ask-bg px-1.5 py-0.5 text-xs text-status-ask">
-                      <span className="font-semibold">Must-have:</span> {m}
-                    </span>
+                    <li key={m} className="flex gap-2">
+                      <span aria-hidden className="mt-2 size-1 shrink-0 rounded-full bg-foreground/40" />
+                      {m}
+                    </li>
                   ))}
-                  {c.others > 0 && <span className="px-1 text-xs text-muted-foreground">+ {c.others} nice to have</span>}
-                </div>
+                </ul>
+                {c.others > 0 && <p className="mt-1 text-xs text-muted-foreground">+ {c.others} nice to have</p>}
               </button>
             );
           })}

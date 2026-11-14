@@ -1,0 +1,6 @@
+# Python prototype (uv / .venv) is not part of the Next.js deployment
+src/
+requirements.txt
+.venv/
+data/
+certs/

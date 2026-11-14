@@ -15,6 +15,20 @@ declare global {
   var __lafaPgPool: { pool: Pool; tlsVerified: boolean } | undefined;
 }
 
+/**
+ * DATABASE_CA_CERT is either the PEM text itself (Vercel: paste the whole ca.pem,
+ * multi-line or with literal \n) or a path to the file (local: ./certs/ca.pem).
+ */
+function loadCaCert(value: string): string {
+  if (value.includes("-----BEGIN CERTIFICATE-----")) return value.replace(/\\n/g, "\n");
+  try {
+    // Path comes from env at runtime; don't let the bundler trace the whole project.
+    return readFileSync(resolve(/*turbopackIgnore: true*/ process.cwd(), value), "utf8");
+  } catch {
+    throw new ServiceUnavailableError("database", "tls_failed");
+  }
+}
+
 function createPool(): { pool: Pool; tlsVerified: boolean } {
   const { DATABASE_URL, DATABASE_CA_CERT } = env();
   if (!DATABASE_URL) throw new ServiceUnavailableError("database", "not_configured");
@@ -27,13 +41,7 @@ function createPool(): { pool: Pool; tlsVerified: boolean } {
   let ssl: { ca?: string; rejectUnauthorized: boolean };
   let tlsVerified: boolean;
   if (DATABASE_CA_CERT) {
-    let ca: string;
-    try {
-      // Path comes from env at runtime; don't let the bundler trace the whole project.
-      ca = readFileSync(resolve(/*turbopackIgnore: true*/ process.cwd(), DATABASE_CA_CERT), "utf8");
-    } catch {
-      throw new ServiceUnavailableError("database", "tls_failed");
-    }
+    const ca = loadCaCert(DATABASE_CA_CERT);
     ssl = { ca, rejectUnauthorized: true };
     tlsVerified = true;
   } else {

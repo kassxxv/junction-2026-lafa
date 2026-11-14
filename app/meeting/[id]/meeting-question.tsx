@@ -32,7 +32,7 @@ export function MeetingQuestion({ meeting, side }: { meeting: MeetingView; side:
         <h1 className="mt-2 text-xl font-semibold tracking-tight">
           {meeting.company} <span className="text-muted-foreground">×</span> Candidate {meeting.candidateCode}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">One question for both sides. Five seconds.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Both sides answer the same question.</p>
 
         {result ? (
           <div className="mt-8">
@@ -40,7 +40,7 @@ export function MeetingQuestion({ meeting, side }: { meeting: MeetingView; side:
               <>
                 <Handshake className="mx-auto size-10 text-status-confirmed" />
                 <p className="mt-3 text-lg font-semibold">You both want to continue</p>
-                <p className="mt-1 text-sm text-muted-foreground">We have shared your contact details with each other.</p>
+                <p className="mt-1 text-sm text-muted-foreground">We will share your contact details with each other.</p>
               </>
             ) : (
               <>
@@ -48,7 +48,7 @@ export function MeetingQuestion({ meeting, side }: { meeting: MeetingView; side:
                 <p className="mt-3 text-lg font-semibold">Thanks, noted</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {result.yes && result.waiting
-                    ? `If ${other} also says yes, we share contact details.`
+                    ? `If ${other} also says yes, you both get each other's contact details.`
                     : "Your answer only counts towards the event's meeting statistics. It is never shown as a judgement of anyone."}
                 </p>
               </>

@@ -269,8 +269,8 @@ export function CardEditor({
             <div className="rounded-xl border border-border bg-card p-5">
               <h2 className="font-semibold">Why confirm early?</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Once you confirm, you see how many matching people are already in the talent pool, and candidates can choose
-                you after {fmtDate(companyDeadline)}.
+                After you confirm, you see how many people in the talent pool match, and candidates can choose you after{" "}
+                {fmtDate(companyDeadline)}.
               </p>
               {livePool && hiring && (
                 <p className="mt-4 flex gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm">
@@ -284,8 +284,7 @@ export function CardEditor({
             </div>
           <p className="flex gap-2 px-1 text-xs text-muted-foreground">
             <Sparkles className="mt-0.5 size-3.5 shrink-0" />
-            Drafted by an AI assistant from what you sent. Marked “suggested” where it guessed. Nothing is shared until you
-            confirm.
+            Drafted by AI. “Suggested” means it guessed. Nothing is shared until you confirm.
           </p>
         </aside>
       </div>

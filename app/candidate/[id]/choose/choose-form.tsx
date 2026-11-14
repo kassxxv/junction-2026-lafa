@@ -56,7 +56,7 @@ export function ChooseForm({
   return (
     <div className="mx-auto max-w-5xl px-5 py-10">
       <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-sm font-medium text-primary">Stage 2 · Invitation</p>
+        <p className="text-sm font-medium text-primary">Step 2: choose companies</p>
         <Timeline stage={2} />
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>

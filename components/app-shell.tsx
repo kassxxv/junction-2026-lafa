@@ -1,5 +1,7 @@
 import { CalendarDays } from "lucide-react";
+import Image from "next/image";
 import { Suspense, type ReactNode } from "react";
+import { BRAND } from "@/lib/brand";
 import { signOutOrganiser } from "@/lib/matchready/auth-actions";
 import { DEMO_ORGANISER } from "@/lib/matchready/demo";
 import { EVENT, formatDateRange } from "@/lib/matchready/event";
@@ -14,7 +16,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col md:h-screen md:flex-row">
       <aside className="flex shrink-0 flex-col bg-sidebar text-sidebar-foreground md:w-60">
         <div className="px-5 pt-6 pb-5">
-          <div className="text-[0.95rem] font-semibold tracking-tight">MatchReady</div>
+          <Image src={BRAND.logoOnDark.src} width={BRAND.logoOnDark.width} height={BRAND.logoOnDark.height} alt={BRAND.name} loading="eager" className="h-9 w-auto" />
           <div className="text-xs text-sidebar-muted">Organiser workspace</div>
         </div>
 

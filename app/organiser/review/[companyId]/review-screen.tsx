@@ -19,7 +19,7 @@ type Filter = "all" | "meets" | "look";
 
 const STATUS: Record<ReviewStatus, { label: (a: ApplicationRow) => string; className: string }> = {
   approved: { label: () => "Approved", className: "bg-status-confirmed-bg text-status-confirmed" },
-  declined: { label: () => "Declined · Program Pass", className: "bg-muted text-muted-foreground" },
+  declined: { label: () => "Declined, Program Pass", className: "bg-muted text-muted-foreground" },
   missing: { label: () => "Missing must-have", className: "bg-status-ask-bg text-status-ask" },
   check: { label: (a) => `${a.toCheck} to check`, className: "bg-status-ai-bg text-status-ai" },
   clean: { label: () => "Must-haves ✓", className: "bg-status-source-bg text-status-source" },
@@ -334,7 +334,7 @@ function Detail({
         <div>
           <h3 className="font-medium">
             Conversation starter{" "}
-            <span className="text-sm font-normal text-muted-foreground">· goes to the meeting, not used for selection</span>
+            <span className="text-sm font-normal text-muted-foreground">(for the meeting, not for selection)</span>
           </h3>
           <p className={`mt-1.5 font-serif leading-relaxed ${app.starter ? "" : "text-muted-foreground"}`}>
             {app.starter ? `“${app.starter}”` : "No answer yet."}
@@ -372,7 +372,7 @@ function Detail({
                 <>
                   <label htmlFor="note" className="block text-sm font-medium">
                     {app.status === "missing"
-                      ? "A must-have is missing. You can still approve with a short note: you decide, not the system."
+                      ? "A must-have is missing. You can still approve it with a note."
                       : app.mustUnverified > 0
                         ? "A must-have is not verified by a document. Approve with a short note."
                         : "Something to check. Approve with a short note."}
@@ -386,7 +386,7 @@ function Detail({
                   />
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">Clean case. Approve here, or with the batch on the left.</p>
+                <p className="text-sm text-muted-foreground">All must-haves met, nothing to check. Approve here or in the batch on the left.</p>
               )}
               <div className="flex flex-wrap gap-2">
                 <Button disabled={pending || placesFull || (needsNote && !note.trim())} onClick={() => onDecide("approve", note)}>
@@ -472,9 +472,9 @@ function BiasPanel({ bias }: { bias: Review["bias"] }) {
         }`}
       >
         {bias.skew === "warning"
-          ? "A group is under-represented among approved. Take a look."
+          ? "A group has a smaller share among approved than among applicants. Check before you continue."
           : bias.skew === "none"
-            ? "No skew vs applicant pool"
+            ? "Approved people look like the applicants"
             : `Approve at least ${bias.minApprovals} people to compare`}
       </p>
     </section>

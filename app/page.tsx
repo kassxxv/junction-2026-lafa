@@ -1,5 +1,7 @@
 import { ArrowRight, Building2, ExternalLink, FileCheck2, Lock, Scale, UserRound, Users } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { BRAND } from "@/lib/brand";
 import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
 import { EVENT, formatDateRange, formatDay } from "@/lib/matchready/event";
 
@@ -17,7 +19,7 @@ const ENTRIES = [
     icon: Building2,
     who: "Companies",
     title: "Tell us who you want to meet",
-    body: "Paste a job ad, a link or two lines. You get a standard card with clear must-haves in about three minutes.",
+    body: "Paste a job ad, a link or two lines. You get a card with clear must-haves. You check and confirm it.",
     when: `Confirm by ${formatDay(EVENT.companyDeadline)}`,
     cta: "Create your card",
   },
@@ -51,7 +53,7 @@ const STEPS = [
 
 const PRINCIPLES = [
   { icon: Scale, title: "People decide", body: "AI structures, pre-fills and points out differences. It never scores, ranks or rejects anyone." },
-  { icon: FileCheck2, title: "Facts over polished text", body: "Selection rests on employers, dates, degrees and proof. Free text becomes the first topic of the meeting." },
+  { icon: FileCheck2, title: "Facts, not polished text", body: "Organisers select on employers, dates, degrees and proof. What you write in your own words goes to the meeting, not to selection." },
   { icon: Lock, title: "Data stays in the EU", body: "Candidate documents are read by an open model on the event's own EU server. Names stay hidden during review." },
 ];
 
@@ -61,7 +63,7 @@ export default function Landing() {
       <section className="bg-sidebar text-sidebar-foreground">
         <div className="mx-auto max-w-6xl px-5 pt-6 pb-32">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold tracking-tight">MatchReady</span>
+            <Image src={BRAND.logoOnDark.src} width={BRAND.logoOnDark.width} height={BRAND.logoOnDark.height} alt={BRAND.name} preload className="h-11 w-auto" />
             <span className="text-sidebar-muted">Prototype for the City of Espoo</span>
           </div>
 
@@ -73,8 +75,8 @@ export default function Landing() {
               {EVENT.fields.join(", ")}
             </p>
             <p className="mt-6 max-w-[56ch] text-lg leading-relaxed">
-              Meeting places are limited. Companies say what they really need, professionals show where they meet it, and
-              organisers decide in minutes instead of reading piles of similar CVs.
+              Meeting places are limited. Companies say what they need, professionals show where they meet it, organisers
+              decide.
             </p>
             <a
               href={EVENT.infoUrl}
@@ -133,7 +135,7 @@ export default function Landing() {
       </section>
 
       <footer className="border-t border-border px-5 py-6 text-center text-xs text-muted-foreground">
-        Prototype built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment”. The event is real; every
+        {BRAND.name} prototype built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment”. The event is real; every
         company and person in this prototype is fictional.
       </footer>
     </div>

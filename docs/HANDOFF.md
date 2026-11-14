@@ -1,4 +1,4 @@
-# Handoff — MatchReady (state on 2026-11-14 evening)
+# Handoff — Bridgy, formerly MatchReady (state on 2026-11-14 evening)
 
 Read this, then `AGENTS.md` and the **★ Current concept** section at the top of `docs/CONTEXT.md`. Together they replace the chat history. Submission: **Sunday 15 Nov 2026, 10:00**.
 
@@ -30,6 +30,7 @@ app/                 routes (server components fetch; "use client" files hold UI
 components/          app-shell (organiser sidebar), organiser-nav, public-shell (+ Timeline), ui/ (shadcn)
 lib/
   env.ts service.ts  env parsing (all optional), error codes, Sourced<T> = live | stub
+  brand.ts           product name + logo paths (public/brand/*, favicon app/icon.png, source docs/brand/)
   auth.ts organiser-session.ts   organiser gate (shared password, signed cookie), demoMode()
   rate-limit.ts      allow(bucket): per hashed IP + daily cap, counters in Postgres
   db.ts              pg pool (TLS via DATABASE_CA_CERT path or PEM), query(), withTransaction()

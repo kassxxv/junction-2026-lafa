@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { PublicShell } from "@/components/public-shell";
 import { query } from "@/lib/db";
 import { confirmedCompanies, evidencePreview, getCandidate } from "@/lib/matchready/candidate-service";
+import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
 import type { LinkedinCheck } from "@/lib/matchready/facts";
 import { ApplyForm } from "./apply-form";
 
@@ -23,7 +24,7 @@ async function Content({ params, searchParams }: PageProps<"/candidate/[id]/appl
   const { id } = await params;
   const sp = await searchParams;
   const candidateId = decodeURIComponent(id);
-  const wanted = (typeof sp.companies === "string" ? sp.companies : "").split(",").filter(Boolean).slice(0, 3);
+  const wanted = (typeof sp.companies === "string" ? sp.companies : "").split(",").filter(Boolean).slice(0, MAX_COMPANIES_PER_CANDIDATE);
   const [c, companies] = await Promise.all([getCandidate(candidateId), confirmedCompanies()]);
   if (!c) notFound();
   const chosen = companies.filter((co) => wanted.includes(co.id));

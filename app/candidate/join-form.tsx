@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { joinTalentPool, readCvForPool } from "@/lib/matchready/candidate-actions";
+import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
+import { DEMO_CANDIDATE } from "@/lib/matchready/demo";
+import { formatDay } from "@/lib/matchready/event";
 
 type Level = "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | "Native";
 const LEVELS: Level[] = ["A1", "A2", "B1", "B2", "C1", "C2", "Native"];
-const fmtDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+const fmtDate = (iso: string) => formatDay(iso);
 
 export function JoinForm({
   fields,
@@ -190,13 +193,9 @@ export function JoinForm({
           <button
             type="button"
             onClick={() => {
-              setChosen(["Photonics"]);
-              setLangs([
-                { language: "English", level: "C1" },
-                { language: "Arabic", level: "Native" },
-                { language: "Finnish", level: "A2" },
-              ]);
-              setEmail(`aisha.demo+${Date.now().toString(36)}@example.com`);
+              setChosen(fields.includes(DEMO_CANDIDATE.field) ? [DEMO_CANDIDATE.field] : fields.slice(0, 1));
+              setLangs(DEMO_CANDIDATE.languages);
+              setEmail(DEMO_CANDIDATE.email());
               setConsentEvent(true);
             }}
             className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
@@ -210,7 +209,7 @@ export function JoinForm({
         <div className="rounded-xl border border-border bg-card p-5">
           <h2 className="font-semibold">Confirmed so far</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Companies confirm what they need until {fmtDate(companyDeadline)}. Then you choose up to three.
+            Companies confirm what they need until {fmtDate(companyDeadline)}. Then you choose up to {MAX_COMPANIES_PER_CANDIDATE}.
           </p>
           <ul className="mt-4 space-y-2">
             {confirmed.map((c) => (

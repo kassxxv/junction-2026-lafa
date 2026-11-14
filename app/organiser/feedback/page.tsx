@@ -1,11 +1,14 @@
 import { ArrowRight, Info } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
+import { requireOrganiserPage } from "@/lib/auth";
+import { EVENT, formatDateRange } from "@/lib/matchready/event";
 import { getFeedbackDashboard } from "@/lib/matchready/feedback";
 
 /** Metric 2 after the event: meetings where both sides want to continue. Aggregates only. */
 export default async function FeedbackDashboardPage() {
   await connection();
+  await requireOrganiserPage("/organiser/feedback");
   const d = await getFeedbackDashboard();
   const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
@@ -58,7 +61,7 @@ export default async function FeedbackDashboardPage() {
             <div className="rounded-xl border border-border bg-card p-5">
               <h2 className="font-semibold">Try the question</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {d.demoMeeting.company} met candidate {d.demoMeeting.candidateCode}. Neither side has answered yet.
+                {d.demoMeeting.company} met candidate {d.demoMeeting.candidateCode}. Answer for each side to see the rate change.
               </p>
               <div className="mt-4 flex flex-col gap-2 text-sm">
                 <Link href={`/meeting/${encodeURIComponent(d.demoMeeting.applicationId)}?side=candidate`} className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
@@ -70,7 +73,7 @@ export default async function FeedbackDashboardPage() {
               </div>
             </div>
           )}
-          <p className="px-1 text-xs text-muted-foreground">Synthetic demo data: the event takes place on 26–27 November 2026.</p>
+          <p className="px-1 text-xs text-muted-foreground">Synthetic demo data: the event takes place on {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })}.</p>
         </aside>
       </div>
     </div>

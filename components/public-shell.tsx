@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { EVENT, formatDateRange } from "@/lib/matchready/event";
 
 /** Header + footer for public pages (companies and candidates). */
 export function PublicShell({ right, children }: { right?: ReactNode; children: ReactNode }) {
@@ -7,8 +8,10 @@ export function PublicShell({ right, children }: { right?: ReactNode; children: 
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
           <span>
-            <span className="font-semibold">Deep Tech Talent Forum</span>
-            <span className="text-muted-foreground">, 26–27 November 2026, online</span>
+            <span className="font-semibold">{EVENT.name}</span>
+            <span className="text-muted-foreground">
+              , {formatDateRange(EVENT.startsOn, EVENT.endsOn, { year: true })}, {EVENT.place}
+            </span>
           </span>
           {right && <span className="text-muted-foreground">{right}</span>}
         </div>

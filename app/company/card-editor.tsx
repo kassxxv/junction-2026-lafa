@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { confirmCompanyCard, previewPool, resetCompanyDemo } from "@/lib/matchready/card-actions";
+import { formatDay } from "@/lib/matchready/event";
 import {
   CEFR,
   GOAL_LABEL,
@@ -20,7 +21,7 @@ import {
 } from "@/lib/matchready/card-schema";
 import type { CompanyProps } from "./company-flow";
 
-const fmtDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+const fmtDate = (iso: string) => formatDay(iso);
 
 let keySeq = 0;
 const newKey = () => `new-${++keySeq}`;
@@ -44,12 +45,14 @@ export function CardEditor({
   initial,
   sample,
   companyDeadline,
+  demo,
   onBack,
 }: {
   company: CompanyProps;
   initial: CompanyCardDraft;
   sample: boolean;
   companyDeadline: string;
+  demo: boolean;
   onBack?: () => void;
 }) {
   const [card, setCard] = useState<CompanyCardDraft>(() => ({
@@ -247,12 +250,14 @@ export function CardEditor({
           {confirmed && pool ? (
             <>
               <PoolPanel pool={pool} deadline={companyDeadline} />
-              <button
-                onClick={() => startTransition(async () => { await resetCompanyDemo(company.id); window.location.reload(); })}
-                className="px-1 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-              >
-                Start over (demo)
-              </button>
+              {demo && (
+                <button
+                  onClick={() => startTransition(async () => { await resetCompanyDemo(company.id); window.location.reload(); })}
+                  className="px-1 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  Start over (demo)
+                </button>
+              )}
             </>
           ) : (
             <div className="rounded-xl border border-border bg-card p-5">

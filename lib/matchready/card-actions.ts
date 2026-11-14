@@ -1,16 +1,21 @@
 "use server";
 
 import { z } from "zod";
+import { demoMode } from "@/lib/auth";
+import { allow, TOO_MANY } from "@/lib/rate-limit";
 import type { CardRequirement, CompanyCardDraft, PoolStats } from "./card-schema";
-import { draftCard, poolStats, resetDraft, saveConfirmedCard } from "./card-service";
+import { MAX_COMPANY_INPUT_CHARS } from "./config";
+import { draftCard, poolStats, requiredLevel, resetDraft, saveConfirmedCard } from "./card-service";
 
 export type DraftResult =
   | { ok: true; draft: CompanyCardDraft; sample: boolean }
   | { ok: false; error: string };
 
 export async function draftCompanyCard(companyId: string, text: string): Promise<DraftResult> {
-  const input = z.object({ companyId: z.string().min(1).max(100), text: z.string().max(20_000) }).safeParse({ companyId, text });
-  if (!input.success) return { ok: false, error: "That text is too long. Paste up to 20 000 characters." };
+  const input = z.object({ companyId: z.string().min(1).max(100), text: z.string().max(MAX_COMPANY_INPUT_CHARS) }).safeParse({ companyId, text });
+  if (!input.success) return { ok: false, error: `That text is too long. Paste up to ${MAX_COMPANY_INPUT_CHARS} characters.` };
+  // Each draft calls Gemini and, for a link, Context.dev: both cost money.
+  if (!(await allow("companyDraft"))) return { ok: false, error: TOO_MANY };
   const result = await draftCard(input.data.companyId, input.data.text.trim());
   if (!result) return { ok: false, error: "This invitation link is not valid." };
   return { ok: true, draft: result.data, sample: result.source === "stub" };
@@ -21,7 +26,7 @@ const Requirement = z.object({
   type: z.enum(["experience", "has_done", "education", "language"]),
   label: z.string().trim().min(1).max(200),
   minYears: z.number().min(0).max(40).nullable(),
-  level: z.string().max(10).nullable(),
+  level: z.string().max(10).nullable().transform((v) => requiredLevel(v)),
   detail: z.string().max(300).nullable(),
   mustHave: z.boolean(),
   keywords: z.array(z.string().max(60)).max(6),
@@ -49,6 +54,7 @@ export async function previewPool(field: string, requirements: CardRequirement[]
 
 /** Demo helper: back to an empty draft. Only for companies without applications, so no candidate data is touched. */
 export async function resetCompanyDemo(companyId: string): Promise<{ ok: boolean }> {
+  if (!demoMode()) return { ok: false };
   const id = z.string().min(1).max(100).parse(companyId);
   return { ok: await resetDraft(id) };
 }

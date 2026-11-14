@@ -11,6 +11,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { approveClean, decide, resetReview, startReview, type ActionResult } from "@/lib/matchready/organiser-actions";
+import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
+import { DEMO_REVIEW_FOCUS_CODE } from "@/lib/matchready/demo";
 import type { ApplicationRow, RequirementRow, Review, ReviewStatus } from "@/lib/matchready/organiser";
 
 type Filter = "all" | "meets" | "look";
@@ -23,12 +25,12 @@ const STATUS: Record<ReviewStatus, { label: (a: ApplicationRow) => string; class
   clean: { label: () => "Must-haves ✓", className: "bg-status-source-bg text-status-source" },
 };
 
-export function ReviewScreen({ review }: { review: Review }) {
+export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }) {
   const { company, role, applications } = review;
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [openId, setOpenId] = useState<string>(
-    () => applications.find((a) => a.code === "A-07")?.id ?? applications[0]?.id ?? "",
+    () => applications.find((a) => a.code === DEMO_REVIEW_FOCUS_CODE)?.id ?? applications[0]?.id ?? "",
   );
   const [result, setResult] = useState<ActionResult | null>(null);
   const [pending, startTransition] = useTransition();
@@ -77,7 +79,7 @@ export function ReviewScreen({ review }: { review: Review }) {
             </h1>
             <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
               <EyeOff className="size-3.5" />
-              {applications.length} applied (each person can choose up to 3 companies). Blind review: names, photos and
+              {applications.length} applied (each person can choose up to {MAX_COMPANIES_PER_CANDIDATE} companies). Blind review: names, photos and
               nationality are hidden.
             </p>
           </div>
@@ -218,10 +220,12 @@ export function ReviewScreen({ review }: { review: Review }) {
               <section className="rounded-xl border border-border bg-card p-5">
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold">Decision log</h2>
-                  <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => resetReview(company.id), () => setSelected(new Set()))}>
-                    <RotateCcw data-icon="inline-start" />
-                    Reset demo
-                  </Button>
+                  {demo && (
+                    <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => resetReview(company.id), () => setSelected(new Set()))}>
+                      <RotateCcw data-icon="inline-start" />
+                      Reset demo
+                    </Button>
+                  )}
                 </div>
                 <ul className="mt-3 max-h-60 space-y-2 overflow-y-auto text-sm">
                   {review.decisions.length ? (
@@ -314,6 +318,8 @@ function Detail({
                         <span className="text-status-ask" aria-label="not covered">✗</span>
                       ) : r.meets === false ? (
                         <span className="text-muted-foreground" aria-label="not covered">✗</span>
+                      ) : r.mustHave ? (
+                        <span className="text-status-ai" aria-label="not verified">?</span>
                       ) : (
                         <span className="text-muted-foreground" aria-label="unknown">–</span>
                       )}
@@ -344,7 +350,7 @@ function Detail({
           <ul className="space-y-2">
             {app.checks.map((c, i) => (
               <li key={i} className={`flex gap-3 rounded-lg border-l-4 bg-muted/30 px-3 py-2 text-sm ${CHECK[c.kind].border}`}>
-                <span className={`w-24 shrink-0 text-xs font-semibold ${CHECK[c.kind].text}`}>{CHECK[c.kind].label}</span>
+                <span className={`w-28 shrink-0 text-xs font-semibold ${CHECK[c.kind].text}`}>{CHECK[c.kind].label}</span>
                 <span>{c.text}</span>
               </li>
             ))}
@@ -367,7 +373,9 @@ function Detail({
                   <label htmlFor="note" className="block text-sm font-medium">
                     {app.status === "missing"
                       ? "A must-have is missing. You can still approve with a short note: you decide, not the system."
-                      : "Something to check. Approve with a short note."}
+                      : app.mustUnverified > 0
+                        ? "A must-have is not verified by a document. Approve with a short note."
+                        : "Something to check. Approve with a short note."}
                   </label>
                   <Textarea
                     id="note"
@@ -402,6 +410,8 @@ const CHECK = {
   match: { label: "MATCH", border: "border-status-confirmed", text: "text-status-confirmed" },
   differs: { label: "DIFFERS", border: "border-status-ai", text: "text-status-ai" },
   not_found: { label: "NOT FOUND", border: "border-status-missing", text: "text-status-missing" },
+  linkedin_only: { label: "LINKEDIN ONLY", border: "border-border", text: "text-muted-foreground" },
+  info: { label: "NOTE", border: "border-border", text: "text-muted-foreground" },
   none: { label: "NO LINKEDIN", border: "border-border", text: "text-muted-foreground" },
 } as const;
 
@@ -417,7 +427,7 @@ function EvidenceTag({ r }: { r: RequirementRow }) {
             ? "reference letter"
             : r.linkedinMatch
               ? "matches LinkedIn"
-              : r.source === "profile"
+              : r.source === "profile" || r.source === "stated"
                 ? "stated by candidate"
                 : r.source === "cv" && r.value
                   ? "from CV"
@@ -465,7 +475,7 @@ function BiasPanel({ bias }: { bias: Review["bias"] }) {
           ? "A group is under-represented among approved. Take a look."
           : bias.skew === "none"
             ? "No skew vs applicant pool"
-            : "Approve at least 3 people to compare"}
+            : `Approve at least ${bias.minApprovals} people to compare`}
       </p>
     </section>
   );

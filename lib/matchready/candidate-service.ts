@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { query, withTransaction } from "@/lib/db";
 import { chatJSON } from "@/lib/gemma";
 import { CV_PARSE_SYSTEM, cvParsePrompt } from "@/lib/prompts/cv-parse";
+import { MAX_COMPANIES_PER_CANDIDATE, MAX_DOCUMENT_CHARS } from "./config";
 import { CvParse } from "./cv-schema";
 import {
   compareCvLinkedin,
@@ -22,8 +23,6 @@ import { accessCode } from "./tavata";
  * EU server, never to Gemini or any other external API. Comparisons are done by code.
  */
 
-export const MAX_COMPANIES = 3;
-const MAX_TEXT = 30_000;
 
 export const WORK_TYPES = ["Testing and validation", "Engineering and design", "Research", "Production", "Business and sales"];
 export const CAREER_STAGES = [
@@ -178,7 +177,7 @@ export interface ParseResult {
 
 /** Reads a CV or LinkedIn export with Gemma, stores text + facts, and recomputes the CV ↔ LinkedIn checks. */
 export async function parseDocument(candidateId: string, kind: "cv" | "linkedin", rawText: string, topics: string[]): Promise<ParseResult> {
-  const text = rawText.replace(/\u0000/g, "").slice(0, MAX_TEXT);
+  const text = rawText.replace(/\u0000/g, "").slice(0, MAX_DOCUMENT_CHARS);
   const empty: CvParse = { experience: [], education: [], languages: [], skills: [] };
   const result = await chatJSON({
     schema: CvParse,
@@ -190,6 +189,14 @@ export async function parseDocument(candidateId: string, kind: "cv" | "linkedin"
     temperature: 0,
   });
   const facts = toFacts(result.data);
+
+  // Gemma down or invalid output: keep whatever was stored before. An empty stub must never
+  // overwrite real facts or turn every job into "not on LinkedIn".
+  if (result.source === "stub") {
+    const [kept] = await query<{ linkedin_checks: LinkedinCheck[] | null }>(`SELECT linkedin_checks FROM candidate_documents WHERE candidate_id = $1`, [candidateId]);
+    if (kind === "cv") await query(`UPDATE candidate_documents SET cv_text = coalesce(cv_text, $2), updated_at = now() WHERE candidate_id = $1`, [candidateId, text]);
+    return { ok: false, source: "stub", facts: null, checks: kept?.linkedin_checks ?? [] };
+  }
 
   const [doc] = await query<{ cv_facts: CvFacts | null; linkedin_facts: LinkedinFacts | null }>(
     `SELECT cv_facts, linkedin_facts FROM candidate_documents WHERE candidate_id = $1`,
@@ -265,12 +272,18 @@ export async function submitApplications(input: SubmitInput): Promise<{ ok: true
   );
   if (!doc) return { ok: false, error: "We could not find your registration." };
   if (!doc.cv_facts) return { ok: false, error: "Upload your CV first. It fills in the table for you." };
-  const [{ n }] = await query<{ n: number }>(`SELECT count(*)::int AS n FROM applications WHERE candidate_id = $1`, [input.candidateId]);
-  if (n + input.applications.length > MAX_COMPANIES) return { ok: false, error: `You can apply to at most ${MAX_COMPANIES} companies.` };
 
   const companies = await confirmedCompanies();
+  const wanted = [...new Map(input.applications.map((a) => [a.companyId, a])).values()];
+  const unknown = wanted.filter((a) => !companies.some((c) => c.id === a.companyId));
+  if (unknown.length) return { ok: false, error: "One of the companies is no longer open for applications. Go back and choose again." };
+  const existing = await query<{ company_id: string }>(`SELECT company_id FROM applications WHERE candidate_id = $1`, [input.candidateId]);
+  const fresh = wanted.filter((a) => !existing.some((e) => e.company_id === a.companyId));
+  if (!fresh.length) return { ok: true }; // already sent (double click, back button)
+  if (existing.length + fresh.length > MAX_COMPANIES_PER_CANDIDATE) return { ok: false, error: `You can apply to at most ${MAX_COMPANIES_PER_CANDIDATE} companies.` };
+
   await withTransaction(async (q) => {
-    for (const a of input.applications) {
+    for (const a of fresh) {
       const company = companies.find((c) => c.id === a.companyId);
       if (!company) continue;
       const appId = `${input.candidateId}.${company.id}`;

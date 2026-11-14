@@ -5,9 +5,11 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { PublicShell, Timeline } from "@/components/public-shell";
 import { getCandidate } from "@/lib/matchready/candidate-service";
+import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
+import { formatDateRange, formatDay } from "@/lib/matchready/event";
 import { getEvent } from "@/lib/matchready/organiser";
 
-const fmt = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+const fmt = (iso: string) => formatDay(iso);
 
 /** Candidate status: where you are, what happens next and when. Shows the Tavata code once approved. */
 export default function CandidateStatusPage(props: PageProps<"/candidate/[id]">) {
@@ -82,12 +84,12 @@ async function Content({ params }: PageProps<"/candidate/[id]">) {
             </ul>
             <p className="mt-4 max-w-[60ch] text-sm text-muted-foreground">
               {approved.length
-                ? `Use the code on Tavata to book your 1:1 meetings for ${fmt(event.startsOn).split(" ")[0]}–${fmt(event.endsOn)}.`
+                ? `Use the code on Tavata to book your 1:1 meetings for ${formatDateRange(event.startsOn, event.endsOn)}.`
                 : decided
                   ? "Some decisions are in. The rest follow by the date below."
                   : `You will hear back by ${fmt(event.decisionDate)}. If you are not selected for meetings, you can still join the talks with a Program Pass.`}
             </p>
-            {c.applications.length < 3 && !decided && (
+            {c.applications.length < MAX_COMPANIES_PER_CANDIDATE && !decided && (
               <Link href={`${base}/choose`} className="mt-4 inline-flex text-sm text-primary hover:underline">
                 Add another company
               </Link>

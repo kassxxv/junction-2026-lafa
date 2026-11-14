@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { allow, TOO_MANY } from "@/lib/rate-limit";
 import {
   addField,
   confirmedCompanies,
@@ -12,9 +13,10 @@ import {
   submitApplications,
   type EvidenceRow,
 } from "./candidate-service";
+import { MAX_COMPANIES_PER_CANDIDATE, MAX_DOCUMENT_CHARS, MAX_UPLOAD_BYTES } from "./config";
 import type { LinkedinCheck } from "./facts";
 
-const MAX_FILE = 4 * 1024 * 1024;
+const TOO_LARGE = `The file is larger than ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB.`;
 const CEFR = z.enum(["A1", "A2", "B1", "B2", "C1", "C2", "Native"]);
 
 const Join = z.object({
@@ -25,7 +27,7 @@ const Join = z.object({
   email: z.email().max(200),
   consentEvent: z.literal(true),
   consentPool: z.boolean(),
-  cvText: z.string().max(30_000).nullable(),
+  cvText: z.string().max(MAX_DOCUMENT_CHARS).nullable(),
 });
 
 export async function joinTalentPool(input: z.input<typeof Join>): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
@@ -40,6 +42,7 @@ export async function joinTalentPool(input: z.input<typeof Join>): Promise<{ ok:
     };
     return { ok: false, error: msg[String(path)] ?? "Check the form and try again." };
   }
+  if (!(await allow("joinPool"))) return { ok: false, error: TOO_MANY };
   const id = await joinPool(parsed.data);
   return { ok: true, id };
 }
@@ -48,7 +51,7 @@ export async function joinTalentPool(input: z.input<typeof Join>): Promise<{ ok:
 async function readUpload(form: FormData): Promise<string | null> {
   const file = form.get("file");
   if (file instanceof File && file.size > 0) {
-    if (file.size > MAX_FILE) throw new Error("too_large");
+    if (file.size > MAX_UPLOAD_BYTES) throw new Error("too_large");
     const bytes = new Uint8Array(await file.arrayBuffer());
     if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) return pdfToText(bytes);
     return new TextDecoder().decode(bytes);
@@ -58,11 +61,12 @@ async function readUpload(form: FormData): Promise<string | null> {
 }
 
 export async function readCvForPool(form: FormData): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  if (!(await allow("documentRead"))) return { ok: false, error: TOO_MANY };
   try {
     const text = await readUpload(form);
-    return text ? { ok: true, text: text.slice(0, 30_000) } : { ok: false, error: "That file looks empty." };
+    return text ? { ok: true, text: text.slice(0, MAX_DOCUMENT_CHARS) } : { ok: false, error: "That file looks empty." };
   } catch (e) {
-    return { ok: false, error: e instanceof Error && e.message === "too_large" ? "The file is larger than 4 MB." : "We could not read that file. Try a PDF or paste the text." };
+    return { ok: false, error: e instanceof Error && e.message === "too_large" ? TOO_LARGE : "We could not read that file. Try a PDF or paste the text." };
   }
 }
 
@@ -73,12 +77,14 @@ export type UploadResult =
 export async function uploadDocument(form: FormData): Promise<UploadResult> {
   const candidateId = z.string().min(1).max(100).parse(form.get("candidateId"));
   const kind = z.enum(["cv", "linkedin"]).parse(form.get("kind"));
-  const companyIds = z.array(z.string().max(100)).max(3).parse(JSON.parse(String(form.get("companies") ?? "[]")));
+  const companyIds = z.array(z.string().max(100)).max(MAX_COMPANIES_PER_CANDIDATE).parse(JSON.parse(String(form.get("companies") ?? "[]")));
+  // Each document is one Gemma call on our GPU server.
+  if (!(await allow("documentParse"))) return { ok: false, error: TOO_MANY };
   let text: string | null;
   try {
     text = form.get("reuse") === "1" ? null : await readUpload(form);
   } catch (e) {
-    return { ok: false, error: e instanceof Error && e.message === "too_large" ? "The file is larger than 4 MB." : "We could not read that file. Try a PDF or paste the text." };
+    return { ok: false, error: e instanceof Error && e.message === "too_large" ? TOO_LARGE : "We could not read that file. Try a PDF or paste the text." };
   }
 
   if (form.get("reuse") === "1") {
@@ -116,7 +122,7 @@ const Submit = z.object({
       }),
     )
     .min(1)
-    .max(3),
+    .max(MAX_COMPANIES_PER_CANDIDATE),
 });
 
 export async function sendApplications(input: z.input<typeof Submit>): Promise<{ ok: true } | { ok: false; error: string }> {

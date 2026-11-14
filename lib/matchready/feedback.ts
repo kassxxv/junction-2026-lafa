@@ -51,6 +51,7 @@ export interface FeedbackDashboard {
   bothYes: number;
   oneSideOnly: number; // waiting for the other side
   perCompany: { company: string; meetings: number; bothYes: number }[];
+  /** Any approved meeting still missing an answer (fewest answers first): the "try the question" demo box. */
   demoMeeting: { applicationId: string; company: string; candidateCode: string } | null;
 }
 
@@ -70,7 +71,7 @@ export async function getFeedbackDashboard(): Promise<FeedbackDashboard> {
       `SELECT a.id, co.name AS company, c.code FROM applications a
        JOIN companies co ON co.id = a.company_id JOIN candidates c ON c.id = a.candidate_id
        WHERE a.status = 'approved' AND (SELECT count(*) FROM meeting_feedback f WHERE f.application_id = a.id) < 2
-       ORDER BY (a.company_id = 'quantumlab') DESC, c.code LIMIT 1`,
+       ORDER BY (SELECT count(*) FROM meeting_feedback f WHERE f.application_id = a.id), c.code, co.name LIMIT 1`,
     ),
   ]);
   return {

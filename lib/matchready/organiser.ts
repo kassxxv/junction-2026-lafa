@@ -1,6 +1,8 @@
 import "server-only";
 import { query } from "@/lib/db";
-import { requirementText, type LinkedinCheck, type RequirementType } from "./facts";
+import { BIAS_GAP_THRESHOLD, BIAS_MIN_APPROVALS } from "./config";
+import { DEMO_ORGANISER } from "./demo";
+import { needsLook, requirementText, type LinkedinCheck, type RequirementType } from "./facts";
 
 /**
  * Read model for organisers. Blind by construction: no query here touches
@@ -8,7 +10,8 @@ import { requirementText, type LinkedinCheck, type RequirementType } from "./fac
  * (Identity is joined only in the Tavata export, after approval.)
  */
 
-export const ORGANISER = "Laura (organiser, demo)";
+/** Who is logged as the reviewer. One demo account until real organiser accounts exist (lib/matchready/demo.ts). */
+export const ORGANISER = DEMO_ORGANISER.logName;
 
 export type ReviewStatus = "approved" | "declined" | "missing" | "check" | "clean";
 
@@ -66,6 +69,9 @@ export interface ApplicationRow {
   keyFact: string | null;
   status: ReviewStatus;
   mustMissing: number;
+  /** Must-haves nobody could verify: typed by the candidate, or nothing found (meets = null). */
+  mustUnverified: number;
+  /** CV ↔ LinkedIn differences plus unverified must-haves: what an organiser has to look at. */
   toCheck: number;
   hasLinkedin: boolean;
   requirements: RequirementRow[];
@@ -94,7 +100,7 @@ export interface Review {
   role: { title: string; details: string | null; starter: string | null } | null;
   applications: ApplicationRow[];
   decisions: DecisionRow[];
-  bias: { rows: BiasRow[]; approvedCount: number; skew: "none" | "warning" | "too_few" };
+  bias: { rows: BiasRow[]; approvedCount: number; minApprovals: number; skew: "none" | "warning" | "too_few" };
   companies: { id: string; name: string; applications: number; approved: number; places: number }[];
 }
 
@@ -234,7 +240,9 @@ export async function getReview(companyId: string): Promise<Review | null> {
     const reqs = byApp.get(a.id) ?? [];
     const checks = a.checks ?? [];
     const mustMissing = reqs.filter((r) => r.mustHave && r.meets === false).length;
-    const toCheck = checks.filter((c) => c.kind === "differs" || c.kind === "not_found").length;
+    // "Clean" must mean every must-have is shown by a fact. Unknown is not the same as met.
+    const mustUnverified = reqs.filter((r) => r.mustHave && r.meets === null).length;
+    const toCheck = checks.filter(needsLook).length + mustUnverified;
     const first = reqs[0];
     return {
       id: a.id,
@@ -242,6 +250,7 @@ export async function getReview(companyId: string): Promise<Review | null> {
       keyFact: first?.value ?? null,
       status: statusOf(a.status, mustMissing, toCheck),
       mustMissing,
+      mustUnverified,
       toCheck,
       hasLinkedin: !checks.some((c) => c.kind === "none"),
       requirements: reqs,
@@ -264,11 +273,11 @@ export async function getReview(companyId: string): Promise<Review | null> {
     applicants: share(bias, key),
     approved: approvedRows.length ? share(approvedRows, key) : null,
   }));
-  // A gap of more than 15 percentage points is worth a look. With fewer than 3 approvals, shares mean little.
+  // Thresholds: lib/matchready/config.ts. A large gap is worth a look; with few approvals, shares mean little.
   const skew =
-    approvedRows.length < 3
+    approvedRows.length < BIAS_MIN_APPROVALS
       ? "too_few"
-      : biasRows.some((r) => r.approved !== null && r.applicants - r.approved > 0.15)
+      : biasRows.some((r) => r.approved !== null && r.applicants - r.approved > BIAS_GAP_THRESHOLD)
         ? "warning"
         : "none";
 
@@ -277,7 +286,7 @@ export async function getReview(companyId: string): Promise<Review | null> {
     role: roles[0] ? { title: roles[0].title, details: roles[0].details, starter: roles[0].conversation_starter } : null,
     applications,
     decisions,
-    bias: { rows: biasRows, approvedCount: approvedRows.length, skew },
+    bias: { rows: biasRows, approvedCount: approvedRows.length, minApprovals: BIAS_MIN_APPROVALS, skew },
     companies,
   };
 }

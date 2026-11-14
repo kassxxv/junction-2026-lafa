@@ -1,10 +1,13 @@
 import { CalendarDays } from "lucide-react";
 import { Suspense, type ReactNode } from "react";
+import { signOutOrganiser } from "@/lib/matchready/auth-actions";
+import { DEMO_ORGANISER } from "@/lib/matchready/demo";
+import { EVENT, formatDateRange } from "@/lib/matchready/event";
 import { NavList, OrganiserNav } from "./organiser-nav";
 
 /**
  * Organiser workspace shell: Espoo-navy sidebar + light work area.
- * No login in the prototype: the organiser is a hardcoded demo account.
+ * Access is one shared password (lib/auth.ts); decisions are logged under the demo organiser.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -18,8 +21,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-3 mb-5 flex gap-3 rounded-lg bg-sidebar-accent px-3 py-2.5">
           <CalendarDays className="mt-0.5 size-4 shrink-0 text-sidebar-muted" />
           <div className="text-sm leading-tight">
-            <div className="font-medium">Deep Tech Talent Forum</div>
-            <div className="text-xs text-sidebar-muted">26–27 November, online</div>
+            <div className="font-medium">{EVENT.name}</div>
+            <div className="text-xs text-sidebar-muted">
+              {formatDateRange(EVENT.startsOn, EVENT.endsOn)}, {EVENT.place}
+            </div>
           </div>
         </div>
 
@@ -29,12 +34,17 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="mt-auto hidden items-center gap-3 border-t border-sidebar-border px-5 py-4 md:flex">
           <span className="flex size-8 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold">
-            LA
+            {DEMO_ORGANISER.initials}
           </span>
           <div className="text-sm leading-tight">
-            <div className="font-medium">Laura</div>
-            <div className="text-xs text-sidebar-muted">Organiser, demo account</div>
+            <div className="font-medium">{DEMO_ORGANISER.name}</div>
+            <div className="text-xs text-sidebar-muted">{DEMO_ORGANISER.role}</div>
           </div>
+          <form action={signOutOrganiser} className="ml-auto">
+            <button type="submit" className="rounded-md px-2 py-1 text-xs text-sidebar-muted hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none">
+              Sign out
+            </button>
+          </form>
         </div>
       </aside>
 

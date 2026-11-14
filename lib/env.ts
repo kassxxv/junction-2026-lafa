@@ -20,6 +20,11 @@ const flag = z
   .string()
   .optional()
   .transform((v) => v === "1" || v?.toLowerCase() === "true");
+/** Like `flag`, but "not set" stays undefined so the caller can pick a default. */
+const optionalFlag = z
+  .string()
+  .optional()
+  .transform((v) => (v === undefined || v.trim() === "" ? undefined : v === "1" || v.toLowerCase() === "true"));
 
 const EnvSchema = z.object({
   DATABASE_URL: optionalUrl,
@@ -34,6 +39,11 @@ const EnvSchema = z.object({
   GEMINI_MODEL: optionalString,
 
   CONTEXT_DEV_API_KEY: optionalString,
+
+  /** Shared password for /organiser and /api/organiser. Not set: open in development, locked in production. */
+  ORGANISER_PASSWORD: optionalString,
+  /** Demo helpers that change shared data (reset review, reset company card). Not set: on outside production. */
+  DEMO_MODE: optionalFlag,
 
   /** Force every service wrapper into stub mode (demo without network). */
   USE_STUBS: flag,

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { draftCompanyCard } from "@/lib/matchready/card-actions";
 import { GOAL_LABEL, type CardQuestion, type CompanyCardDraft, type GoalId } from "@/lib/matchready/card-schema";
+import { demoCompanyText } from "@/lib/matchready/demo";
 import { CardEditor } from "./card-editor";
 
 export interface CompanyProps {
@@ -48,7 +49,7 @@ function applyAnswer(draft: CompanyCardDraft, q: CardQuestion, answer: string | 
   return d;
 }
 
-export function CompanyFlow({ company, companyDeadline }: { company: CompanyProps; companyDeadline: string }) {
+export function CompanyFlow({ company, companyDeadline, demo }: { company: CompanyProps; companyDeadline: string; demo: boolean }) {
   const [step, setStep] = useState<Step>("describe");
   const [text, setText] = useState("");
   const [draft, setDraft] = useState<CompanyCardDraft | null>(null);
@@ -58,8 +59,7 @@ export function CompanyFlow({ company, companyDeadline }: { company: CompanyProp
   const [qIndex, setQIndex] = useState(0);
   const [, startTransition] = useTransition();
 
-  const demoText = () =>
-    `Need a photonics test engineer. See our careers page: ${window.location.origin.replace(/^https?:\/\//, "")}/demo/kuura-photonics/careers`;
+  const demoText = () => demoCompanyText(window.location.origin);
 
   function analyse() {
     setError(null);
@@ -90,6 +90,7 @@ export function CompanyFlow({ company, companyDeadline }: { company: CompanyProp
         initial={draft}
         sample={sample}
         companyDeadline={companyDeadline}
+        demo={demo}
         onBack={draft.questions.length ? () => { setQIndex(0); setStep("ask"); } : undefined}
       />
     );

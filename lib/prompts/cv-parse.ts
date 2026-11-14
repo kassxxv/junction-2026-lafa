@@ -7,7 +7,7 @@ export const CV_PARSE_SYSTEM = `You turn a CV or a LinkedIn profile export into 
 Extract only what the text states. Do not evaluate, rank or describe the person. Do not guess missing facts.
 
 - experience: every job, internship or research position. title and employer exactly as written. Dates as YYYY-MM; if only a year is given use YYYY-01; "present"/"current" → end "".
-- areas: 2–4 short lowercase topic tags per job describing the kind of work (e.g. "optical testing", "lab equipment", "production testing", "verification"). When one of the topic names listed in the prompt fits the work, use exactly that name.
+- areas: 2–4 short lowercase topic tags per job for the main work of THAT job, taken only from that job's own title and lines (e.g. "optical testing", "lab equipment", "production testing", "verification"). When one of the topic names listed in the prompt describes what that job's own lines say, use exactly that name. Never copy a topic from another job, and never add a topic because it is in the same field: a research, teaching or study position is tagged with testing only if its lines say the person tested something.
 - tasks: up to 3 concrete tasks from the text.
 - education: degree mapped to Vocational, BSc, MSc or PhD; field of study; year; inProgress true if not finished.
 - languages: CEFR level as stated; "native"/"mother tongue" → Native; "fluent" → C1; "good" → B2; "basic" → A2.

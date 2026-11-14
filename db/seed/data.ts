@@ -4,24 +4,14 @@
  * Differences between CV and LinkedIn are described structurally; the code in
  * lib/matchready/facts.ts computes the checks and evidence from them.
  */
+import { DEMO_CANDIDATE, DEMO_COMPANY_ID, DEMO_FEEDBACK_COMPANY_ID, DEMO_REVIEW_COMPANY_ID, DEMO_REVIEW_FOCUS_CODE } from "../../lib/matchready/demo";
+import { EVENT } from "../../lib/matchready/event";
 import type { CvFacts, Education, Experience, LanguageSkill, LinkedinFacts, RequirementType } from "../../lib/matchready/facts";
 
-export const EVENT = {
-  id: "dttf-2026",
-  name: "Deep Tech Talent Forum",
-  startsOn: "2026-11-26",
-  endsOn: "2026-11-27",
-  format: "Online, in English",
-  fields: ["Semiconductors & Microelectronics", "Photonics", "Quantum technologies"],
-  companyDeadline: "2026-11-18",
-  applicationDeadline: "2026-11-20",
-  decisionDate: "2026-11-21",
-  infoUrl: "https://www.espoo.fi/en/DeepTechTalentForum",
-};
+export { EVENT };
 
-const PHOTONICS = "Photonics";
-const MICRO = "Semiconductors & Microelectronics";
-const QUANTUM = "Quantum technologies";
+// The seed's fields are the event's fields (lib/matchready/event.ts).
+const [MICRO, PHOTONICS, QUANTUM] = EVENT.fields;
 
 interface SeedRequirement {
   type: RequirementType;
@@ -56,7 +46,7 @@ const ENGLISH_B2: SeedRequirement = { type: "language", label: "English", level:
 
 export const COMPANIES: SeedCompany[] = [
   {
-    id: "nordic-photonics",
+    id: DEMO_REVIEW_COMPANY_ID,
     name: "Nordic Photonics Oy",
     website: "nordicphotonics.example",
     field: PHOTONICS,
@@ -79,7 +69,7 @@ export const COMPANIES: SeedCompany[] = [
     },
   },
   {
-    id: "quantumlab",
+    id: DEMO_FEEDBACK_COMPANY_ID,
     name: "QuantumLab Oy",
     website: "quantumlab.example",
     field: PHOTONICS,
@@ -161,7 +151,7 @@ export const COMPANIES: SeedCompany[] = [
   },
   {
     // Invited but has not filled its card yet: used for the live company demo (/company).
-    id: "kuura-photonics",
+    id: DEMO_COMPANY_ID,
     name: "Kuura Photonics Oy",
     website: "kuura-photonics.example",
     field: PHOTONICS,
@@ -263,7 +253,7 @@ export const CANDIDATES: SeedCandidate[] = [
     proofs: { has_done: { type: "link", ref: "github.com/sara-l/laser-driver-tests" } },
   },
   {
-    code: "A-07", name: "Aisha Rahman", fields: [PHOTONICS], workType: "Testing and validation", stage: "experienced", careerChanger: false,
+    code: DEMO_REVIEW_FOCUS_CODE, name: "Aisha Rahman", fields: [PHOTONICS], workType: "Testing and validation", stage: "experienced", careerChanger: false,
     cv: {
       experience: [
         exp("Research Assistant", "University photonics lab", "2020-09", "2022-05", [LAB], ["Characterised fibre couplers"]),
@@ -276,7 +266,7 @@ export const CANDIDATES: SeedCandidate[] = [
     linkedin: { retitle: ["Valo Optics", "Test Engineer"], dropSkills: ["Zemax"] },
     applies: ["nordic-photonics", "quantumlab", "luxbeam"],
     proofs: { education: { type: "diploma", ref: "msc_photonics_diploma.pdf" }, has_done: { type: "link", ref: "github.com/aisha-demo/testbench" } },
-    starter: "At Valo Optics I built an automated insertion-loss test bench for fibre couplers. Python drives the spectrum analyser, and test time per batch went from 3 hours to 40 minutes.",
+    starter: DEMO_CANDIDATE.starter,
   },
   {
     code: "A-08", name: "Daniel Okafor", fields: [PHOTONICS, MICRO], workType: "Engineering and design", stage: "experienced", careerChanger: false,

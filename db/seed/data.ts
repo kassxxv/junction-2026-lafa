@@ -362,6 +362,38 @@ export const CANDIDATES: SeedCandidate[] = [
   },
 ];
 
+/**
+ * B-01 … B-12: extra synthetic participants who applied to QuantumLab, ChipWorks and FinnSensor.
+ * They only exist so the "after the event" dashboard has enough past meetings to read.
+ */
+const EXTRA_NAMES = ["Ilona Varga", "Samuel Mensah", "Johanna Koski", "Ravi Iyer", "Nora Eriksen", "Pablo Ortiz", "Leena Salo", "Chen Wei", "Maria Santos", "Otto Nieminen", "Zainab Yusuf", "Erik Holm"];
+const EXTRA_EMPLOYERS = ["Kide Photonics", "Polar Microsystems", "Aurora Sensors", "Fjord Instruments"];
+const EXTRA_PLANS: { company: string; field: string; title: string; areas: string[]; lang: LanguageSkill[] }[] = [
+  { company: "quantumlab", field: PHOTONICS, title: "Lab Engineer", areas: [LAB, "measurement automation"], lang: [L("English", "C1")] },
+  { company: "chipworks", field: MICRO, title: "Verification Engineer", areas: ["verification", "uvm"], lang: [L("English", "B2")] },
+  { company: "finnsensor", field: PHOTONICS, title: "Production Test Technician", areas: ["production testing", OT], lang: [L("Finnish", "Native"), L("English", "B1")] },
+];
+export const EXTRA_CANDIDATES: SeedCandidate[] = EXTRA_NAMES.map((name, i) => {
+  const plan = EXTRA_PLANS[i % 3];
+  const startYear = 2018 + (i % 5);
+  return {
+    code: `B-${String(i + 1).padStart(2, "0")}`,
+    name,
+    fields: [plan.field],
+    workType: plan.company === "chipworks" ? "Engineering and design" : "Testing and validation",
+    stage: "experienced",
+    careerChanger: i % 4 === 1,
+    cv: {
+      experience: [exp(plan.title, EXTRA_EMPLOYERS[i % 4], `${startYear}-0${1 + (i % 8)}`, null, plan.areas)],
+      education: i % 4 === 1 ? [edu("Vocational", "Electronics", startYear - 2)] : [edu(i % 3 === 0 ? "MSc" : "BSc", "Physics", startYear - 1)],
+      languages: i % 5 === 2 ? [...plan.lang, L("Swedish", "Native")] : plan.lang,
+      skills: [],
+    },
+    linkedin: "same",
+    applies: [plan.company],
+  };
+});
+
 /** LinkedIn facts built from the CV with the planned differences (synthetic stand-in for a live profile). */
 export function linkedinFrom(cv: CvFacts, plan: LinkedinPlan): LinkedinFacts | null {
   if (plan === "none") return null;

@@ -11,7 +11,7 @@ const NAV = [
   { href: "/organiser/pool", label: "Talent pool", icon: Users, enabled: false },
   { href: "/organiser/review", label: "Selection", icon: ListChecks, enabled: true },
   { href: "/organiser/tavata", label: "Codes for Tavata", icon: Download, enabled: false },
-  { href: "/organiser/feedback", label: "Feedback", icon: MessageSquareHeart, enabled: false },
+  { href: "/organiser/feedback", label: "Feedback", icon: MessageSquareHeart, enabled: true },
 ];
 
 /** Reads the URL to highlight the current stage. Render inside <Suspense> (dynamic routes). */

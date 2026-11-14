@@ -2,10 +2,12 @@
  * Loads the seed: the real event + synthetic companies and people.
  * Wipes all app data first (everything in the app is synthetic). Usage: npm run db:seed
  */
-import { CANDIDATES, COMPANIES, cvText, EVENT, linkedinFrom } from "../db/seed/data";
+import { CANDIDATES as BASE_CANDIDATES, COMPANIES, cvText, EVENT, EXTRA_CANDIDATES, linkedinFrom } from "../db/seed/data";
 import { closeDb, withTransaction } from "../lib/db";
 import { compareCvLinkedin, evidenceFor, type Requirement } from "../lib/matchready/facts";
 import { classifyError } from "../lib/service";
+
+const CANDIDATES = [...BASE_CANDIDATES, ...EXTRA_CANDIDATES];
 
 const APP_TABLES = [
   "meeting_feedback", "review_sessions", "decisions", "evidence", "applications", "candidate_background",
@@ -94,6 +96,26 @@ async function main() {
           );
         }
       }
+    }
+
+    // Demo "after the event": meetings already held for companies OTHER than Nordic Photonics (which stays
+    // untouched for the live selection demo). Approvals are logged like real decisions; feedback is synthetic.
+    const held = await q<{ id: string; company_id: string }>(
+      `SELECT a.id, a.company_id FROM applications a
+       WHERE a.company_id IN ('quantumlab', 'finnsensor', 'luxbeam', 'chipworks')
+         AND NOT EXISTS (SELECT 1 FROM evidence e JOIN requirements r ON r.id = e.requirement_id
+                         WHERE e.application_id = a.id AND r.must_have AND e.meets IS FALSE)
+       ORDER BY a.company_id, a.id`,
+    );
+    const pendingDemo = held.find((h) => h.company_id === "quantumlab")?.id; // left without answers for the live demo
+    for (const [i, h] of held.entries()) {
+      await q(`UPDATE applications SET status = 'approved' WHERE id = $1`, [h.id]);
+      await q(`INSERT INTO decisions (application_id, organiser, action, batch, rule, created_at) VALUES ($1, 'Laura (organiser, demo)', 'approve', true, 'must-haves met, nothing to check', now() - interval '2 days')`, [h.id]);
+      if (h.id === pendingDemo) continue;
+      // Deterministic synthetic pattern: about 3 in 4 meetings end with both sides wanting to continue.
+      const company = i % 5 !== 3;
+      const candidate = i % 7 !== 5;
+      await q(`INSERT INTO meeting_feedback (application_id, side, wants_to_continue) VALUES ($1, 'company', $2), ($1, 'candidate', $3)`, [h.id, company, candidate]);
     }
   });
 

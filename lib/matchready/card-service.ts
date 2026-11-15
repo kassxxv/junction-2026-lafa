@@ -218,6 +218,8 @@ export async function poolStats(field: string | null, requirements: CardRequirem
     inField: rows.length,
     matchAll: musts.length ? withCv.filter((row) => musts.every((m) => meets(row, m))).length : withCv.length,
     perMustHave: musts.map((m) => ({ text: requirementText(m), count: withCv.filter((row) => meets(row, m)).length })),
+    perRequirement: requirements.filter((r) => r.label.trim()).map((r) => ({ key: r.key, count: withCv.filter((row) => meets(row, toRequirement(r))).length })),
+    withCv: withCv.length,
   };
 }
 

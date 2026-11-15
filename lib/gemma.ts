@@ -14,6 +14,8 @@ import { classifyError, logFailure, runProbe, stubsForced, type ServiceHealth, t
  */
 
 const CALL_TIMEOUT_MS = 90_000;
+/** Open embedding model served by the same Ollama (override with GEMMA_EMBED_MODEL). */
+const EMBED_MODEL = "embeddinggemma";
 
 let client: OpenAI | undefined;
 
@@ -63,6 +65,23 @@ export async function chatJSON<T>({ schema, messages, stub, temperature = 0.2 }:
     const reason = classifyError(err);
     logFailure("gemma", "chatJSON", reason);
     return { source: "stub", data: stub, reason };
+  }
+}
+
+/**
+ * Text → vectors with EmbeddingGemma on the same self-hosted server. Returns null when Gemma is not
+ * configured or fails: callers treat meaning search as an optional hint and simply show nothing.
+ */
+export async function embed(texts: string[]): Promise<number[][] | null> {
+  const cfg = config();
+  if (stubsForced() || !cfg || !texts.length) return null;
+  try {
+    const res = await getClient(cfg).embeddings.create({ model: env().GEMMA_EMBED_MODEL ?? EMBED_MODEL, input: texts });
+    const out = res.data.sort((a, b) => a.index - b.index).map((d) => d.embedding);
+    return out.length === texts.length ? out : null;
+  } catch (err) {
+    logFailure("gemma", "embed", classifyError(err));
+    return null;
   }
 }
 

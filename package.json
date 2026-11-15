@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:migrate": "tsx --conditions=react-server --env-file=.env scripts/db-migrate.ts",
     "db:seed": "tsx --conditions=react-server --env-file=.env scripts/db-seed.ts",
+    "db:embed": "tsx --conditions=react-server --env-file=.env scripts/db-embed.ts",
     "eval:company": "tsx --conditions=react-server --env-file=.env scripts/eval-company-card.ts",
     "eval:cv": "tsx --conditions=react-server --env-file=.env scripts/eval-cv-parse.ts"
   },

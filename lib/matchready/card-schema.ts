@@ -118,6 +118,10 @@ export interface PoolStats {
   inField: number;
   matchAll: number;
   perMustHave: { text: string; count: number }[];
+  /** Barrier check: for every requirement, how many people with a CV in the field meet it (aggregate only, never a person). */
+  perRequirement?: { key: string; count: number }[];
+  /** People in the field whose CV can be checked: the base of the counts above. */
+  withCv?: number;
 }
 
 export const GOAL_LABEL: Record<GoalId, string> = {

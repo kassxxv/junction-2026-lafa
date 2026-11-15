@@ -31,6 +31,13 @@ export const DATE_TOLERANCE_MONTHS = 3;
 /** Graduation years may differ by this much between CV and LinkedIn. */
 export const EDUCATION_YEAR_TOLERANCE = 1;
 
+/* ---------------- Meaning search (EmbeddingGemma + pgvector) ---------------- */
+
+/** Cosine similarity a CV line needs to be shown as "may be related" to a requirement. A hint, never a score. */
+export const SEMANTIC_MIN_SIMILARITY = 0.35; // calibrated on the seed: related lines 0.35–0.65, unrelated 0.1–0.3
+/** At most this many related lines per requirement. */
+export const SEMANTIC_MAX_LINES = 2;
+
 /* ---------------- Organiser review ---------------- */
 
 /** Bias check: flag a group whose share among approved is this far below its share among applicants. */
@@ -57,6 +64,8 @@ export const RATE_LIMITS = {
   companyDraft: { perClient: 6, windowSeconds: 10 * 60, perDay: 300 },
   /** Gemini: three task suggestions for a card. */
   taskSuggest: { perClient: 6, windowSeconds: 10 * 60, perDay: 300 },
+  /** Gemini: plain-language glossary of one company's requirements (organisers; cached per requirement). */
+  glossary: { perClient: 20, windowSeconds: 10 * 60, perDay: 300 },
   /** Gemma: one CV or LinkedIn document. */
   documentParse: { perClient: 10, windowSeconds: 10 * 60, perDay: 500 },
   /** PDF text extraction at stage 1 (CPU only, no AI). */

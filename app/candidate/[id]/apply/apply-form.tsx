@@ -237,7 +237,20 @@ export function ApplyForm({
                         className={`min-h-9 resize-none bg-card py-1.5 text-sm ${missing && !value ? "border-status-ai/60 placeholder:text-status-ai" : ""}`}
                       />
                       <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                        <span>{typed ? "typed by you" : ev?.value ? `from your CV${ev.linkedinMatch ? " · matches LinkedIn" : ""}` : ""}</span>
+                        {!value && ev?.related ? (
+                          <span className="text-foreground/80">
+                            Your CV mentions “{ev.related}”.{" "}
+                            <button
+                              type="button"
+                              className="font-medium text-primary hover:underline"
+                              onClick={() => setStated((s) => ({ ...s, [c.id]: { ...(s[c.id] ?? {}), [r.id]: ev.related ?? "" } }))}
+                            >
+                              Use it
+                            </button>
+                          </span>
+                        ) : (
+                          <span>{typed ? "typed by you" : ev?.value ? `from your CV${ev.linkedinMatch ? ", matches LinkedIn" : ""}` : ""}</span>
+                        )}
                         {proof ? (
                           <span className="inline-flex max-w-full items-center gap-1 truncate text-status-confirmed">
                             <Paperclip className="size-3 shrink-0" /> {pf.label}: {proof.ref}
@@ -286,8 +299,9 @@ export function ApplyForm({
           {c.task && (
             <div className="border-t border-border px-5 py-4">
               <label className="block text-sm font-medium" htmlFor={`task-${c.id}`}>
-                Task from {c.name} <span className="font-normal text-muted-foreground">· optional, about {TASK_MINUTES} minutes</span>
+                Task from {c.name}
               </label>
+              <p className="mt-0.5 text-xs text-muted-foreground">Optional, about {TASK_MINUTES} minutes.</p>
               <p className="mt-2 border-l-2 border-border pl-3 text-sm leading-relaxed whitespace-pre-line text-muted-foreground">{c.task}</p>
               <Textarea
                 id={`task-${c.id}`}

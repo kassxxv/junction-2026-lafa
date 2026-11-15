@@ -140,6 +140,16 @@ Running locally? The company step reads its careers page through Context.dev, wh
 
 **Stack:** Next.js 16 (App Router, Server Actions), TypeScript strict, Tailwind CSS 4, deployed on Vercel. Every external call runs in server code, every AI call has a fallback so the app keeps working when a service is down, and every AI call reachable from a public page is rate-limited.
 
+### How we used Entire
+
+We built bridgy with Claude Code, tracked by **Entire**. Every session is a checkpoint linked to the commit it produced. The agent guide in [`.entire/agent-guide.md`](.entire/agent-guide.md) makes the agent use **Graph** to find code within a fixed context budget and **Brain** to recall recorded decisions before changing anything, for example the invariant that candidate data only goes to Gemma. Token use is measured per checkpoint. The checkpoints stay local: their transcripts contain personal details and this repository is public.
+
+| Sessions and checkpoints | Token use per checkpoint |
+|---|---|
+| ![entire status and entire checkpoint list: every commit linked to the agent session and prompt that produced it](docs/screenshots/entire/2-checkpoints.png) | ![entire checkpoint tokens: 108 API calls, 99.4% of the volume served from cache, with Entire's recommendations](docs/screenshots/entire/3-tokens.png) |
+| **Graph: code by meaning, within a context budget** | **Brain: recorded decisions** |
+| ![entire graph query: the exact places in the code where candidate data reaches a model](docs/screenshots/entire/4-graph.png) | ![entire brain recall: the privacy invariant that candidate data is processed only by Gemma on Verda](docs/screenshots/entire/5-brain.png) |
+
 ### Architecture
 
 ```mermaid

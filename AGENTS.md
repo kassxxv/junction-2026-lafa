@@ -41,7 +41,7 @@ These come from the sponsor's requirements and the EU AI Act. Never break them, 
 
 ## Commands
 
-The Next.js app lives at the repo root (`app/`, `lib/`). The Python prototype in `src/` uses uv and `.venv` — install Python packages with `uv pip install`, never global pip.
+The Next.js app lives at the repo root (`app/`, `lib/`). (The first Python prototype of the Context.dev reader was removed on 2026-11-15; it is in git history.)
 
 - Install: `npm install`
 - Dev server: `npm run dev` (Gemma needs the SSH tunnel to Verda)

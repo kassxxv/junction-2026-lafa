@@ -100,7 +100,7 @@ export function ChooseForm({
                 <ul className="mt-1 space-y-0.5 text-sm">
                   {c.musts.map((m) => (
                     <li key={m} className="flex gap-2">
-                      <span aria-hidden className="mt-2 size-1 shrink-0 rounded-full bg-foreground/40" />
+                      <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-primary" />
                       {m}
                     </li>
                   ))}

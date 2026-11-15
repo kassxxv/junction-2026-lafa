@@ -3,11 +3,12 @@
  * Wipes all app data first (everything in the app is synthetic). Usage: npm run db:seed
  */
 import { CANDIDATES as BASE_CANDIDATES, COMPANIES, cvText, EVENT, EXTRA_CANDIDATES, linkedinFrom } from "../db/seed/data";
-import { closeDb, withTransaction } from "../lib/db";
+import { closeDb, query, withTransaction } from "../lib/db";
 import { hashInviteCode } from "../lib/invite-code";
 import { DEMO_FEEDBACK_COMPANY_ID, DEMO_ORGANISER, DEMO_REVIEW_COMPANY_ID, demoInviteCode, SEED_REFERENCE_MONTH } from "../lib/matchready/demo";
 import { compareCvLinkedin, evidenceFor, type Requirement } from "../lib/matchready/facts";
 import { redactPersonalDetails } from "../lib/matchready/redact";
+import { ensureRequirementVectors, indexCv, requirementSearchText } from "../lib/matchready/semantic";
 import { classifyError } from "../lib/service";
 
 const CANDIDATES = [...BASE_CANDIDATES, ...EXTRA_CANDIDATES];
@@ -135,6 +136,14 @@ async function main() {
   });
 
   console.log(`seeded: 1 event, ${COMPANIES.length} companies, ${CANDIDATES.length} candidates (synthetic)`);
+
+  // Meaning-search vectors (EmbeddingGemma on our Gemma server). Optional: without Gemma the app simply shows no hints.
+  const cvs = await query<{ candidate_id: string; blind: string }>(`SELECT candidate_id, cv_text_blind AS blind FROM candidate_documents WHERE cv_text_blind IS NOT NULL`);
+  let indexed = 0;
+  for (const c of cvs) if (await indexCv(c.candidate_id, c.blind)) indexed++;
+  const reqs = await query<{ id: string; label: string; keywords: string[] }>(`SELECT id, label, keywords FROM requirements`);
+  await ensureRequirementVectors(reqs.map((r) => ({ id: r.id, text: requirementSearchText(r) })));
+  console.log(indexed ? `meaning search: ${indexed}/${cvs.length} CVs embedded` : "meaning search skipped (Gemma unavailable): run npm run db:embed later");
 }
 
 main()

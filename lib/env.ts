@@ -34,6 +34,7 @@ const EnvSchema = z.object({
   GEMMA_BASE_URL: optionalUrl,
   GEMMA_MODEL: optionalString,
   GEMMA_API_KEY: optionalString,
+  GEMMA_EMBED_MODEL: optionalString,
 
   GEMINI_API_KEY: optionalString,
   GEMINI_MODEL: optionalString,

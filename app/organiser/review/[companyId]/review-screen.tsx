@@ -9,7 +9,7 @@
  * (bias check, decision log) open from the header instead of sitting under a person.
  */
 
-import { ArrowLeft, Check, Download, EyeOff, Paperclip, RotateCcw, Scale, ScrollText, Undo2, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, Download, EyeOff, Paperclip, RotateCcw, Scale, ScrollText, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { CheckLine, CheckList, MustHaveBadge, requirementState, StatusIcon } from "@/components/fact-labels";
@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { approveClean, decide, resetReview, startReview, type ActionResult } from "@/lib/matchready/organiser-actions";
-import { loadSourceDocument, type SourceResult } from "@/lib/matchready/review-actions";
+import { explainRequirements, loadSourceDocument, type SourceResult } from "@/lib/matchready/review-actions";
+import type { GlossaryEntry } from "@/lib/matchready/glossary";
 import { MAX_COMPANIES_PER_CANDIDATE } from "@/lib/matchready/config";
 import { DEMO_REVIEW_FOCUS_CODE } from "@/lib/matchready/demo";
 import type { ApplicationRow, RequirementRow, Review, ReviewStatus } from "@/lib/matchready/organiser";
@@ -63,6 +64,16 @@ export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }
     () => applications.find((a) => a.code === DEMO_REVIEW_FOCUS_CODE)?.id ?? applications[0]?.id ?? "",
   );
   const [panel, setPanel] = useState<Panel>(null);
+  const [glossary, setGlossary] = useState<{ entries: Record<string, GlossaryEntry>; sample: boolean } | null>(null);
+  const [explaining, setExplaining] = useState(false);
+  async function explain() {
+    if (glossary) return setGlossary(null); // second click hides it again
+    setExplaining(true);
+    const r = await explainRequirements(company.id);
+    setExplaining(false);
+    if (r.ok) setGlossary({ entries: r.entries, sample: r.sample });
+    else setResult(r);
+  }
   const [result, setResult] = useState<ActionResult | null>(null);
   const [pending, startTransition] = useTransition();
   const started = useRef(false);
@@ -159,7 +170,7 @@ export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }
               className="flex items-center gap-1.5 text-xs text-muted-foreground"
               title={`Names, photos and nationality are hidden. Each person can apply to up to ${MAX_COMPANIES_PER_CANDIDATE} companies.`}
             >
-              <EyeOff className="size-3.5" /> {applications.length} applied · blind review, names hidden
+              <EyeOff className="size-3.5" /> {applications.length} applied. Blind review, names hidden.
             </p>
             <div className="flex flex-wrap gap-1.5">
               {(
@@ -255,6 +266,9 @@ export function ReviewScreen({ review, demo }: { review: Review; demo: boolean }
               placesFull={free <= 0}
               task={company.task}
               onDecide={(action, note) => run(() => decide(company.id, open.id, action, note))}
+              glossary={glossary}
+              explaining={explaining}
+              onExplain={() => void explain()}
             />
           ) : (
             <p className="p-6 text-muted-foreground">Select a candidate on the left.</p>
@@ -313,12 +327,18 @@ function Detail({
   placesFull,
   onDecide,
   task,
+  glossary,
+  explaining,
+  onExplain,
 }: {
   task: string | null;
   app: ApplicationRow;
   pending: boolean;
   placesFull: boolean;
   onDecide: (action: "approve" | "decline" | "undo", note: string) => void;
+  glossary: { entries: Record<string, GlossaryEntry>; sample: boolean } | null;
+  explaining: boolean;
+  onExplain: () => void;
 }) {
   const [note, setNote] = useState("");
   const [tab, setTab] = useState("cv");
@@ -408,7 +428,12 @@ function Detail({
         <div>
           <div className="mb-1 flex items-baseline justify-between gap-3">
             <h3 className="font-semibold">Company needs and where the candidate has it</h3>
-            <span className="text-xs text-muted-foreground">Click a row to see its lines in the CV</span>
+            <span className="flex items-center gap-3 text-xs text-muted-foreground">
+              Click a row to see its lines in the CV
+              <Button size="sm" variant="outline" className="bg-card" disabled={explaining} onClick={onExplain} aria-pressed={Boolean(glossary)}>
+                <BookOpen data-icon="inline-start" /> {explaining ? "Explaining…" : glossary ? "Hide explanations" : "Explain the terms"}
+              </Button>
+            </span>
           </div>
           <div className="grid grid-cols-[1.25rem_minmax(0,1fr)_minmax(0,1.15fr)] gap-x-4 border-b border-border pb-1.5 text-xs text-muted-foreground">
             <span />
@@ -421,6 +446,8 @@ function Detail({
                 key={r.id}
                 r={r}
                 cvShows={r.source === "stated" && doc ? doc.cvValues[r.id] ?? "nothing for this" : null}
+                related={doc?.related[r.id]?.length ?? 0}
+                explained={glossary?.entries[r.id] ?? null}
                 selected={selectedReq === r.id}
                 onSelect={() => {
                   setSelectedReq(selectedReq === r.id ? null : r.id);
@@ -443,14 +470,21 @@ function Detail({
           </TabsList>
 
           <TabsContent value="cv" className="pt-3">
-            <SourcePanel source={source} doc={doc} selectedLines={selectedReq && doc ? doc.byRequirement[selectedReq] ?? [] : []} selected={Boolean(selectedReq)} />
+            <SourcePanel
+              source={source}
+              doc={doc}
+              selectedLines={selectedReq && doc ? doc.byRequirement[selectedReq] ?? [] : []}
+              relatedLines={selectedReq && doc ? doc.related[selectedReq] ?? [] : []}
+              selected={Boolean(selectedReq)}
+            />
           </TabsContent>
 
           <TabsContent value="meeting" className="space-y-6 pt-4">
             <div>
               <h4 className="font-medium">
-                Conversation starter <span className="text-sm font-normal text-muted-foreground">· opens the meeting, not used for selection</span>
+                Conversation starter
               </h4>
+              <p className="text-xs text-muted-foreground">Opens the meeting. Not used for selection.</p>
               <p className={`mt-1.5 border-l-2 border-border pl-3 leading-relaxed ${app.starter ? "" : "text-muted-foreground"}`}>
                 {app.starter ? `“${app.starter}”` : "No answer."}
               </p>
@@ -458,8 +492,9 @@ function Detail({
             {task && (
               <div>
                 <h4 className="font-medium">
-                  Company task <span className="text-sm font-normal text-muted-foreground">· walked through at the start of the meeting, not scored</span>
+                  Company task
                 </h4>
+                <p className="text-xs text-muted-foreground">Walked through at the start of the meeting. Not scored.</p>
                 <p className="mt-1 text-muted-foreground whitespace-pre-line">{task}</p>
                 <p className={`mt-2 border-l-2 border-border pl-3 leading-relaxed whitespace-pre-line ${app.taskAnswer ? "" : "text-muted-foreground"}`}>
                   {app.taskAnswer ?? "No answer."}
@@ -484,7 +519,23 @@ function Detail({
 }
 
 /** One requirement: status first, then what the company asks, then what the candidate shows and where it comes from. */
-function RequirementLine({ r, cvShows, selected, onSelect }: { r: RequirementRow; cvShows: string | null; selected: boolean; onSelect: () => void }) {
+function RequirementLine({
+  r,
+  cvShows,
+  related,
+  explained,
+  selected,
+  onSelect,
+}: {
+  r: RequirementRow;
+  cvShows: string | null;
+  /** CV lines that may be related by meaning (shown only when the fact check found nothing). */
+  related: number;
+  /** Plain-language meaning of the requirement for organisers (Gemini, company data only). */
+  explained: GlossaryEntry | null;
+  selected: boolean;
+  onSelect: () => void;
+}) {
   const proof =
     r.proofType === "diploma"
       ? "diploma"
@@ -498,7 +549,7 @@ function RequirementLine({ r, cvShows, selected, onSelect }: { r: RequirementRow
             ? "reference letter"
             : null;
   const from = r.source === "cv" && r.value ? "from CV" : r.source === "profile" || r.source === "stated" ? "typed by the candidate" : null;
-  const where = [from, r.linkedinMatch ? "matches LinkedIn" : null].filter(Boolean).join(" · ");
+  const where = [from, r.linkedinMatch ? "matches LinkedIn" : null].filter(Boolean).join(", ");
 
   return (
     <li>
@@ -516,6 +567,12 @@ function RequirementLine({ r, cvShows, selected, onSelect }: { r: RequirementRow
               <MustHaveBadge />
             </span>
           )}
+          {explained && (
+            <span className="mt-1 block text-xs leading-snug text-muted-foreground">
+              {explained.plain}
+              {explained.inCv && <span className="mt-0.5 block">In a CV: {explained.inCv}</span>}
+            </span>
+          )}
         </span>
         <span>
           <span className={r.value ? "" : "text-muted-foreground"}>{r.value ?? "Not found in the CV"}</span>
@@ -530,6 +587,11 @@ function RequirementLine({ r, cvShows, selected, onSelect }: { r: RequirementRow
             </span>
           )}
           {cvShows && <span className="mt-0.5 block text-xs text-muted-foreground">CV shows: {cvShows}</span>}
+          {!r.value && related > 0 && (
+            <span className="mt-0.5 block text-xs text-primary">
+              {related} CV {related === 1 ? "line" : "lines"} may be related by meaning. Click to see them.
+            </span>
+          )}
         </span>
       </button>
     </li>
@@ -547,7 +609,7 @@ function BiasPanel({ bias }: { bias: Review["bias"] }) {
             <div className="mb-1.5 flex items-baseline justify-between gap-3">
               <span className="font-medium">{r.label}</span>
               <span className="text-xs tabular-nums text-muted-foreground">
-                {r.approved === null ? "no approvals yet" : `${pct(r.approved)} approved`} · {pct(r.applicants)} applied
+                {r.approved === null ? "no approvals yet" : `${pct(r.approved)} approved`}, {pct(r.applicants)} applied
               </span>
             </div>
             <div className="relative h-2 rounded-full bg-muted">
@@ -573,32 +635,70 @@ function BiasPanel({ bias }: { bias: Review["bias"] }) {
  * The CV as text with personal details already cut out on the server. Clicking a requirement lights up the lines
  * its evidence comes from. No scroll area of its own: it scrolls with the candidate.
  */
-function SourcePanel({ source, doc, selectedLines, selected }: { source: SourceResult | null; doc: DocResult | null; selectedLines: number[]; selected: boolean }) {
+function SourcePanel({
+  source,
+  doc,
+  selectedLines,
+  relatedLines,
+  selected,
+}: {
+  source: SourceResult | null;
+  doc: DocResult | null;
+  selectedLines: number[];
+  relatedLines: number[];
+  selected: boolean;
+}) {
   const firstLine = useRef<HTMLDivElement | null>(null);
+  const first = selectedLines[0] ?? relatedLines[0];
   useEffect(() => {
     firstLine.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [selectedLines]);
+  }, [selectedLines, relatedLines]);
 
   if (!source) return <p className="text-sm text-muted-foreground">Loading the CV text…</p>;
   if (!source.ok) return <p className="text-sm text-destructive">{source.error}</p>;
   if (!doc) return <p className="text-sm text-muted-foreground">No CV text to show for this application.</p>;
 
   const lit = new Set(selectedLines);
+  const near = new Set(relatedLines);
   return (
     <div>
-      <p className="mb-2 text-xs text-muted-foreground">
-        {selected
-          ? selectedLines.length
-            ? `${selectedLines.length} ${selectedLines.length === 1 ? "line" : "lines"} behind this requirement, highlighted.`
-            : "No line in the CV is behind this requirement."
-          : "Names, contact details, links, addresses and birth dates were removed when the CV was uploaded."}
+      <p className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        {selected ? (
+          <>
+            <span>
+              {selectedLines.length
+                ? `${selectedLines.length} ${selectedLines.length === 1 ? "line" : "lines"} behind this requirement`
+                : "No line in the CV is behind this requirement."}
+            </span>
+            {selectedLines.length > 0 && (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block h-3 w-5 rounded-sm bg-status-ai-bg" /> fact check
+              </span>
+            )}
+            {relatedLines.length > 0 && (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block h-3 w-5 rounded-sm border border-dashed border-primary/60 bg-accent" /> related by meaning, not checked
+              </span>
+            )}
+          </>
+        ) : (
+          "Names, contact details, links, addresses and birth dates were removed when the CV was uploaded."
+        )}
       </p>
       <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm leading-relaxed">
         {doc.lines.map((line, i) => (
           <div
             key={i}
-            ref={lit.has(i) && i === selectedLines[0] ? firstLine : undefined}
-            className={`-mx-1.5 rounded px-1.5 whitespace-pre-wrap ${lit.has(i) ? "bg-status-ai-bg text-foreground" : selected ? "text-muted-foreground" : ""} ${/\[[a-z -]+ hidden\]/.test(line) ? "italic" : ""}`}
+            ref={i === first ? firstLine : undefined}
+            className={`-mx-1.5 rounded px-1.5 whitespace-pre-wrap ${
+              lit.has(i)
+                ? "bg-status-ai-bg text-foreground"
+                : near.has(i)
+                  ? "outline-1 -outline-offset-1 outline-dashed outline-primary/60 bg-accent text-foreground"
+                  : selected
+                    ? "text-muted-foreground"
+                    : ""
+            } ${/\[[a-z -]+ hidden\]/.test(line) ? "italic" : ""}`}
           >
             {line || " "}
           </div>

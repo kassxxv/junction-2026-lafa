@@ -245,7 +245,14 @@ export function CardEditor({
                   </div>
                   <ul className="divide-y divide-border rounded-lg border border-border">
                     {role.requirements.map((r) => (
-                      <RequirementRow key={r.key} r={r} onChange={(p) => updateReq(r.key, p)} onRemove={() => updateRole({ requirements: role.requirements.filter((x) => x.key !== r.key) })} />
+                      <RequirementRow
+                        key={r.key}
+                        r={r}
+                        barrier={barrierFor(livePool, r.key)}
+                        englishInText={/\benglish\b/i.test(card.sourceText)}
+                        onChange={(p) => updateReq(r.key, p)}
+                        onRemove={() => updateRole({ requirements: role.requirements.filter((x) => x.key !== r.key) })}
+                      />
                     ))}
                     {!role.requirements.length && <li className="px-4 py-6 text-center text-sm text-muted-foreground">No requirements yet. Add the ones that matter.</li>}
                   </ul>
@@ -310,28 +317,18 @@ export function CardEditor({
         </section>
 
         <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+          {hiring ? (
+            livePool ? (
+              <PoolPanel pool={livePool} deadline={companyDeadline} niceToHave={niceToHave(role.requirements)} live />
+            ) : (
+              <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">Counting the talent pool…</div>
+            )
+          ) : (
             <div className="rounded-xl border border-border bg-card p-5">
               <h2 className="font-semibold">Talent pool</h2>
               <p className="mt-1 text-sm text-muted-foreground">Candidates can choose you after {fmtDate(companyDeadline)}.</p>
-              {livePool && hiring && (
-                <p className="mt-4 flex gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm">
-                  <Users className="mt-0.5 size-4 shrink-0 text-primary" />
-                  <span>
-                    {musts > 0 ? (
-                      <>
-                        Right now <strong className="tabular-nums">{livePool.matchAll}</strong> of {livePool.inField} people in{" "}
-                        {livePool.field ?? "the pool"} meet your must-haves.
-                      </>
-                    ) : (
-                      <>
-                        <strong className="tabular-nums">{livePool.inField}</strong> people in {livePool.field ?? "the pool"}. Mark a
-                        must-have to see how many meet it.
-                      </>
-                    )}
-                  </span>
-                </p>
-              )}
             </div>
+          )}
           <p className="flex gap-2 px-1 text-xs text-muted-foreground">
             <Sparkles className="mt-0.5 size-3.5 shrink-0" />
             Drafted by AI. “Suggested” means it guessed. Nothing is shared until you confirm.
@@ -354,9 +351,60 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
-function RequirementRow({ r, onChange, onRemove }: { r: CardRequirement; onChange: (p: Partial<CardRequirement>) => void; onRemove: () => void }) {
+/** Barrier check for one requirement: how many people with a CV in the field it would leave out. Aggregate only. */
+interface Barrier {
+  excluded: number;
+  base: number;
+  field: string | null;
+}
+
+function barrierFor(pool: PoolStats | null, key: string): Barrier | null {
+  const hit = pool?.perRequirement?.find((p) => p.key === key);
+  if (!pool || !hit || !pool.withCv) return null;
+  return { excluded: pool.withCv - hit.count, base: pool.withCv, field: pool.field };
+}
+
+function BarrierNote({ r, barrier, englishInText }: { r: CardRequirement; barrier: Barrier; englishInText: boolean }) {
+  const share = barrier.excluded / barrier.base;
+  const high = share >= 0.5;
+  const language = r.type === "language" && !/english/i.test(r.label) && share >= 0.3;
+  if (!barrier.excluded) return <p className="px-1 text-xs text-muted-foreground">Everyone with a CV in {barrier.field ?? "the pool"} meets this.</p>;
   return (
-    <li className="grid gap-3 px-4 py-3 md:grid-cols-[8rem_minmax(0,1fr)_auto] md:items-center">
+    <div className="px-1 text-xs">
+      <p className={`flex items-center gap-1.5 ${r.mustHave && high ? "text-status-ai" : "text-muted-foreground"}`}>
+        {r.mustHave && high ? <AlertCircle className="size-3.5 shrink-0" /> : <Users className="size-3.5 shrink-0" />}
+        <span>
+          {r.mustHave ? "Excludes" : "As a must-have: excludes"} <strong className="tabular-nums">{barrier.excluded}</strong> of {barrier.base}
+        </span>
+        <span aria-hidden className="ml-1 inline-flex h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-muted">
+          <span className={`h-full ${r.mustHave && high ? "bg-status-ai" : "bg-foreground/30"}`} style={{ width: `${Math.round(share * 100)}%` }} />
+        </span>
+      </p>
+      {language && r.mustHave && (
+        <p className="mt-1 text-status-ai">
+          Language is the most common barrier for international professionals. Needed from day one, or can it be learned on the job?
+          {englishInText && " Your text mentions English."}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function RequirementRow({
+  r,
+  barrier,
+  englishInText,
+  onChange,
+  onRemove,
+}: {
+  r: CardRequirement;
+  barrier: Barrier | null;
+  englishInText: boolean;
+  onChange: (p: Partial<CardRequirement>) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <li className="grid gap-3 px-4 py-3.5 md:grid-cols-[8rem_minmax(0,1fr)_auto] md:items-start">
       <NativeSelect
         wrapperClassName="w-full md:w-32"
         value={r.type}
@@ -412,18 +460,19 @@ function RequirementRow({ r, onChange, onRemove }: { r: CardRequirement; onChang
         {r.origin === "text" && r.quote ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="inline-flex cursor-help items-center gap-1 rounded-full bg-status-source-bg px-2 py-0.5 text-xs text-status-source">
+              <span className="inline-flex cursor-help items-center gap-1 text-xs text-muted-foreground underline decoration-dotted underline-offset-2">
                 <Quote className="size-3" /> from your text
               </span>
             </TooltipTrigger>
             <TooltipContent className="max-w-72">“{r.quote}”</TooltipContent>
           </Tooltip>
         ) : r.origin === "ai" ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-status-ai-bg px-2 py-0.5 text-xs text-status-ai">
-            <Sparkles className="size-3" /> suggested
+          <span className="inline-flex items-center gap-1 text-xs text-status-ai">
+            <Sparkles className="size-3" /> suggested by AI, check it
           </span>
         ) : null}
         </div>
+        {barrier && <BarrierNote r={r} barrier={barrier} englishInText={englishInText} />}
       </div>
 
       <div className="flex items-center gap-1">
@@ -493,9 +542,10 @@ function ConfirmedView({
           {hiring && musts.length > 0 && (
             <div className="mt-6">
               <h2 className="text-sm font-medium text-muted-foreground">Your must-haves</h2>
-              <ul className="mt-2 flex flex-wrap gap-1.5">
+              <ul className="mt-2 space-y-1.5">
                 {musts.map((r) => (
-                  <li key={r.key} className="rounded-md bg-muted px-2 py-1 text-sm">
+                  <li key={r.key} className="flex items-start gap-2 text-sm">
+                    <Check className="mt-0.5 size-4 shrink-0 text-primary" />
                     {requirementText(r)}
                   </li>
                 ))}
@@ -527,11 +577,15 @@ function ConfirmedView({
           )}
 
           <h2 className="mt-8 font-semibold">What happens next</h2>
-          <ol className="mt-3 space-y-3">
-            {steps.map((s) => (
-              <li key={s.date} className="grid gap-1 sm:grid-cols-[140px_minmax(0,1fr)]">
-                <span className="text-sm font-semibold tabular-nums">{s.date}</span>
-                <span className="text-sm text-muted-foreground">{s.text}</span>
+          <ol className="mt-4">
+            {steps.map((s, i) => (
+              <li key={s.date} className="relative grid grid-cols-[1rem_minmax(0,1fr)] gap-x-3 pb-5 last:pb-0">
+                {i < steps.length - 1 && <span aria-hidden className="absolute top-3 bottom-0 left-[7px] w-px bg-border" />}
+                <span aria-hidden className={`relative mt-1 size-[15px] rounded-full border-2 ${i === 0 ? "border-primary bg-primary/15" : "border-border bg-card"}`} />
+                <div>
+                  <div className="text-sm font-semibold tabular-nums">{s.date}</div>
+                  <div className="text-sm text-muted-foreground">{s.text}</div>
+                </div>
               </li>
             ))}
           </ol>
@@ -540,10 +594,6 @@ function ConfirmedView({
             <Button variant="outline" className="bg-card" onClick={onEdit} disabled={pending}>
               <ArrowLeft data-icon="inline-start" />
               Edit card
-            </Button>
-            <Button variant="ghost" disabled title="Next step: one card per vacancy">
-              <Plus data-icon="inline-start" />
-              Add another vacancy (next step)
             </Button>
             {onStartOver && (
               <button onClick={onStartOver} disabled={pending} className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
@@ -554,47 +604,81 @@ function ConfirmedView({
         </section>
 
         <aside className="lg:sticky lg:top-6 lg:self-start">
-          <PoolPanel pool={pool} deadline={companyDeadline} />
+          <PoolPanel pool={pool} deadline={companyDeadline} niceToHave={niceToHave(role?.requirements ?? [])} />
         </aside>
       </div>
     </div>
   );
 }
 
-function PoolPanel({ pool, deadline }: { pool: PoolStats; deadline: string }) {
-  const max = Math.max(1, pool.inField);
+/**
+ * The talent pool for this card, aggregate only: how many people meet every must-have, and the barrier check
+ * for each one (the strictest first). Never a person, never a ranking.
+ */
+const niceToHave = (reqs: CardRequirement[]) => reqs.filter((r) => !r.mustHave && r.label.trim()).map((r) => requirementText(r));
+
+function PoolPanel({ pool, deadline, niceToHave = [], live = false }: { pool: PoolStats; deadline: string; niceToHave?: string[]; live?: boolean }) {
+  const base = Math.max(1, pool.withCv ?? pool.inField);
+  const where = pool.field ?? "the pool";
+  const rows = [...pool.perMustHave].sort((x, y) => x.count - y.count);
   return (
-    <div className="rounded-xl border border-status-confirmed/30 bg-card p-5">
-      <p className="text-sm font-medium text-status-confirmed">Already in the talent pool</p>
-      <p className="mt-1 text-5xl font-semibold tabular-nums">{pool.perMustHave.length ? pool.matchAll : pool.inField}</p>
-      {pool.perMustHave.length ? (
+    <div className={`rounded-xl border bg-card p-5 ${live ? "border-border" : "border-status-confirmed/30"}`}>
+      <p className={`text-sm font-medium ${live ? "text-muted-foreground" : "text-status-confirmed"}`}>{live ? `Talent pool in ${where}` : "Already in the talent pool"}</p>
+      {rows.length ? (
         <>
-          <p className="font-medium">{pool.matchAll === 1 ? "person meets" : "people meet"} your must-haves</p>
-          <p className="text-sm text-muted-foreground">
-            of {pool.inField} in {pool.field ?? "the pool"}
+          <p className="mt-1 flex items-baseline gap-2">
+            <span className="text-5xl font-semibold tabular-nums">{pool.matchAll}</span>
+            <span className="text-lg text-muted-foreground tabular-nums">of {pool.inField}</span>
           </p>
+          <p className="font-medium">{pool.matchAll === 1 ? "person meets" : "people meet"} all your must-haves</p>
+          <h3 className="mt-5 text-sm font-semibold">Must-haves</h3>
+          <p className="text-xs text-muted-foreground">These decide who can apply. Strictest first.</p>
+          <ul className="mt-2 space-y-3">
+            {rows.map((m) => {
+              const excluded = base - m.count;
+              const high = excluded / base >= 0.5;
+              return (
+                <li key={m.text} className="text-sm">
+                  <div className="flex gap-2">
+                    <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <span className="font-medium">{m.text}</span>
+                  </div>
+                  <div className="mt-1 ml-6 flex items-center gap-3 text-xs">
+                    <div className="h-1.5 flex-1 rounded-full bg-muted">
+                      <div className={`h-full rounded-full ${high ? "bg-status-ai" : "bg-primary/70"}`} style={{ width: `${(m.count / base) * 100}%` }} />
+                    </div>
+                    <span className="shrink-0 tabular-nums text-muted-foreground">{m.count} meet</span>
+                    <span className={`shrink-0 tabular-nums ${high ? "font-medium text-status-ai" : "text-muted-foreground"}`}>{excluded} left out</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {niceToHave.length > 0 && (
+            <>
+              <h3 className="mt-5 text-sm font-semibold">Nice to have</h3>
+              <p className="text-xs text-muted-foreground">Shown to candidates. Nobody is left out.</p>
+              <ul className="mt-1.5 space-y-1 text-sm text-muted-foreground">
+                {niceToHave.map((t) => (
+                  <li key={t} className="ml-6">
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          <p className="mt-4 text-xs text-muted-foreground">Counts of people with a CV in the pool, never names.</p>
         </>
       ) : (
-        <p className="font-medium">
-          {pool.inField === 1 ? "person" : "people"} in {pool.field ?? "the pool"}. You marked no must-haves, so all of them can apply.
-        </p>
+        <>
+          <p className="mt-1 text-5xl font-semibold tabular-nums">{pool.inField}</p>
+          <p className="font-medium">
+            {pool.inField === 1 ? "person" : "people"} in {where}.{" "}
+            {live ? "Mark a must-have to see how many meet it." : "You marked no must-haves, so all of them can apply."}
+          </p>
+        </>
       )}
-      {pool.perMustHave.length > 0 && (
-        <ul className="mt-4 space-y-3">
-          {pool.perMustHave.map((m) => (
-            <li key={m.text} className="text-sm">
-              <div className="mb-1 flex justify-between gap-3">
-                <span className="truncate">{m.text}</span>
-                <span className="tabular-nums text-muted-foreground">{m.count}</span>
-              </div>
-              <div className="h-1.5 rounded-full bg-muted">
-                <div className="h-full rounded-full bg-status-confirmed" style={{ width: `${(m.count / max) * 100}%` }} />
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="mt-4 text-sm text-muted-foreground">
+      <p className="mt-4 border-t border-border pt-3 text-sm text-muted-foreground">
         Invitations go out after {fmtDate(deadline)}. Names stay hidden until the organisers approve.
       </p>
     </div>

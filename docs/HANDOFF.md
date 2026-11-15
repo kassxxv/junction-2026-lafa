@@ -117,6 +117,12 @@ Re-seed before the pitch: `npm run db:seed`. On the deploy set `ORGANISER_PASSWO
 
 **Source check:** review shows the de-identified CV text (lib/matchready/redact.ts, written at upload) with the lines behind each requirement (lib/matchready/sources.ts) and the facts not found in the text. Seed candidate A-07 has one simulated model error (aiExtraSkills) so the check is visible in the demo. Migration 008.
 
+**Meaning search (built 2026-11-15):** EmbeddingGemma on the Verda Ollama (`embeddinggemma`, pulled through the proxy) embeds the de-identified CV lines (at upload, and in db:seed) and the requirements (lazily, cached in requirement_vectors); pgvector on Aiven finds the nearest lines (migration 010, lib/matchready/semantic.ts, threshold SEMANTIC_MIN_SIMILARITY = 0.35 calibrated on the seed). Shown only as hints: dashed "related by meaning, not checked" lines in the review CV tab, "N CV lines may be related" when the fact check found nothing, and "Your CV mentions … Use it" for candidates. Never a status, filter or order. `npm run db:embed` rebuilds all vectors.
+
+**Barrier check (built 2026-11-15):** in the company card editor every requirement shows how many people with a CV in the field it would leave out as a must-have (poolStats.perRequirement, aggregate only); a non-English language must-have that excludes 30%+ is flagged, with "Your text mentions English" when the company's own text does.
+
+**Glossary for organisers (built 2026-11-15):** review → "Explain the terms": Gemini explains each requirement in plain words and what it looks like in a CV (company card only; cached in requirements.glossary with the wording, migration 011; rate bucket `glossary`).
+
 **Event settings:** /organiser/settings (lib/matchready/event-settings.ts, event-settings-actions.ts, migration 009 adds events.work_types). Organisers edit name, format, event page link, the five dates (order checked), fields and types of work; a field or work type in use cannot be removed. Every page reads the events row; lib/matchready/event.ts is only the seed default and the fallback when the database is down (landing and headers render it first and stream the live values). db:seed resets the settings.
 
 **Organiser Companies page:** /organiser/companies (lib/matchready/companies-admin.ts, companies-actions.ts). Careful in the demo: "New code" on a seeded company replaces its demo code (KUURA-2026 etc.) until the next db:seed.

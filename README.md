@@ -78,7 +78,8 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 - No cover letters: candidates confirm evidence per requirement and attach proof if they want.
 - An optional company task, answered from the candidate's own past work and walked through at the start of the meeting. Candidates say whether an AI tool helped.
 - CV ↔ LinkedIn differences are shown as facts (“CV says Test Lead, LinkedIn says Test Engineer”), never as a score.
-- Every fact traces back to the CV: click a requirement and the lines it comes from light up in the CV text.
+- Every fact traces back to the CV: click a requirement and the lines it comes from light up in the CV text. Lines related by meaning (EmbeddingGemma + pgvector) are marked separately, and candidates get the same hint: “Your CV mentions … Use it?”
+- **Barrier check:** while a company marks must-haves it sees how many people in the pool each one leaves out, and a language requirement that contradicts its own text is flagged. Bias is stopped where it starts, in the job description, and nobody is scored.
 
 **Responsible and feasible execution (20%)**
 - No score, rank or match percentage exists anywhere, in the UI or the database.
@@ -98,9 +99,9 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 
 About 5 minutes on the [live demo](https://junction-2026-lafa.vercel.app). Three roles, each with its own entry on the landing page; the demo buttons (“Fill demo text”, “Use sample CV”) fill in synthetic data so you never type.
 
-1. **Company:** *Companies* on the landing page → sign in with the demo code `KUURA-2026` → “Fill demo text” → *Create card* → answer the question → set must-haves (and an optional task) → *Confirm card*.
+1. **Company:** *Companies* on the landing page → sign in with the demo code `KUURA-2026` → “Fill demo text” → *Create card* → answer the question → set must-haves and watch the *Barrier check* under each one (“Finnish B1: excludes 17 of 28 people in Photonics”) → *Confirm card*.
 2. **Professional:** *Join the pool* → “Fill demo answers” → *Join talent pool* → “Demo: jump to after the company deadline” → choose **Nordic Photonics**, tick “still available” → *Use sample CV* → *Use sample export* → “Fill demo answers” → *Send application*.
-3. **Organiser:** *Open workspace* → sign in (the organiser password is in our Junction submission) → *Selection* (Nordic Photonics) → *Select clean* → *Approve*: seven people who meet every must-have, in one click. Then **A-07** opens with *Check before you decide*: her CV says *Test Lead*, LinkedIn says *Test Engineer*, and the AI extracted a skill the CV does not contain. Click a requirement to see its lines in the CV, write a note → *Approve with note*. *Bias check*, *Decision log* and *Export for Tavata* are in the header.
+3. **Organiser:** *Open workspace* → sign in (the organiser password is in our Junction submission) → *Selection* (Nordic Photonics) → *Select clean* → *Approve*: seven people who meet every must-have, in one click. Then **A-07** opens with *Check before you decide*: her CV says *Test Lead*, LinkedIn says *Test Engineer*, and the AI extracted a skill the CV does not contain. Click a requirement to see its lines in the CV (dashed lines are related by meaning, found by EmbeddingGemma), press *Explain the terms* for a plain-language glossary, write a note → *Approve with note*. *Bias check*, *Decision log* and *Export for Tavata* are in the header.
 4. Back on the candidate's status page: once the organiser approves them, the Tavata code appears.
 5. **After the event:** sign in as a company with `QUANTUMLAB-2026` → *Your meetings* → answer Yes. Then open `/candidate/cand.001` (candidate A-01) → answer Yes → both see “You both want to continue”. Organisers can send the reminder e-mails from `/organiser/feedback` → *Remind both sides*.
 6. **Event settings:** `/organiser/settings` → change the event name or add a type of work → *Save settings* → the landing page, headers and talent-pool form show it.
@@ -111,10 +112,10 @@ Running locally? The company step reads its careers page through Context.dev, wh
 
 | Challenge | How bridgy uses it | Where |
 |---|---|---|
-| **Gemini API** | Company text, or a page read by Context.dev, becomes a card: typed requirements, must-haves, up to 3 clarifying questions. Also drafts three ideas for the optional task. JSON-schema output validated with zod, retried on invalid output, quotes verified against the source. Company data only. | `lib/gemini.ts`, `lib/prompts/`, `npm run eval:company` |
-| **Gemma** | Gemma 3 12B reads CVs and LinkedIn exports and returns facts only: jobs, dates, degrees, languages, skills. Running an open model ourselves is what keeps candidate data in the EU and out of third-party APIs. | `lib/gemma.ts`, `lib/prompts/cv-parse.ts`, `npm run eval:cv` (11/11 on the demo PDFs) |
-| **Verda** | Gemma runs on a Verda A100 with Ollama, behind a Caddy proxy that requires a token. | `infra/verda/` |
-| **Aiven** | PostgreSQL holds the separated identity table, consents with expiry, the decision log, meeting feedback and rate-limit counters. pgvector is installed; semantic evidence search is a next step. | `db/migrations/`, `lib/db.ts` |
+| **Gemini API** | Company text, or a page read by Context.dev, becomes a card: typed requirements, must-haves, up to 3 clarifying questions. Also drafts three ideas for the optional task, and a plain-language glossary of each company's requirements for organisers who are not experts in every field. JSON-schema output validated with zod, retried on invalid output, quotes verified against the source. Company data only. | `lib/gemini.ts`, `lib/prompts/`, `npm run eval:company` |
+| **Gemma** | Gemma 3 12B reads CVs and LinkedIn exports and returns facts only: jobs, dates, degrees, languages, skills. **EmbeddingGemma** on the same server turns de-identified CV lines and requirements into vectors for meaning search. Running open models ourselves is what keeps candidate data in the EU and out of third-party APIs. | `lib/gemma.ts`, `lib/prompts/cv-parse.ts`, `lib/matchready/semantic.ts`, `npm run eval:cv` (11/11 on the demo PDFs) |
+| **Verda** | Gemma 3 12B and EmbeddingGemma run on a Verda A100 with Ollama, behind a Caddy proxy that requires a token. | `infra/verda/` |
+| **Aiven** | PostgreSQL holds the separated identity table, consents with expiry, the decision log, meeting feedback and rate-limit counters. **pgvector** stores the CV-line and requirement vectors and finds the lines nearest to a requirement in SQL. They are hints for people (“may be related, not checked”), never a score or an order. | `db/migrations/`, `lib/db.ts`, `lib/matchready/semantic.ts` |
 | **Context.dev** | Reads the careers page a company links to, so its card can quote it. Company websites only. | `lib/contextdev.ts` |
 | **Entire** | Configured for this repository: session hooks for commits, and Graph and Brain for the coding agents working in it. | `.entire/` |
 
@@ -142,7 +143,7 @@ flowchart LR
   RL -- "careers page" --> CTX["Context.dev: company web pages"]
   RL -- "CV and LinkedIn text" --> GEMMA
   GEMMA -- "facts only" --> FACTS
-  FACTS --> DB["Aiven PostgreSQL: identity kept apart"]
+  FACTS --> DB["Aiven PostgreSQL + pgvector: identity kept apart"]
   UI --> DB
   UI -- "CSV with access codes" --> TAVATA["Tavata: meeting booking"]
 ```
@@ -216,6 +217,7 @@ npm run dev                 # http://localhost:3000
 | `DATABASE_URL`, `DATABASE_CA_CERT` | PostgreSQL connection and CA certificate |
 | `GEMINI_API_KEY`, `GEMINI_MODEL` | Company cards and task ideas |
 | `GEMMA_BASE_URL`, `GEMMA_MODEL`, `GEMMA_API_KEY` | OpenAI-compatible Gemma endpoint (Ollama on Verda) |
+| `GEMMA_EMBED_MODEL` | Embedding model on the same Ollama (default `embeddinggemma`; `ollama pull embeddinggemma`) |
 | `CONTEXT_DEV_API_KEY` | Reading company web pages |
 | `ORGANISER_PASSWORD` | Organiser sign-in. Unset: open in development, locked in production |
 | `DEMO_MODE` | `1` enables the demo reset buttons |

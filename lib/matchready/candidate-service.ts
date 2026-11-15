@@ -18,6 +18,7 @@ import {
   type RequirementType,
 } from "./facts";
 import { redactPersonalDetails } from "./redact";
+import { indexCv, relatedLines, requirementSearchText } from "./semantic";
 import { accessCode } from "./tavata";
 
 /** The CV as organisers may see it: personal details cut out at upload (lib/matchready/redact.ts). */
@@ -203,7 +204,11 @@ export async function parseDocument(candidateId: string, kind: "cv" | "linkedin"
   // overwrite real facts or turn every job into "not on LinkedIn".
   if (result.source === "stub") {
     const [kept] = await query<{ linkedin_checks: LinkedinCheck[] | null }>(`SELECT linkedin_checks FROM candidate_documents WHERE candidate_id = $1`, [candidateId]);
-    if (kind === "cv") await query(`UPDATE candidate_documents SET cv_text = coalesce(cv_text, $2), cv_text_blind = coalesce(cv_text_blind, $3), updated_at = now() WHERE candidate_id = $1`, [candidateId, text, await blindCv(candidateId, text)]);
+    if (kind === "cv") {
+      const blind = await blindCv(candidateId, text);
+      await query(`UPDATE candidate_documents SET cv_text = coalesce(cv_text, $2), cv_text_blind = coalesce(cv_text_blind, $3), updated_at = now() WHERE candidate_id = $1`, [candidateId, text, blind]);
+      if (blind) await indexCv(candidateId, blind);
+    }
     return { ok: false, source: "stub", facts: null, checks: kept?.linkedin_checks ?? [] };
   }
 
@@ -219,9 +224,12 @@ export async function parseDocument(candidateId: string, kind: "cv" | "linkedin"
   const checks = cv ? compareCvLinkedin(cv, li) : [];
 
   if (kind === "cv") {
+    const blind = await blindCv(candidateId, text);
     await query(`UPDATE candidate_documents SET cv_text = $2, cv_facts = $3, linkedin_checks = $4, cv_text_blind = $5, updated_at = now() WHERE candidate_id = $1`, [
-      candidateId, text, JSON.stringify(facts), JSON.stringify(checks), await blindCv(candidateId, text),
+      candidateId, text, JSON.stringify(facts), JSON.stringify(checks), blind,
     ]);
+    // Meaning search: vectors of the de-identified lines, on the same Gemma server. A hint only; failure is fine.
+    if (blind) await indexCv(candidateId, blind);
   } else {
     await query(`UPDATE candidate_documents SET linkedin_facts = $2, linkedin_checks = $3, updated_at = now() WHERE candidate_id = $1`, [
       candidateId, JSON.stringify(li), JSON.stringify(checks),
@@ -245,21 +253,31 @@ export interface EvidenceRow {
   value: string | null;
   meets: boolean | null;
   linkedinMatch: boolean | null;
+  /** When nothing was found: a line of the candidate's own CV that may be related by meaning (a suggestion they can use). */
+  related: string | null;
 }
 
 export async function evidencePreview(candidateId: string, companyIds: string[]): Promise<{ companyId: string; rows: EvidenceRow[] }[]> {
-  const [doc] = await query<{ cv_facts: CvFacts | null; linkedin_facts: LinkedinFacts | null; languages: LanguageSkill[] }>(
-    `SELECT d.cv_facts, d.linkedin_facts, p.languages FROM pool_profiles p LEFT JOIN candidate_documents d ON d.candidate_id = p.candidate_id WHERE p.candidate_id = $1`,
+  const [doc] = await query<{ cv_facts: CvFacts | null; linkedin_facts: LinkedinFacts | null; languages: LanguageSkill[]; blind: string | null }>(
+    `SELECT d.cv_facts, d.linkedin_facts, p.languages, d.cv_text_blind AS blind FROM pool_profiles p LEFT JOIN candidate_documents d ON d.candidate_id = p.candidate_id WHERE p.candidate_id = $1`,
     [candidateId],
   );
   const companies = (await confirmedCompanies()).filter((c) => companyIds.includes(c.id));
-  return companies.map((c) => ({
+  const rows = companies.map((c) => ({
     companyId: c.id,
     rows: c.requirements.map((r) => {
       const ev = doc?.cv_facts ? evidenceFor(r, doc.cv_facts, doc.linkedin_facts, doc.languages) : null;
-      return { requirementId: r.id, text: r.text, type: r.type, mustHave: r.mustHave, value: ev?.value ?? null, meets: ev?.meets ?? null, linkedinMatch: ev?.linkedinMatch ?? null };
+      return { requirementId: r.id, text: r.text, type: r.type, mustHave: r.mustHave, value: ev?.value ?? null, meets: ev?.meets ?? null, linkedinMatch: ev?.linkedinMatch ?? null, related: null as string | null };
     }),
   }));
+  // For requirements the CV facts did not cover, suggest the nearest line of the candidate's own CV.
+  const open = companies.flatMap((c) => c.requirements).filter((r) => rows.some((x) => x.rows.some((y) => y.requirementId === r.id && !y.value)));
+  if (doc?.blind && open.length) {
+    const lines = doc.blind.split(/\r?\n/);
+    const related = await relatedLines(candidateId, open.map((r) => ({ id: r.id, text: requirementSearchText(r) })));
+    for (const x of rows) for (const y of x.rows) if (!y.value && related[y.requirementId]?.length) y.related = lines[related[y.requirementId][0]]?.replace(/^[-•*\s]+/, "").trim() || null;
+  }
+  return rows;
 }
 
 export interface SubmitInput {

@@ -1,6 +1,3 @@
-# Python prototype (uv / .venv) is not part of the Next.js deployment
-src/
-requirements.txt
+# Local-only folders, never part of the deployment
 .venv/
-data/
 certs/

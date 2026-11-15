@@ -369,7 +369,7 @@ HEALTH_PROBE_CONTEXTDEV= # 1 = /api/health calls Context.dev (default: key prese
 
 ### Service layer and health \[FACT — built 2026-11-14\]
 
-- Next.js 16.4 app at the repo root (App Router, Tailwind 4, `cacheComponents` on: no `runtime`/`dynamic` route exports; use `await connection()` for request-time routes). Python prototype stays in `src/` (uv-managed `.venv`), excluded from TS/ESLint.
+- Next.js 16.4 app at the repo root (App Router, Tailwind 4, `cacheComponents` on: no `runtime`/`dynamic` route exports; use `await connection()` for request-time routes). The first Python prototype (`src/`) was removed on 2026-11-15; it is in git history.
 - One wrapper per service in `lib/` (`db.ts`, `gemma.ts`, `gemini.ts`, `contextdev.ts`, `esco.ts`), all `server-only`. AI/HTTP wrappers return `Sourced<T>` = `{source: "live" | "stub"}`; callers must not store stub output as real. Gemma never falls back to another provider. DB has no stub: it throws `ServiceUnavailableError`.
 - `GET /api/health` returns per-service `status` (ok / unchecked / degraded / down / not_configured), `mode`, latency and a fixed error code. No keys, hosts, URLs or upstream messages. Always HTTP 200.
 

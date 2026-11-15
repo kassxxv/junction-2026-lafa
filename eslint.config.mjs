@@ -12,9 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Python side (uv-managed venv and the Context.dev prototype):
+    // Local Python venv (not part of the app):
     ".venv/**",
-    "src/**",
     // Playwright MCP plugin output (screenshots, logs, scratch scripts):
     ".playwright-mcp/**",
   ]),

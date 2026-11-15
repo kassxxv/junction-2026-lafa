@@ -36,6 +36,7 @@ Built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment
 
 <p align="center">
   <a href="#try-the-demo">Try the demo</a> ·
+  <a href="#screenshots">Screenshots</a> ·
   <a href="#tech-challenges-and-stack">Tech challenges and stack</a> ·
   <a href="#responsible-ai">Responsible AI</a> ·
   <a href="#run-it-locally">Run it locally</a>
@@ -65,6 +66,14 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 | **Both, after the meeting** | Answer one question: “Want to continue the conversation?” | The share of meetings where both said yes, per company. |
 
 **AI never decides.** Gemini drafts the company card from company data. Gemma, an open model on our own EU server, turns a CV into facts. **Plain code compares** those facts with the requirements, so every flag an organiser sees traces back to a line in a document.
+
+## Screenshots
+
+| Company card with the barrier check | Candidate application |
+|---|---|
+| ![Company card: must-haves on the left; on the right the talent pool, 8 of 29 people meet all must-haves, and how many people each must-have leaves out](docs/screenshots/company-card.png) | ![Candidate application: numbered steps, CV and LinkedIn read, each requirement pre-filled from the CV with its source](docs/screenshots/candidate-application.png) |
+| **Organiser review** | **Landing page** |
+| ![Blind organiser review: the decision on top, what to check before deciding, each requirement with the fact and where it comes from](docs/screenshots/organiser-review.png) | ![Landing page of the event with the three ways in](docs/screenshots/landing.png) |
 
 ## How it meets the judging criteria
 
@@ -99,7 +108,7 @@ bridgy adds one step before Tavata: a short, structured registration and a trans
 
 About 5 minutes on the [live demo](https://junction-2026-lafa.vercel.app). Three roles, each with its own entry on the landing page; the demo buttons (“Fill demo text”, “Use sample CV”) fill in synthetic data so you never type.
 
-1. **Company:** *Companies* on the landing page → sign in with the demo code `KUURA-2026` → “Fill demo text” → *Create card* → answer the question → set must-haves and watch the *Barrier check* under each one (“Finnish B1: excludes 17 of 28 people in Photonics”) → *Confirm card*.
+1. **Company:** *Companies* on the landing page → sign in with the demo code `KUURA-2026` → “Fill demo text” → *Create card* → answer the question → mark must-haves and watch the panel on the right: how many people meet all of them, and how many each one leaves out (try adding “Finnish, B1”) → *Confirm card*.
 2. **Professional:** *Join the pool* → “Fill demo answers” → *Join talent pool* → “Demo: jump to after the company deadline” → choose **Nordic Photonics**, tick “still available” → *Use sample CV* → *Use sample export* → “Fill demo answers” → *Send application*.
 3. **Organiser:** *Open workspace* → sign in (the organiser password is in our Junction submission) → *Selection* (Nordic Photonics) → *Select clean* → *Approve*: seven people who meet every must-have, in one click. Then **A-07** opens with *Check before you decide*: her CV says *Test Lead*, LinkedIn says *Test Engineer*, and the AI extracted a skill the CV does not contain. Click a requirement to see its lines in the CV (dashed lines are related by meaning, found by EmbeddingGemma), press *Explain the terms* for a plain-language glossary, write a note → *Approve with note*. *Bias check*, *Decision log* and *Export for Tavata* are in the header.
 4. Back on the candidate's status page: once the organiser approves them, the Tavata code appears.
@@ -110,16 +119,26 @@ Running locally? The company step reads its careers page through Context.dev, wh
 
 ## Tech challenges and stack
 
-| Challenge | How bridgy uses it | Where |
-|---|---|---|
-| **Gemini API** | Company text, or a page read by Context.dev, becomes a card: typed requirements, must-haves, up to 3 clarifying questions. Also drafts three ideas for the optional task, and a plain-language glossary of each company's requirements for organisers who are not experts in every field. JSON-schema output validated with zod, retried on invalid output, quotes verified against the source. Company data only. | `lib/gemini.ts`, `lib/prompts/`, `npm run eval:company` |
-| **Gemma** | Gemma 3 12B reads CVs and LinkedIn exports and returns facts only: jobs, dates, degrees, languages, skills. **EmbeddingGemma** on the same server turns de-identified CV lines and requirements into vectors for meaning search. Running open models ourselves is what keeps candidate data in the EU and out of third-party APIs. | `lib/gemma.ts`, `lib/prompts/cv-parse.ts`, `lib/matchready/semantic.ts`, `npm run eval:cv` (11/11 on the demo PDFs) |
-| **Verda** | Gemma 3 12B and EmbeddingGemma run on a Verda A100 with Ollama, behind a Caddy proxy that requires a token. | `infra/verda/` |
-| **Aiven** | PostgreSQL holds the separated identity table, consents with expiry, the decision log, meeting feedback and rate-limit counters. **pgvector** stores the CV-line and requirement vectors and finds the lines nearest to a requirement in SQL. They are hints for people (“may be related, not checked”), never a score or an order. | `db/migrations/`, `lib/db.ts`, `lib/matchready/semantic.ts` |
-| **Context.dev** | Reads the careers page a company links to, so its card can quote it. Company websites only. | `lib/contextdev.ts` |
-| **Entire** | Configured for this repository: session hooks for commits, and Graph and Brain for the coding agents working in it. | `.entire/` |
+### Which data goes where
 
-**Stack:** Next.js 16 (App Router, Server Actions), TypeScript strict, Tailwind CSS 4, PostgreSQL on Aiven, deployed on Vercel. Every external call runs in server code, and every AI call has a fallback so the app keeps working when a service is down.
+| Data | Goes to | Never goes to |
+|---|---|---|
+| Company text, careers page, requirements | Gemini API, Context.dev | — |
+| CVs, LinkedIn exports, candidate answers | Gemma 3 12B and EmbeddingGemma on our own Verda server (EU) | Gemini, Context.dev or any other external API |
+| Everything that is stored | Aiven PostgreSQL (EU), identity in its own table | — |
+
+### How each tool is used
+
+| Tool | What it does in bridgy | Why this tool | Code |
+|---|---|---|---|
+| **Gemini API** | Turns a company's text or careers page into a card: typed requirements, must-haves and at most three clarifying questions, only where the answer changes the card. Also drafts three ideas for the optional task and the organisers' glossary (*Explain the terms*). | Strong structured output on messy company text. JSON schema, validated with zod, retried on invalid output; every quote it claims is checked against the source by code. | `lib/gemini.ts`, `lib/prompts/`, `npm run eval:company` |
+| **Gemma** | Gemma 3 12B reads CVs and LinkedIn exports and returns facts only: jobs, dates, degrees, languages, skills. EmbeddingGemma turns de-identified CV lines and requirements into vectors for meaning search. | An open model we run ourselves is the only way candidate data stays in the EU and out of third-party APIs. | `lib/gemma.ts`, `lib/prompts/cv-parse.ts`, `lib/matchready/semantic.ts`, `npm run eval:cv` (11/11) |
+| **Verda** | Hosts both models on an A100 with Ollama, behind a Caddy proxy that requires a token. | EU GPU we control: no candidate document leaves our infrastructure. | `infra/verda/` |
+| **Aiven** | PostgreSQL holds the separated identity table, consents with expiry, the decision log, meeting feedback and rate limits. **pgvector** finds the CV lines nearest to a requirement in SQL, shown as “related by meaning, not checked”. | Managed Postgres in the EU with pgvector in the same database, so vectors sit next to the data they describe and nothing extra to run. | `db/migrations/`, `lib/db.ts`, `lib/matchready/semantic.ts` |
+| **Context.dev** | Reads the careers page a company links to, so its card can quote the real job ad. | Clean markdown from any company website in one call. Company websites only. | `lib/contextdev.ts` |
+| **Entire** | Session hooks on every commit, Graph and Brain for the coding agents that built this repository. | Lets four people and their agents share decisions and find code without re-reading everything. | `.entire/` |
+
+**Stack:** Next.js 16 (App Router, Server Actions), TypeScript strict, Tailwind CSS 4, deployed on Vercel. Every external call runs in server code, every AI call has a fallback so the app keeps working when a service is down, and every AI call reachable from a public page is rate-limited.
 
 ### Architecture
 
@@ -245,4 +264,4 @@ docs/             CONTEXT.md (decisions), HANDOFF.md (state and open work)
 
 Filip Fylyp, Oleksandr Lysytsia, Svitlana Meleshko, Artem Lobodiuchenko.
 
-Made at Junction 2026, Helsinki. All companies and people in this project are fictional.
+Made at Junction 2026, Espoo. All companies and people in this project are fictional.

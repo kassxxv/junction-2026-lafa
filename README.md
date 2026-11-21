@@ -35,7 +35,6 @@ Built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment
 </p>
 
 <p align="center">
-  <a href="#try-the-demo">Try the demo</a> ·
   <a href="#screenshots">Screenshots</a> ·
   <a href="#tech-challenges-and-stack">Tech challenges and stack</a> ·
   <a href="#responsible-ai">Responsible AI</a> ·
@@ -43,6 +42,8 @@ Built at Junction 2026 for the City of Espoo challenge “Rethinking Recruitment
 </p>
 
 > **Real event, synthetic people.** The event in the demo is real: the *Deep Tech Talent Forum*, 26–27 November 2026, organised by Espoo and partner cities. Every company, candidate, CV and LinkedIn profile here is fictional.
+
+! Demo was live during Junction 2026 and is now offline; see screenshots below
 
 ### In 30 seconds
 
